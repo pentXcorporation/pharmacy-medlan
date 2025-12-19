@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { authService } from "@/lib/auth"
+import { authService } from "@/lib/services"
+import { toast } from "sonner"
 import type { LoginRequest } from "@/types"
 
 export function LoginForm() {
@@ -24,12 +25,40 @@ export function LoginForm() {
     setError("")
     
     try {
+      console.log('Attempting login with:', credentials)
       const response = await authService.login(credentials)
-      if (response.success) {
-        router.push('/dashboard')
+      console.log('Full response:', JSON.stringify(response, null, 2))
+      console.log('Response data:', JSON.stringify(response.data, null, 2))
+      console.log('Response data.data:', JSON.stringify(response.data?.data, null, 2))
+      
+      if (response.data?.success && response.data?.data) {
+        const data = response.data.data
+        if (data.accessToken && data.fullName) {
+          localStorage.setItem('accessToken', data.accessToken)
+          localStorage.setItem('refreshToken', data.refreshToken || '')
+          localStorage.setItem('userName', data.fullName)
+          localStorage.setItem('userRole', data.role)
+          localStorage.setItem('branchId', '1')
+          toast.success('Login successful')
+          router.push('/dashboard')
+        } else {
+          throw new Error('Invalid response structure')
+        }
+      } else {
+        throw new Error(response.data?.message || 'Invalid credentials')
       }
     } catch (err: any) {
-      setError(err.response?.data?.message || "Login failed. Please try again.")
+      console.error('Login error:', err)
+      let errorMsg = 'Login failed. Please try again.'
+      
+      if (err.message?.includes('Cannot connect')) {
+        errorMsg = 'Cannot connect to server. Please ensure backend is running on http://localhost:8080'
+      } else if (err.response?.data?.message) {
+        errorMsg = err.response.data.message
+      }
+      
+      setError(errorMsg)
+      toast.error(errorMsg)
     } finally {
       setIsLoading(false)
     }

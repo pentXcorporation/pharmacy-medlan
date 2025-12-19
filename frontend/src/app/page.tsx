@@ -1,5 +1,23 @@
-import { RedirectType, permanentRedirect } from 'next/navigation'
+'use client';
+
+import { useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 
 export default function Home() {
-  permanentRedirect('/auth/login', RedirectType.replace)
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      router.push('/dashboard');
+    } else {
+      router.push('/auth/login');
+    }
+  }, [router]);
+
+  return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+    </div>
+  );
 }
