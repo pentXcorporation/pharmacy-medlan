@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
+import { useFocusVisible } from '@/hooks/useFocusVisible';
 import { 
   LayoutDashboard, 
   Package, 
@@ -23,6 +25,9 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { KeyboardShortcutsHelp } from '@/components/accessibility/keyboard-shortcuts-help';
+import { SkipToContent } from '@/components/accessibility/skip-to-content';
+import { AccessibilityToolbar } from '@/components/accessibility/accessibility-toolbar';
 
 const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
@@ -45,6 +50,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   const [userRole, setUserRole] = useState('User');
   const pathname = usePathname();
   const router = useRouter();
+  
+  useKeyboardShortcuts();
+  useFocusVisible();
 
   useEffect(() => {
     setUserName(localStorage.getItem('userName') || 'Admin');
@@ -59,6 +67,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
   return (
     <div className="flex h-screen bg-gray-50">
+      <SkipToContent />
       {sidebarOpen && (
         <div 
           className="fixed inset-0 bg-black/50 z-40 lg:hidden"
@@ -83,6 +92,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               size="icon"
               className="lg:hidden"
               onClick={() => setSidebarOpen(false)}
+              aria-label="Close sidebar"
             >
               <X className="w-5 h-5" />
             </Button>
@@ -96,7 +106,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                    "flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500",
                     isActive 
                       ? "bg-blue-50 text-blue-600" 
                       : "text-gray-700 hover:bg-gray-100"
@@ -126,6 +136,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
               variant="outline" 
               className="w-full justify-start gap-2"
               onClick={handleLogout}
+              aria-label="Logout"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -141,15 +152,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             size="icon"
             className="lg:hidden"
             onClick={() => setSidebarOpen(true)}
+            aria-label="Open menu"
           >
             <Menu className="w-5 h-5" />
           </Button>
           <div className="flex-1" />
         </header>
 
-        <main className="flex-1 overflow-auto p-6">
+        <main id="main-content" className="flex-1 overflow-auto p-6" role="main">
           {children}
         </main>
+        
+        <AccessibilityToolbar />
+        <KeyboardShortcutsHelp />
       </div>
     </div>
   );
