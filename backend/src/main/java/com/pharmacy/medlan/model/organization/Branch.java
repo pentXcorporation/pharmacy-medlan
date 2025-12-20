@@ -1,46 +1,72 @@
 package com.pharmacy.medlan.model.organization;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.pharmacy.medlan.model.base.AuditableEntity;
+import com.pharmacy.medlan.model.product.BranchInventory;
+import com.pharmacy.medlan.model.user.BranchStaff;
+import com.pharmacy.medlan.model.user.User;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import jakarta.validation.constraints.Pattern;
-
+import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
-@Table(name = "branch")
-@Data
+@Table(name = "branches")
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@JsonIgnoreProperties({"hibernateLazyInitializer","handler"})
-public class Branch {
+public class Branch extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "branch_id")
-    private long branchId;
+    private Long id;
 
-    @Column(name = "branch_code", unique = true, nullable = false)
+    @Column(name = "branch_code", nullable = false, unique = true, length = 50)
     private String branchCode;
 
-    @Column(name = "branch_type", nullable = false)
-    private String branchType; // Main, Satellite
+    @Column(name = "branch_name", nullable = false, length = 200)
+    private String branchName;
 
-    @Column(name = "name", nullable = false)
-    private String name;
-
-    @Column(name = "address")
+    @Column(name = "address", columnDefinition = "TEXT")
     private String address;
 
-    @Pattern(regexp = "^[0-9\\-]{7,10}$", message = "Invalid Phone Number")
-    @Column(nullable = false, unique = true)
-    private String phone;
+    @Column(name = "city", length = 100)
+    private String city;
 
-    @Email
-    @Column(name = "email", unique = true, nullable = false)
+    @Column(name = "state", length = 100)
+    private String state;
+
+    @Column(name = "pincode", length = 20)
+    private String pincode;
+
+    @Column(name = "phone_number", length = 50)
+    private String phoneNumber;
+
+    @Column(name = "email", length = 100)
     private String email;
+
+    @Column(name = "gstin_number", length = 50)
+    private String gstinNumber;
+
+    @Column(name = "drug_license_number", length = 50)
+    private String drugLicenseNumber;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "manager_id")
+    private User manager;
+
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
+
+    @Column(name = "is_main_branch", nullable = false)
+    private Boolean isMainBranch = false;
+
+    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<BranchStaff> staff = new ArrayList<>();
+
+    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<BranchInventory> inventory = new ArrayList<>();
 }
