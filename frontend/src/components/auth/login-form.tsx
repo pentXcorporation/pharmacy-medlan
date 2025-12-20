@@ -33,12 +33,12 @@ export function LoginForm() {
       
       if (response.data?.success && response.data?.data) {
         const data = response.data.data
-        if (data.accessToken && data.fullName) {
+        if (data.accessToken) {
           localStorage.setItem('accessToken', data.accessToken)
           localStorage.setItem('refreshToken', data.refreshToken || '')
-          localStorage.setItem('userName', data.fullName)
-          localStorage.setItem('userRole', data.role)
-          localStorage.setItem('branchId', '1')
+          localStorage.setItem('userName', data.user?.fullName || data.user?.username || 'Admin User')
+          localStorage.setItem('userRole', data.user?.role || 'ADMIN')
+          localStorage.setItem('branchId', data.user?.branchId?.toString() || '1')
           toast.success('Login successful')
           router.push('/dashboard')
         } else {
