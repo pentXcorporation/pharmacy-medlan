@@ -1,7 +1,25 @@
 import { create } from 'zustand';
 
+const getStoredUser = () => {
+  try {
+    const stored = localStorage.getItem('user');
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+};
+
+const getStoredBranch = () => {
+  try {
+    const stored = localStorage.getItem('selectedBranch');
+    return stored ? JSON.parse(stored) : null;
+  } catch {
+    return null;
+  }
+};
+
 export const useAuthStore = create((set) => ({
-  user: JSON.parse(localStorage.getItem('user') || 'null'),
+  user: getStoredUser(),
   token: localStorage.getItem('token'),
   isAuthenticated: !!localStorage.getItem('token'),
   
@@ -24,7 +42,7 @@ export const useAuthStore = create((set) => ({
 }));
 
 export const useAppStore = create((set) => ({
-  selectedBranch: JSON.parse(localStorage.getItem('selectedBranch') || 'null'),
+  selectedBranch: getStoredBranch(),
   
   setSelectedBranch: (branch) => {
     localStorage.setItem('selectedBranch', JSON.stringify(branch));

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { productService, categoryService } from '../services/api';
+import { usePermission } from '../hooks/usePermission';
 import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/Card';
 import { Button } from '../components/ui/Button';
 import { Input, Label, Select, Textarea } from '../components/ui/Input';
@@ -11,6 +12,7 @@ import { toast } from 'sonner';
 
 export function ProductsPage() {
   const queryClient = useQueryClient();
+  const { can } = usePermission();
   const [showForm, setShowForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -43,10 +45,12 @@ export function ProductsPage() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-3xl font-bold">Products</h1>
-        <Button onClick={() => { setShowForm(true); setEditingProduct(null); }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Product
-        </Button>
+        {can('CREATE_PRODUCT') && (
+          <Button onClick={() => { setShowForm(true); setEditingProduct(null); }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Product
+          </Button>
+        )}
       </div>
 
       {showForm && (
@@ -107,20 +111,24 @@ export function ProductsPage() {
                     </TableCell>
                     <TableCell>
                       <div className="flex gap-2">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => { setEditingProduct(product); setShowForm(true); }}
-                        >
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          onClick={() => deleteMutation.mutate(product.id)}
-                        >
-                          <Trash2 className="h-4 w-4 text-destructive" />
-                        </Button>
+                        {can('EDIT_PRODUCT') && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => { setEditingProduct(product); setShowForm(true); }}
+                          >
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                        )}
+                        {can('DELETE_PRODUCT') && (
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => deleteMutation.mutate(product.id)}
+                          >
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

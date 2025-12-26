@@ -166,3 +166,15 @@ export const reportsService = {
   getDailySales: (branchId, startDate, endDate) => api.get(`/api/reports/sales/daily?branchId=${branchId}&startDate=${startDate}&endDate=${endDate}`),
   getTopProducts: (branchId, startDate, endDate, limit = 10) => api.get(`/api/reports/sales/top-products?branchId=${branchId}&startDate=${startDate}&endDate=${endDate}&limit=${limit}`),
 };
+
+// Sale Return Service
+export const saleReturnService = {
+  getAll: (params) => api.get('/api/sale-returns', { params }),
+  getById: (id) => api.get(`/api/sale-returns/${id}`),
+  getByNumber: (number) => api.get(`/api/sale-returns/number/${number}`),
+  getByBranch: (branchId, params) => api.get(`/api/sale-returns/branch/${branchId}`, { params }),
+  getBySale: (saleId) => api.get(`/api/sale-returns/sale/${saleId}`),
+  create: (data) => api.post('/api/sale-returns', data),
+  approve: (id) => api.post(`/api/sale-returns/${id}/approve`),
+  reject: (id, reason) => api.post(`/api/sale-returns/${id}/reject?reason=${reason}`),
+};

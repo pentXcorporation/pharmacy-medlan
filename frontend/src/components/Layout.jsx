@@ -1,5 +1,6 @@
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuthStore, useAppStore } from '../store';
+import { canAccessRoute } from '../config/permissions';
 import { 
   LayoutDashboard, Package, ShoppingCart, Users, Building2, 
   FileText, TrendingUp, Settings, LogOut, Menu, X,
@@ -12,10 +13,12 @@ const navigation = [
   { name: 'Dashboard', href: '/', icon: LayoutDashboard },
   { name: 'POS', href: '/pos', icon: ShoppingCart },
   { name: 'Products', href: '/products', icon: Pill },
+  { name: 'Categories', href: '/categories', icon: FileText },
   { name: 'Inventory', href: '/inventory', icon: Package },
   { name: 'Purchase Orders', href: '/purchase-orders', icon: ClipboardList },
   { name: 'GRN', href: '/grn', icon: Truck },
   { name: 'Sales', href: '/sales', icon: TrendingUp },
+  { name: 'Sale Returns', href: '/sale-returns', icon: TrendingUp },
   { name: 'Customers', href: '/customers', icon: Users },
   { name: 'Suppliers', href: '/suppliers', icon: Building2 },
   { name: 'Reports', href: '/reports', icon: BarChart3 },
@@ -65,7 +68,7 @@ export function Layout({ children }) {
 
           {/* Navigation */}
           <nav className="flex-1 overflow-y-auto py-4">
-            {navigation.map((item) => {
+            {navigation.filter(item => canAccessRoute(user?.role, item.href)).map((item) => {
               const isActive = location.pathname === item.href;
               return (
                 <Link

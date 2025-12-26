@@ -22,12 +22,20 @@ export function LoginPage() {
 
     try {
       const response = await authService.login(formData);
-      if (response.success) {
-        login(response.data.user, response.data.accessToken);
+      console.log('Login response:', response);
+      
+      if (response.success && response.data) {
+        // Backend returns user data directly in response.data along with tokens
+        const { accessToken, ...userData } = response.data;
+        
+        login(userData, accessToken);
         toast.success('Login successful!');
-        navigate('/');
+        setTimeout(() => navigate('/'), 100);
+      } else {
+        toast.error('Invalid response from server');
       }
     } catch (error) {
+      console.error('Login error:', error);
       toast.error(error.message || 'Login failed. Please check your credentials.');
     } finally {
       setLoading(false);
