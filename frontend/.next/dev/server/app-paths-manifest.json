@@ -1,0 +1,15 @@
+{
+  "/auth/login/page": "app/auth/login/page.js",
+  "/dashboard/customers/page": "app/dashboard/customers/page.js",
+  "/dashboard/grn/page": "app/dashboard/grn/page.js",
+  "/dashboard/inventory/page": "app/dashboard/inventory/page.js",
+  "/dashboard/page": "app/dashboard/page.js",
+  "/dashboard/pos/page": "app/dashboard/pos/page.js",
+  "/dashboard/products/page": "app/dashboard/products/page.js",
+  "/dashboard/purchase-orders/page": "app/dashboard/purchase-orders/page.js",
+  "/dashboard/sales/page": "app/dashboard/sales/page.js",
+  "/dashboard/settings/page": "app/dashboard/settings/page.js",
+  "/dashboard/stock-transfer/page": "app/dashboard/stock-transfer/page.js",
+  "/dashboard/suppliers/page": "app/dashboard/suppliers/page.js",
+  "/page": "app/page.js"
+}

@@ -1,0 +1,213 @@
+/* Cart Display Styles */
+.cartDisplay {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  overflow: hidden;
+}
+
+.cartHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-border, #e5e7eb);
+}
+
+.cartTitle {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  margin: 0;
+}
+
+.itemCount {
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #6b7280);
+  background: var(--color-bg-secondary, #f3f4f6);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+}
+
+.cartItems {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0.5rem;
+}
+
+.emptyCart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.emptyCart svg {
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.emptyCart p {
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0 0 0.25rem 0;
+}
+
+.emptyCart span {
+  font-size: 0.875rem;
+}
+
+.cartItem {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem;
+  margin-bottom: 0.5rem;
+  background: var(--color-bg-secondary, #f9fafb);
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.cartItem:hover {
+  background: var(--color-bg-tertiary, #f3f4f6);
+}
+
+.itemInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.itemName {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary, #111827);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 0.25rem;
+}
+
+.itemPrice {
+  font-size: 0.75rem;
+  color: var(--color-text-tertiary, #9ca3af);
+}
+
+.itemQuantity {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.qtyBtn {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: white;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--color-text-secondary, #6b7280);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.qtyBtn:hover:not(:disabled) {
+  background: var(--color-primary, #2563eb);
+  border-color: var(--color-primary, #2563eb);
+  color: white;
+}
+
+.qtyBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qtyInput {
+  width: 3rem;
+  padding: 0.25rem;
+  border: 1px solid var(--color-border, #e5e7eb);
+  border-radius: 4px;
+  text-align: center;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.qtyInput::-webkit-outer-spin-button,
+.qtyInput::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.qtyInput:focus {
+  outline: none;
+  border-color: var(--color-primary, #2563eb);
+}
+
+.itemTotal {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary, #111827);
+  min-width: 80px;
+  text-align: right;
+}
+
+.removeBtn {
+  width: 1.75rem;
+  height: 1.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--color-text-tertiary, #9ca3af);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.removeBtn:hover {
+  background: var(--color-error-bg, #fef2f2);
+  color: var(--color-error, #ef4444);
+}
+
+.removeBtn svg {
+  width: 1rem;
+  height: 1rem;
+}
+
+.cartSummary {
+  padding: 1rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  background: var(--color-bg-secondary, #f9fafb);
+}
+
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+  font-size: 0.875rem;
+  color: var(--color-text-secondary, #6b7280);
+}
+
+.summaryRow.discount {
+  color: var(--color-success, #10b981);
+}
+
+.summaryRow.total {
+  padding-top: 0.75rem;
+  margin-top: 0.5rem;
+  border-top: 1px solid var(--color-border, #e5e7eb);
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #111827);
+}

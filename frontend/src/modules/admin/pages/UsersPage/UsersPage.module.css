@@ -1,0 +1,56 @@
+.page {
+  padding: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1.5rem;
+}
+
+.title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+}
+
+.subtitle {
+  color: var(--text-secondary, #6b7280);
+  margin-top: 0.25rem;
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .statsGrid {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.statContent {
+  padding: 1.25rem !important;
+}
+
+.statLabel {
+  font-size: 0.875rem;
+  color: var(--text-secondary, #6b7280);
+}
+
+.statValue {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--text-primary, #1f2937);
+  margin-top: 0.25rem;
+}

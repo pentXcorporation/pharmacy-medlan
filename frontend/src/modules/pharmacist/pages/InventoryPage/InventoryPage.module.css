@@ -1,0 +1,27 @@
+/* Inventory Page Styles */
+.inventoryPage {
+  padding: 1.5rem;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+.pageHeader {
+  margin-bottom: 1.5rem;
+}
+
+.pageTitle {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-primary, #111827);
+  margin: 0 0 0.5rem 0;
+}
+
+.pageDescription {
+  font-size: 0.9375rem;
+  color: var(--color-text-secondary, #6b7280);
+  margin: 0;
+}
+
+.content {
+  height: calc(100vh - 180px);
+}

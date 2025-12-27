@@ -1,0 +1,92 @@
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-primary, #1f2937);
+}
+
+.passwordWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.passwordWrapper input {
+  padding-right: 4rem;
+}
+
+.togglePassword {
+  position: absolute;
+  right: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #6b7280);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.togglePassword:hover {
+  color: var(--text-primary, #1f2937);
+}
+
+.options {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.875rem;
+}
+
+.checkbox {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  color: var(--text-secondary, #6b7280);
+}
+
+.checkbox input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--primary, #3b82f6);
+}
+
+.forgotPassword {
+  color: var(--primary, #3b82f6);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 0.875rem;
+  transition: color 0.2s;
+}
+
+.forgotPassword:hover {
+  color: var(--primary-dark, #2563eb);
+  text-decoration: underline;
+}
+
+.submitButton {
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.error {
+  padding: 0.75rem 1rem;
+  background-color: var(--error-bg, #fef2f2);
+  border: 1px solid var(--error-border, #fecaca);
+  border-radius: 0.375rem;
+  color: var(--error, #dc2626);
+  font-size: 0.875rem;
+}
