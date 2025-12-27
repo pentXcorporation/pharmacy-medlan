@@ -8,20 +8,23 @@ const ThemeContext = createContext(null);
 /**
  * Available themes
  */
-const THEMES = {
+export const THEMES = {
   LIGHT: 'light',
   DARK: 'dark',
   SYSTEM: 'system',
 };
 
+const STORAGE_KEY = 'pharmacy-theme';
+
 /**
  * Get stored theme from localStorage
  */
 const getStoredTheme = () => {
+  if (typeof window === 'undefined') return THEMES.LIGHT;
   try {
-    return localStorage.getItem('theme') || THEMES.LIGHT;
+    return localStorage.getItem(STORAGE_KEY) || THEMES.SYSTEM;
   } catch {
-    return THEMES.LIGHT;
+    return THEMES.SYSTEM;
   }
 };
 
@@ -29,29 +32,33 @@ const getStoredTheme = () => {
  * Get system theme preference
  */
 const getSystemTheme = () => {
-  if (typeof window !== 'undefined' && window.matchMedia) {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches 
-      ? THEMES.DARK 
-      : THEMES.LIGHT;
-  }
-  return THEMES.LIGHT;
+  if (typeof window === 'undefined') return THEMES.LIGHT;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches 
+    ? THEMES.DARK 
+    : THEMES.LIGHT;
 };
 
 /**
  * ThemeProvider Component
  * Manages theme state and applies theme to document
  */
-export function ThemeProvider({ children }) {
-  const [theme, setThemeState] = useState(getStoredTheme);
-  const [resolvedTheme, setResolvedTheme] = useState(
-    theme === THEMES.SYSTEM ? getSystemTheme() : theme
-  );
+export function ThemeProvider({ children, defaultTheme = THEMES.SYSTEM, storageKey = STORAGE_KEY }) {
+  const [theme, setThemeState] = useState(() => {
+    if (typeof window === 'undefined') return defaultTheme;
+    return getStoredTheme() || defaultTheme;
+  });
+
+  const resolvedTheme = theme === THEMES.SYSTEM ? getSystemTheme() : theme;
 
   /**
    * Set theme and persist to localStorage
    */
   const setTheme = (newTheme) => {
-    localStorage.setItem('theme', newTheme);
+    try {
+      localStorage.setItem(storageKey, newTheme);
+    } catch (e) {
+      console.warn('Failed to save theme preference:', e);
+    }
     setThemeState(newTheme);
   };
 
@@ -65,22 +72,33 @@ export function ThemeProvider({ children }) {
 
   // Apply theme to document
   useEffect(() => {
-    const actualTheme = theme === THEMES.SYSTEM ? getSystemTheme() : theme;
-    setResolvedTheme(actualTheme);
-    
     const root = document.documentElement;
+    
+    // Remove previous theme classes
     root.classList.remove(THEMES.LIGHT, THEMES.DARK);
+    
+    // Add new theme class
+    const actualTheme = theme === THEMES.SYSTEM ? getSystemTheme() : theme;
     root.classList.add(actualTheme);
     root.setAttribute('data-theme', actualTheme);
+    
+    // Update meta theme-color for mobile browsers
+    const metaTheme = document.querySelector('meta[name="theme-color"]');
+    if (metaTheme) {
+      metaTheme.setAttribute('content', actualTheme === THEMES.DARK ? '#0a0a0a' : '#ffffff');
+    }
   }, [theme]);
 
-  // Listen for system theme changes
+  // Listen for system theme changes when in system mode
   useEffect(() => {
     if (theme !== THEMES.SYSTEM) return;
 
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
-    const handleChange = (e) => {
-      setResolvedTheme(e.matches ? THEMES.DARK : THEMES.LIGHT);
+    
+    const handleChange = () => {
+      const root = document.documentElement;
+      root.classList.remove(THEMES.LIGHT, THEMES.DARK);
+      root.classList.add(getSystemTheme());
     };
 
     mediaQuery.addEventListener('change', handleChange);

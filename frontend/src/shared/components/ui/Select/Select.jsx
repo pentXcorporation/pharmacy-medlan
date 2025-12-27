@@ -1,6 +1,5 @@
 import { forwardRef } from 'react';
 import { cn } from '@/shared/utils';
-import styles from './Select.module.css';
 
 /**
  * Select Component
@@ -13,31 +12,45 @@ const Select = forwardRef(({
   helperText,
   options = [],
   placeholder = 'Select an option',
+  children,
   ...props
 }, ref) => {
   return (
-    <div className={styles.wrapper}>
+    <div className="space-y-1.5">
       {label && (
-        <label className={styles.label}>{label}</label>
+        <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+          {label}
+        </label>
       )}
       <select
         ref={ref}
-        className={cn(styles.select, error && styles.error, className)}
+        className={cn(
+          "flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
+          error && "border-destructive focus-visible:ring-destructive",
+          className
+        )}
         {...props}
       >
-        {placeholder && (
-          <option value="" disabled>
-            {placeholder}
-          </option>
+        {children ? children : (
+          <>
+            {placeholder && (
+              <option value="" disabled>
+                {placeholder}
+              </option>
+            )}
+            {options.map((option) => (
+              <option key={option.value} value={option.value}>
+                {option.label}
+              </option>
+            ))}
+          </>
         )}
-        {options.map((option) => (
-          <option key={option.value} value={option.value}>
-            {option.label}
-          </option>
-        ))}
       </select>
       {(error || helperText) && (
-        <p className={cn(styles.helperText, error && styles.errorText)}>
+        <p className={cn(
+          "text-xs",
+          error ? "text-destructive" : "text-muted-foreground"
+        )}>
           {error || helperText}
         </p>
       )}

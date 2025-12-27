@@ -1,9 +1,12 @@
+import { clsx } from "clsx"
+import { twMerge } from "tailwind-merge"
+
 /**
- * Utility function to merge classnames
- * Similar to clsx/classnames
+ * Utility function to merge classnames with tailwind-merge
+ * Properly resolves Tailwind CSS class conflicts
  */
 export function cn(...classes) {
-  return classes.filter(Boolean).join(' ');
+  return twMerge(clsx(classes))
 }
 
 /**
@@ -13,7 +16,9 @@ export function formatCurrency(value, currency = 'LKR') {
   return new Intl.NumberFormat('en-LK', {
     style: 'currency',
     currency,
-  }).format(value);
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value || 0)
 }
 
 /**
@@ -24,8 +29,8 @@ export function formatDate(date, options = {}) {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
-  };
-  return new Date(date).toLocaleDateString('en-US', { ...defaultOptions, ...options });
+  }
+  return new Date(date).toLocaleDateString('en-US', { ...defaultOptions, ...options })
 }
 
 /**
@@ -38,14 +43,14 @@ export function formatDateTime(date) {
     day: 'numeric',
     hour: '2-digit',
     minute: '2-digit',
-  });
+  })
 }
 
 /**
  * Debounce function
  */
 export function debounce(func, wait) {
-  let timeout;
+  let timeout
   return function executedFunction(...args) {
     const later = () => {
       clearTimeout(timeout);

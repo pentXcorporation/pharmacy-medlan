@@ -1,7 +1,15 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { X } from 'lucide-react';
 import { cn } from '@/shared/utils';
-import styles from './Modal.module.css';
+
+const sizeClasses = {
+  sm: 'max-w-md',
+  md: 'max-w-lg',
+  lg: 'max-w-2xl',
+  xl: 'max-w-4xl',
+  full: 'max-w-[95vw]',
+};
 
 /**
  * Modal Component
@@ -19,7 +27,6 @@ export function Modal({
   className,
 }) {
   const overlayRef = useRef(null);
-  const contentRef = useRef(null);
 
   const handleOverlayClick = useCallback((e) => {
     if (closeOnOverlayClick && e.target === overlayRef.current) {
@@ -50,46 +57,47 @@ export function Modal({
   return createPortal(
     <div
       ref={overlayRef}
-      className={styles.overlay}
+      className="fixed inset-0 z-50 bg-black/80 flex items-center justify-center p-4 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0"
       onClick={handleOverlayClick}
       aria-modal="true"
       role="dialog"
+      data-state="open"
     >
       <div
-        ref={contentRef}
-        className={cn(styles.modal, styles[size], className)}
+        className={cn(
+          "relative w-full bg-background rounded-lg shadow-lg border",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out",
+          "data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+          "data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95",
+          sizeClasses[size],
+          className
+        )}
+        data-state="open"
       >
         {(title || showCloseButton) && (
-          <div className={styles.header}>
-            <div>
-              {title && <h2 className={styles.title}>{title}</h2>}
-              {description && <p className={styles.description}>{description}</p>}
+          <div className="flex items-start justify-between p-6 pb-4">
+            <div className="space-y-1.5">
+              {title && (
+                <h2 className="text-lg font-semibold leading-none tracking-tight">
+                  {title}
+                </h2>
+              )}
+              {description && (
+                <p className="text-sm text-muted-foreground">{description}</p>
+              )}
             </div>
             {showCloseButton && (
               <button
-                className={styles.closeButton}
+                className="rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 onClick={onClose}
                 aria-label="Close modal"
               >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="24"
-                  height="24"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                >
-                  <line x1="18" y1="6" x2="6" y2="18"></line>
-                  <line x1="6" y1="6" x2="18" y2="18"></line>
-                </svg>
+                <X className="h-4 w-4" />
               </button>
             )}
           </div>
         )}
-        <div className={styles.content}>
+        <div className="p-6 pt-0">
           {children}
         </div>
       </div>

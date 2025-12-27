@@ -1,5 +1,5 @@
 import { Outlet } from 'react-router-dom';
-import styles from './AuthLayout.module.css';
+import { Pill, Package, CreditCard, BarChart3, Users, Building2 } from 'lucide-react';
 
 /**
  * AuthLayout Component
@@ -7,29 +7,47 @@ import styles from './AuthLayout.module.css';
  */
 export function AuthLayout() {
   return (
-    <div className={styles.layout}>
-      <div className={styles.container}>
-        <div className={styles.branding}>
-          <div className={styles.logo}>
-            <span className={styles.logoIcon}>💊</span>
-            <span className={styles.logoText}>MedLan Pharmacy</span>
+    <div className="flex min-h-screen">
+      {/* Left side - Form */}
+      <div className="flex flex-1 flex-col justify-center px-6 py-12 lg:px-12 max-w-lg">
+        <div className="mb-8">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="h-10 w-10 rounded-xl bg-primary flex items-center justify-center">
+              <Pill className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-2xl font-bold text-primary">MedLan Pharmacy</span>
           </div>
-          <p className={styles.tagline}>Professional Pharmacy Management System</p>
+          <p className="text-muted-foreground text-sm">
+            Professional Pharmacy Management System
+          </p>
         </div>
-        <div className={styles.content}>
+        <div className="flex-1 flex flex-col justify-center">
           <Outlet />
         </div>
       </div>
-      <div className={styles.background}>
-        <div className={styles.backgroundContent}>
-          <h2>Welcome to MedLan</h2>
-          <p>Streamline your pharmacy operations with our comprehensive management solution.</p>
-          <ul className={styles.features}>
-            <li>📦 Inventory Management</li>
-            <li>💰 Point of Sale</li>
-            <li>📊 Reports & Analytics</li>
-            <li>👥 Customer Management</li>
-            <li>🏢 Multi-Branch Support</li>
+
+      {/* Right side - Background */}
+      <div className="hidden lg:flex flex-1 bg-gradient-to-br from-primary to-primary/80 text-white p-12 items-center justify-center">
+        <div className="max-w-md">
+          <h2 className="text-3xl font-bold mb-4">Welcome to MedLan</h2>
+          <p className="text-primary-foreground/80 mb-8">
+            Streamline your pharmacy operations with our comprehensive management solution.
+          </p>
+          <ul className="space-y-4">
+            {[
+              { icon: Package, text: 'Inventory Management' },
+              { icon: CreditCard, text: 'Point of Sale' },
+              { icon: BarChart3, text: 'Reports & Analytics' },
+              { icon: Users, text: 'Customer Management' },
+              { icon: Building2, text: 'Multi-Branch Support' },
+            ].map(({ icon: Icon, text }) => (
+              <li key={text} className="flex items-center gap-3">
+                <div className="h-8 w-8 rounded-lg bg-white/20 flex items-center justify-center">
+                  <Icon className="h-4 w-4" />
+                </div>
+                <span className="font-medium">{text}</span>
+              </li>
+            ))}
           </ul>
         </div>
       </div>

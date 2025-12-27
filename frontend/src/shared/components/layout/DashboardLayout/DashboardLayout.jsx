@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Sidebar } from '../Sidebar';
 import { Header } from '../Header';
-import styles from './DashboardLayout.module.css';
 
 /**
  * DashboardLayout Component
@@ -20,11 +19,11 @@ export function DashboardLayout() {
   };
 
   return (
-    <div className={styles.layout}>
+    <div className="min-h-screen bg-background">
       <Sidebar isOpen={sidebarOpen} onClose={closeSidebar} />
-      <div className={styles.main}>
+      <div className="lg:pl-64 flex flex-col min-h-screen">
         <Header onMenuToggle={toggleSidebar} />
-        <main className={styles.content}>
+        <main className="flex-1 p-4 lg:p-6">
           <Outlet />
         </main>
       </div>

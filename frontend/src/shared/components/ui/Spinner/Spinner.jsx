@@ -1,5 +1,12 @@
-import styles from './Spinner.module.css';
+import { Loader2 } from 'lucide-react';
 import { cn } from '@/shared/utils';
+
+const sizeClasses = {
+  sm: 'h-4 w-4',
+  md: 'h-6 w-6',
+  lg: 'h-8 w-8',
+  xl: 'h-12 w-12',
+};
 
 /**
  * Spinner Component
@@ -7,9 +14,13 @@ import { cn } from '@/shared/utils';
  */
 export function Spinner({ size = 'md', className }) {
   return (
-    <div className={cn(styles.spinner, styles[size], className)}>
-      <div className={styles.circle}></div>
-    </div>
+    <Loader2 
+      className={cn(
+        "animate-spin text-primary",
+        sizeClasses[size],
+        className
+      )} 
+    />
   );
 }
 
