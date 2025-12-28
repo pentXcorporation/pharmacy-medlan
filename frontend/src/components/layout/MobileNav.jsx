@@ -3,16 +3,22 @@
  * Sheet-based navigation for mobile devices
  */
 
-import { useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
-import { Menu, ChevronDown, ChevronRight, Pill, X } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { usePermissions } from '@/hooks';
-import { Button } from '@/components/ui/button';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { NAVIGATION, filterNavigationByRole } from './navigation.config';
+import { useState } from "react";
+import { NavLink, useLocation } from "react-router-dom";
+import { Menu, ChevronDown, ChevronRight, Pill, X } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { usePermissions } from "@/hooks";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
+import { NAVIGATION, filterNavigationByRole } from "./navigation.config";
 
 /**
  * Mobile navigation item
@@ -20,7 +26,7 @@ import { NAVIGATION, filterNavigationByRole } from './navigation.config';
 const MobileNavItem = ({ item, onNavigate, level = 0 }) => {
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
-  
+
   const hasChildren = item.children && item.children.length > 0;
   const isActive = location.pathname === item.href;
   const Icon = item.icon;
@@ -35,15 +41,15 @@ const MobileNavItem = ({ item, onNavigate, level = 0 }) => {
   };
 
   return (
-    <div className={cn('flex flex-col', level > 0 && 'ml-4')}>
+    <div className={cn("flex flex-col", level > 0 && "ml-4")}>
       <NavLink
-        to={hasChildren ? '#' : item.href}
+        to={hasChildren ? "#" : item.href}
         onClick={handleClick}
         className={cn(
-          'flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-all',
+          "flex items-center gap-3 rounded-lg px-3 py-3 text-sm transition-all",
           isActive
-            ? 'bg-primary text-primary-foreground'
-            : 'text-foreground hover:bg-accent'
+            ? "bg-primary text-primary-foreground"
+            : "text-foreground hover:bg-accent"
         )}
       >
         {Icon && <Icon className="h-5 w-5 shrink-0" />}
@@ -63,15 +69,15 @@ const MobileNavItem = ({ item, onNavigate, level = 0 }) => {
           </span>
         )}
       </NavLink>
-      
+
       {hasChildren && isOpen && (
         <div className="mt-1 flex flex-col gap-1 border-l-2 border-accent ml-3">
           {item.children.map((child) => (
-            <MobileNavItem 
-              key={child.href} 
-              item={child} 
+            <MobileNavItem
+              key={child.href}
+              item={child}
               onNavigate={onNavigate}
-              level={level + 1} 
+              level={level + 1}
             />
           ))}
         </div>
@@ -86,7 +92,7 @@ const MobileNavItem = ({ item, onNavigate, level = 0 }) => {
 const MobileNav = () => {
   const [open, setOpen] = useState(false);
   const { role } = usePermissions();
-  
+
   const filteredNav = filterNavigationByRole(NAVIGATION, role);
 
   const handleNavigate = () => {

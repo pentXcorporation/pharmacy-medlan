@@ -3,28 +3,34 @@
  * Displays low stock and expiring products alerts
  */
 
-import { Link } from 'react-router-dom';
-import { AlertTriangle, Clock, Package, ArrowRight } from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
-import { ROUTES } from '@/config';
-import { formatExpiryDate } from '@/utils/formatters';
+import { Link } from "react-router-dom";
+import { AlertTriangle, Clock, Package, ArrowRight } from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { ROUTES } from "@/config";
+import { formatExpiryDate } from "@/utils/formatters";
 
 /**
  * Single alert item
  */
 const AlertItem = ({ item, type }) => {
-  const isLowStock = type === 'low-stock';
-  const isExpiring = type === 'expiring';
+  const isLowStock = type === "low-stock";
+  const isExpiring = type === "expiring";
 
   return (
     <div className="flex items-center gap-3 py-2">
       <div
         className={`shrink-0 rounded-full p-2 ${
-          isLowStock ? 'bg-amber-100' : 'bg-red-100'
+          isLowStock ? "bg-amber-100" : "bg-red-100"
         }`}
       >
         {isLowStock ? (
@@ -50,14 +56,14 @@ const AlertItem = ({ item, type }) => {
         <Badge
           variant="outline"
           className={`shrink-0 ${
-            formatExpiryDate(item.expiryDate).status === 'expired'
-              ? 'border-red-500 text-red-500'
-              : 'border-amber-500 text-amber-500'
+            formatExpiryDate(item.expiryDate).status === "expired"
+              ? "border-red-500 text-red-500"
+              : "border-amber-500 text-amber-500"
           }`}
         >
-          {formatExpiryDate(item.expiryDate).status === 'expired'
-            ? 'Expired'
-            : 'Expiring'}
+          {formatExpiryDate(item.expiryDate).status === "expired"
+            ? "Expired"
+            : "Expiring"}
         </Badge>
       )}
     </div>
@@ -118,7 +124,11 @@ const InventoryAlertsWidget = ({
               <ScrollArea className="h-[200px]">
                 <div className="divide-y">
                   {lowStockItems.slice(0, 5).map((item, index) => (
-                    <AlertItem key={item.id || index} item={item} type="low-stock" />
+                    <AlertItem
+                      key={item.id || index}
+                      item={item}
+                      type="low-stock"
+                    />
                   ))}
                 </div>
               </ScrollArea>
@@ -147,7 +157,9 @@ const InventoryAlertsWidget = ({
                 <Clock className="h-4 w-4 text-red-500" />
                 Expiring Soon
               </CardTitle>
-              <CardDescription>Products expiring within 30 days</CardDescription>
+              <CardDescription>
+                Products expiring within 30 days
+              </CardDescription>
             </div>
             {hasExpiring && (
               <Badge variant="secondary">{expiringItems.length}</Badge>
@@ -162,7 +174,11 @@ const InventoryAlertsWidget = ({
               <ScrollArea className="h-[200px]">
                 <div className="divide-y">
                   {expiringItems.slice(0, 5).map((item, index) => (
-                    <AlertItem key={item.id || index} item={item} type="expiring" />
+                    <AlertItem
+                      key={item.id || index}
+                      item={item}
+                      type="expiring"
+                    />
                   ))}
                 </div>
               </ScrollArea>

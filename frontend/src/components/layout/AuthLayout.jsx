@@ -3,10 +3,10 @@
  * Minimal layout for authentication pages (login, register, forgot password)
  */
 
-import { Outlet, Navigate } from 'react-router-dom';
-import { Pill } from 'lucide-react';
-import { useAuth } from '@/hooks';
-import { ROUTES } from '@/config';
+import { Outlet, Navigate } from "react-router-dom";
+import { Pill } from "lucide-react";
+import { useAuth } from "@/hooks";
+import { ROUTES } from "@/config";
 
 /**
  * Authentication layout
@@ -31,8 +31,8 @@ const AuthLayout = ({ children }) => {
           </div>
           <h1 className="text-4xl font-bold mb-4">MedLan Pharmacy</h1>
           <p className="text-lg opacity-90">
-            Complete pharmacy management solution for modern healthcare businesses.
-            Manage inventory, sales, prescriptions, and more.
+            Complete pharmacy management solution for modern healthcare
+            businesses. Manage inventory, sales, prescriptions, and more.
           </p>
           <div className="mt-12 grid grid-cols-3 gap-4 text-sm">
             <div className="p-4 rounded-lg bg-primary-foreground/10 backdrop-blur">
@@ -69,7 +69,10 @@ const AuthLayout = ({ children }) => {
 
           {/* Footer */}
           <div className="mt-8 text-center text-sm text-muted-foreground">
-            <p>&copy; {new Date().getFullYear()} MedLan Pharmacy. All rights reserved.</p>
+            <p>
+              &copy; {new Date().getFullYear()} MedLan Pharmacy. All rights
+              reserved.
+            </p>
           </div>
         </div>
       </div>

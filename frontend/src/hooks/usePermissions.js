@@ -3,9 +3,9 @@
  * Provides role-based permission checking utilities
  */
 
-import { useMemo, useCallback } from 'react';
-import { useAuthStore } from '@/store';
-import { ROLES, PERMISSIONS, ROLE_HIERARCHY } from '@/constants';
+import { useMemo, useCallback } from "react";
+import { useAuthStore } from "@/store";
+import { ROLES, PERMISSIONS, ROLE_HIERARCHY } from "@/constants";
 
 /**
  * Hook for permission-based access control
@@ -21,68 +21,89 @@ export const usePermissions = () => {
    * @param {string} action - Action name (e.g., 'view', 'create', 'edit', 'delete')
    * @returns {boolean}
    */
-  const hasPermission = useCallback((feature, action) => {
-    if (!role) return false;
-    
-    // Super admin has all permissions
-    if (role === ROLES.SUPER_ADMIN) return true;
-    
-    const rolePermissions = PERMISSIONS[role];
-    if (!rolePermissions) return false;
-    
-    const featurePermissions = rolePermissions[feature];
-    if (!featurePermissions) return false;
-    
-    // Check if action is allowed
-    if (Array.isArray(featurePermissions)) {
-      return featurePermissions.includes(action);
-    }
-    
-    // If featurePermissions is true, all actions are allowed
-    return featurePermissions === true;
-  }, [role]);
+  const hasPermission = useCallback(
+    (feature, action) => {
+      if (!role) return false;
+
+      // Super admin has all permissions
+      if (role === ROLES.SUPER_ADMIN) return true;
+
+      const rolePermissions = PERMISSIONS[role];
+      if (!rolePermissions) return false;
+
+      const featurePermissions = rolePermissions[feature];
+      if (!featurePermissions) return false;
+
+      // Check if action is allowed
+      if (Array.isArray(featurePermissions)) {
+        return featurePermissions.includes(action);
+      }
+
+      // If featurePermissions is true, all actions are allowed
+      return featurePermissions === true;
+    },
+    [role]
+  );
 
   /**
    * Check if user can view a feature
    */
-  const canView = useCallback((feature) => hasPermission(feature, 'view'), [hasPermission]);
+  const canView = useCallback(
+    (feature) => hasPermission(feature, "view"),
+    [hasPermission]
+  );
 
   /**
    * Check if user can create in a feature
    */
-  const canCreate = useCallback((feature) => hasPermission(feature, 'create'), [hasPermission]);
+  const canCreate = useCallback(
+    (feature) => hasPermission(feature, "create"),
+    [hasPermission]
+  );
 
   /**
    * Check if user can edit in a feature
    */
-  const canEdit = useCallback((feature) => hasPermission(feature, 'edit'), [hasPermission]);
+  const canEdit = useCallback(
+    (feature) => hasPermission(feature, "edit"),
+    [hasPermission]
+  );
 
   /**
    * Check if user can delete in a feature
    */
-  const canDelete = useCallback((feature) => hasPermission(feature, 'delete'), [hasPermission]);
+  const canDelete = useCallback(
+    (feature) => hasPermission(feature, "delete"),
+    [hasPermission]
+  );
 
   /**
    * Check if user has any of the specified roles
    * @param {Array<string>} roles - Array of role names
    * @returns {boolean}
    */
-  const hasAnyRole = useCallback((roles) => {
-    if (!role) return false;
-    return roles.includes(role);
-  }, [role]);
+  const hasAnyRole = useCallback(
+    (roles) => {
+      if (!role) return false;
+      return roles.includes(role);
+    },
+    [role]
+  );
 
   /**
    * Check if user has minimum role level
    * @param {string} minimumRole - Minimum role required
    * @returns {boolean}
    */
-  const hasMinimumRole = useCallback((minimumRole) => {
-    if (!role) return false;
-    const userLevel = ROLE_HIERARCHY[role] ?? 0;
-    const requiredLevel = ROLE_HIERARCHY[minimumRole] ?? 999;
-    return userLevel >= requiredLevel;
-  }, [role]);
+  const hasMinimumRole = useCallback(
+    (minimumRole) => {
+      if (!role) return false;
+      const userLevel = ROLE_HIERARCHY[role] ?? 0;
+      const requiredLevel = ROLE_HIERARCHY[minimumRole] ?? 999;
+      return userLevel >= requiredLevel;
+    },
+    [role]
+  );
 
   /**
    * Check if user is super admin
@@ -92,64 +113,90 @@ export const usePermissions = () => {
   /**
    * Check if user is owner or above
    */
-  const isOwnerOrAbove = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER]), 
+  const isOwnerOrAbove = useMemo(
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER]),
     [hasAnyRole]
   );
 
   /**
    * Check if user is branch admin or above
    */
-  const isBranchAdminOrAbove = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]), 
+  const isBranchAdminOrAbove = useMemo(
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]),
     [hasAnyRole]
   );
 
   /**
    * Check if user can access POS
    */
-  const canAccessPOS = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN, ROLES.PHARMACIST, ROLES.CASHIER]), 
+  const canAccessPOS = useMemo(
+    () =>
+      hasAnyRole([
+        ROLES.SUPER_ADMIN,
+        ROLES.OWNER,
+        ROLES.BRANCH_ADMIN,
+        ROLES.PHARMACIST,
+        ROLES.CASHIER,
+      ]),
     [hasAnyRole]
   );
 
   /**
    * Check if user can access inventory management
    */
-  const canAccessInventory = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN, ROLES.PHARMACIST, ROLES.INVENTORY_MANAGER]), 
+  const canAccessInventory = useMemo(
+    () =>
+      hasAnyRole([
+        ROLES.SUPER_ADMIN,
+        ROLES.OWNER,
+        ROLES.BRANCH_ADMIN,
+        ROLES.PHARMACIST,
+        ROLES.INVENTORY_MANAGER,
+      ]),
     [hasAnyRole]
   );
 
   /**
    * Check if user can access finance
    */
-  const canAccessFinance = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]), 
+  const canAccessFinance = useMemo(
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]),
     [hasAnyRole]
   );
 
   /**
    * Check if user can access reports
    */
-  const canAccessReports = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN, ROLES.ACCOUNTANT]), 
+  const canAccessReports = useMemo(
+    () =>
+      hasAnyRole([
+        ROLES.SUPER_ADMIN,
+        ROLES.OWNER,
+        ROLES.BRANCH_ADMIN,
+        ROLES.ACCOUNTANT,
+      ]),
     [hasAnyRole]
   );
 
   /**
    * Check if user can manage employees
    */
-  const canManageEmployees = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]), 
+  const canManageEmployees = useMemo(
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]),
     [hasAnyRole]
   );
 
   /**
    * Check if user can handle prescriptions (controlled drugs)
    */
-  const canHandlePrescriptions = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN, ROLES.PHARMACIST]), 
+  const canHandlePrescriptions = useMemo(
+    () =>
+      hasAnyRole([
+        ROLES.SUPER_ADMIN,
+        ROLES.OWNER,
+        ROLES.BRANCH_ADMIN,
+        ROLES.PHARMACIST,
+      ]),
     [hasAnyRole]
   );
 
@@ -174,8 +221,8 @@ export const usePermissions = () => {
    * Check if user can give credit to customers
    * @returns {boolean}
    */
-  const canGiveCredit = useMemo(() => 
-    hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]), 
+  const canGiveCredit = useMemo(
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]),
     [hasAnyRole]
   );
 
@@ -185,34 +232,34 @@ export const usePermissions = () => {
    */
   const accessibleFeatures = useMemo(() => {
     if (!role) return [];
-    if (role === ROLES.SUPER_ADMIN) return ['*'];
-    
+    if (role === ROLES.SUPER_ADMIN) return ["*"];
+
     const rolePermissions = PERMISSIONS[role];
     if (!rolePermissions) return [];
-    
+
     return Object.keys(rolePermissions);
   }, [role]);
 
   return {
     // Role info
     role,
-    
+
     // Permission checks
     hasPermission,
     canView,
     canCreate,
     canEdit,
     canDelete,
-    
+
     // Role checks
     hasAnyRole,
     hasMinimumRole,
-    
+
     // Convenience flags
     isSuperAdmin,
     isOwnerOrAbove,
     isBranchAdminOrAbove,
-    
+
     // Feature access
     canAccessPOS,
     canAccessInventory,
@@ -220,11 +267,11 @@ export const usePermissions = () => {
     canAccessReports,
     canManageEmployees,
     canHandlePrescriptions,
-    
+
     // Limits
     maxDiscount,
     canGiveCredit,
-    
+
     // Features list
     accessibleFeatures,
   };

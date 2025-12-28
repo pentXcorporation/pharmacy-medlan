@@ -1,7 +1,7 @@
 /**
  * Notification Store - Zustand store for notifications
  */
-import { create } from 'zustand';
+import { create } from "zustand";
 
 const initialState = {
   notifications: [],
@@ -57,9 +57,10 @@ export const useNotificationStore = create((set, get) => ({
     const notification = notifications.find((n) => n.id === notificationId);
     set({
       notifications: notifications.filter((n) => n.id !== notificationId),
-      unreadCount: notification && !notification.read
-        ? Math.max(0, get().unreadCount - 1)
-        : get().unreadCount,
+      unreadCount:
+        notification && !notification.read
+          ? Math.max(0, get().unreadCount - 1)
+          : get().unreadCount,
     });
   },
 

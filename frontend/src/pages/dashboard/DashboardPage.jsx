@@ -3,8 +3,8 @@
  * Main dashboard with role-aware widgets
  */
 
-import { useAuth, usePermissions } from '@/hooks';
-import { PageHeader } from '@/components/common';
+import { useAuth, usePermissions } from "@/hooks";
+import { PageHeader } from "@/components/common";
 import {
   SalesOverviewWidget,
   InventoryAlertsWidget,
@@ -14,16 +14,16 @@ import {
   useRecentSales,
   useLowStockAlerts,
   useExpiringProducts,
-} from '@/features/dashboard';
+} from "@/features/dashboard";
 
 /**
  * DashboardPage component
  */
 const DashboardPage = () => {
   const { displayName, user } = useAuth();
-  const { 
-    canAccessPOS, 
-    canAccessInventory, 
+  const {
+    canAccessPOS,
+    canAccessInventory,
     canAccessFinance,
     isBranchAdminOrAbove,
   } = usePermissions();
@@ -32,21 +32,24 @@ const DashboardPage = () => {
   const { data: stats, isLoading: statsLoading } = useDashboardStats();
   const { data: recentSales, isLoading: salesLoading } = useRecentSales(10);
   const { data: lowStock, isLoading: lowStockLoading } = useLowStockAlerts(10);
-  const { data: expiring, isLoading: expiringLoading } = useExpiringProducts(30, 10);
+  const { data: expiring, isLoading: expiringLoading } = useExpiringProducts(
+    30,
+    10
+  );
 
   // Get current time greeting
   const getGreeting = () => {
     const hour = new Date().getHours();
-    if (hour < 12) return 'Good morning';
-    if (hour < 18) return 'Good afternoon';
-    return 'Good evening';
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
   };
 
   return (
     <div className="space-y-6">
       {/* Page Header */}
       <PageHeader
-        title={`${getGreeting()}, ${displayName || 'User'}!`}
+        title={`${getGreeting()}, ${displayName || "User"}!`}
         description="Here's what's happening at your pharmacy today."
       />
 
@@ -72,7 +75,7 @@ const DashboardPage = () => {
 
         {/* Inventory Alerts - 1 column or full width if no POS access */}
         {canAccessInventory && (
-          <div className={!canAccessPOS ? 'lg:col-span-3' : ''}>
+          <div className={!canAccessPOS ? "lg:col-span-3" : ""}>
             <div className="space-y-4">
               <InventoryAlertsWidget
                 lowStockItems={lowStock?.content || []}

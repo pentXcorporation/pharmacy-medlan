@@ -2,19 +2,45 @@
  * Role-Based Permissions Matrix
  * Maps roles to feature access levels
  */
-import { ROLES } from './roles';
+import { ROLES } from "./roles";
 
 export const PERMISSIONS = {
   [ROLES.SUPER_ADMIN]: {
     dashboard: { view: true },
-    users: { view: true, create: true, edit: true, delete: true, resetPassword: true },
+    users: {
+      view: true,
+      create: true,
+      edit: true,
+      delete: true,
+      resetPassword: true,
+    },
     branches: { view: true, create: true, edit: true, delete: true },
     categories: { view: true, create: true, edit: true, delete: true },
-    products: { view: true, create: true, edit: true, delete: true, pricing: true },
+    products: {
+      view: true,
+      create: true,
+      edit: true,
+      delete: true,
+      pricing: true,
+    },
     inventory: { view: true, adjust: true, transfer: true, receive: true },
-    purchaseOrders: { view: true, create: true, edit: true, approve: true, reject: true },
+    purchaseOrders: {
+      view: true,
+      create: true,
+      edit: true,
+      approve: true,
+      reject: true,
+    },
     grn: { view: true, create: true, approve: true, reject: true },
-    sales: { view: true, create: true, cancel: true, void: true, discount: 100, credit: true, creditLimit: Infinity },
+    sales: {
+      view: true,
+      create: true,
+      cancel: true,
+      void: true,
+      discount: 100,
+      credit: true,
+      creditLimit: Infinity,
+    },
     returns: { view: true, create: true, approve: true },
     customers: { view: true, create: true, edit: true, delete: true },
     suppliers: { view: true, create: true, edit: true, delete: true },
@@ -27,14 +53,40 @@ export const PERMISSIONS = {
 
   [ROLES.ADMIN]: {
     dashboard: { view: true },
-    users: { view: true, create: true, edit: true, delete: false, resetPassword: true },
+    users: {
+      view: true,
+      create: true,
+      edit: true,
+      delete: false,
+      resetPassword: true,
+    },
     branches: { view: true, create: false, edit: true, delete: false },
     categories: { view: true, create: true, edit: true, delete: true },
-    products: { view: true, create: true, edit: true, delete: false, pricing: true },
+    products: {
+      view: true,
+      create: true,
+      edit: true,
+      delete: false,
+      pricing: true,
+    },
     inventory: { view: true, adjust: true, transfer: true, receive: true },
-    purchaseOrders: { view: true, create: true, edit: true, approve: true, reject: true },
+    purchaseOrders: {
+      view: true,
+      create: true,
+      edit: true,
+      approve: true,
+      reject: true,
+    },
     grn: { view: true, create: true, approve: true, reject: true },
-    sales: { view: true, create: true, cancel: true, void: false, discount: 20, credit: true, creditLimit: 50000 },
+    sales: {
+      view: true,
+      create: true,
+      cancel: true,
+      void: false,
+      discount: 20,
+      credit: true,
+      creditLimit: 50000,
+    },
     returns: { view: true, create: true, approve: true },
     customers: { view: true, create: true, edit: true, delete: false },
     suppliers: { view: true, create: true, edit: true, delete: false },
@@ -47,14 +99,40 @@ export const PERMISSIONS = {
 
   [ROLES.BRANCH_MANAGER]: {
     dashboard: { view: true },
-    users: { view: true, create: false, edit: false, delete: false, resetPassword: false },
+    users: {
+      view: true,
+      create: false,
+      edit: false,
+      delete: false,
+      resetPassword: false,
+    },
     branches: { view: true, create: false, edit: false, delete: false },
     categories: { view: true, create: false, edit: false, delete: false },
-    products: { view: true, create: false, edit: false, delete: false, pricing: false },
+    products: {
+      view: true,
+      create: false,
+      edit: false,
+      delete: false,
+      pricing: false,
+    },
     inventory: { view: true, adjust: true, transfer: true, receive: false },
-    purchaseOrders: { view: true, create: true, edit: true, approve: false, reject: false },
+    purchaseOrders: {
+      view: true,
+      create: true,
+      edit: true,
+      approve: false,
+      reject: false,
+    },
     grn: { view: true, create: false, approve: false, reject: false },
-    sales: { view: true, create: true, cancel: true, void: false, discount: 15, credit: true, creditLimit: 20000 },
+    sales: {
+      view: true,
+      create: true,
+      cancel: true,
+      void: false,
+      discount: 15,
+      credit: true,
+      creditLimit: 20000,
+    },
     returns: { view: true, create: true, approve: true },
     customers: { view: true, create: true, edit: true, delete: false },
     suppliers: { view: true, create: false, edit: false, delete: false },
@@ -67,14 +145,40 @@ export const PERMISSIONS = {
 
   [ROLES.PHARMACIST]: {
     dashboard: { view: true },
-    users: { view: false, create: false, edit: false, delete: false, resetPassword: false },
+    users: {
+      view: false,
+      create: false,
+      edit: false,
+      delete: false,
+      resetPassword: false,
+    },
     branches: { view: true, create: false, edit: false, delete: false },
     categories: { view: true, create: false, edit: false, delete: false },
-    products: { view: true, create: false, edit: false, delete: false, pricing: false },
+    products: {
+      view: true,
+      create: false,
+      edit: false,
+      delete: false,
+      pricing: false,
+    },
     inventory: { view: true, adjust: false, transfer: false, receive: false },
-    purchaseOrders: { view: false, create: false, edit: false, approve: false, reject: false },
+    purchaseOrders: {
+      view: false,
+      create: false,
+      edit: false,
+      approve: false,
+      reject: false,
+    },
     grn: { view: false, create: false, approve: false, reject: false },
-    sales: { view: true, create: true, cancel: false, void: false, discount: 10, credit: true, creditLimit: 5000 },
+    sales: {
+      view: true,
+      create: true,
+      cancel: false,
+      void: false,
+      discount: 10,
+      credit: true,
+      creditLimit: 5000,
+    },
     returns: { view: true, create: true, approve: false },
     customers: { view: true, create: true, edit: true, delete: false },
     suppliers: { view: false, create: false, edit: false, delete: false },
@@ -88,14 +192,40 @@ export const PERMISSIONS = {
 
   [ROLES.CASHIER]: {
     dashboard: { view: true },
-    users: { view: false, create: false, edit: false, delete: false, resetPassword: false },
+    users: {
+      view: false,
+      create: false,
+      edit: false,
+      delete: false,
+      resetPassword: false,
+    },
     branches: { view: true, create: false, edit: false, delete: false },
     categories: { view: true, create: false, edit: false, delete: false },
-    products: { view: true, create: false, edit: false, delete: false, pricing: false },
+    products: {
+      view: true,
+      create: false,
+      edit: false,
+      delete: false,
+      pricing: false,
+    },
     inventory: { view: true, adjust: false, transfer: false, receive: false },
-    purchaseOrders: { view: false, create: false, edit: false, approve: false, reject: false },
+    purchaseOrders: {
+      view: false,
+      create: false,
+      edit: false,
+      approve: false,
+      reject: false,
+    },
     grn: { view: false, create: false, approve: false, reject: false },
-    sales: { view: true, create: true, cancel: false, void: false, discount: 5, credit: false, creditLimit: 0 },
+    sales: {
+      view: true,
+      create: true,
+      cancel: false,
+      void: false,
+      discount: 5,
+      credit: false,
+      creditLimit: 0,
+    },
     returns: { view: true, create: true, approve: false },
     customers: { view: true, create: true, edit: false, delete: false },
     suppliers: { view: false, create: false, edit: false, delete: false },
@@ -108,14 +238,40 @@ export const PERMISSIONS = {
 
   [ROLES.INVENTORY_MANAGER]: {
     dashboard: { view: true },
-    users: { view: false, create: false, edit: false, delete: false, resetPassword: false },
+    users: {
+      view: false,
+      create: false,
+      edit: false,
+      delete: false,
+      resetPassword: false,
+    },
     branches: { view: true, create: false, edit: false, delete: false },
     categories: { view: true, create: true, edit: true, delete: false },
-    products: { view: true, create: true, edit: true, delete: false, pricing: false },
+    products: {
+      view: true,
+      create: true,
+      edit: true,
+      delete: false,
+      pricing: false,
+    },
     inventory: { view: true, adjust: true, transfer: true, receive: true },
-    purchaseOrders: { view: true, create: true, edit: true, approve: false, reject: false },
+    purchaseOrders: {
+      view: true,
+      create: true,
+      edit: true,
+      approve: false,
+      reject: false,
+    },
     grn: { view: true, create: true, approve: false, reject: false },
-    sales: { view: false, create: false, cancel: false, void: false, discount: 0, credit: false, creditLimit: 0 },
+    sales: {
+      view: false,
+      create: false,
+      cancel: false,
+      void: false,
+      discount: 0,
+      credit: false,
+      creditLimit: 0,
+    },
     returns: { view: true, create: false, approve: false },
     customers: { view: false, create: false, edit: false, delete: false },
     suppliers: { view: true, create: true, edit: true, delete: false },
@@ -128,14 +284,40 @@ export const PERMISSIONS = {
 
   [ROLES.ACCOUNTANT]: {
     dashboard: { view: true },
-    users: { view: false, create: false, edit: false, delete: false, resetPassword: false },
+    users: {
+      view: false,
+      create: false,
+      edit: false,
+      delete: false,
+      resetPassword: false,
+    },
     branches: { view: true, create: false, edit: false, delete: false },
     categories: { view: true, create: false, edit: false, delete: false },
-    products: { view: true, create: false, edit: false, delete: false, pricing: true },
+    products: {
+      view: true,
+      create: false,
+      edit: false,
+      delete: false,
+      pricing: true,
+    },
     inventory: { view: true, adjust: false, transfer: false, receive: false },
-    purchaseOrders: { view: true, create: false, edit: false, approve: true, reject: true },
+    purchaseOrders: {
+      view: true,
+      create: false,
+      edit: false,
+      approve: true,
+      reject: true,
+    },
     grn: { view: true, create: false, approve: true, reject: true },
-    sales: { view: true, create: false, cancel: false, void: false, discount: 0, credit: false, creditLimit: 0 },
+    sales: {
+      view: true,
+      create: false,
+      cancel: false,
+      void: false,
+      discount: 0,
+      credit: false,
+      creditLimit: 0,
+    },
     returns: { view: true, create: false, approve: true },
     customers: { view: true, create: false, edit: false, delete: false },
     suppliers: { view: true, create: false, edit: false, delete: false },
@@ -157,10 +339,10 @@ export const PERMISSIONS = {
 export const hasPermission = (role, feature, action) => {
   const rolePermissions = PERMISSIONS[role];
   if (!rolePermissions) return false;
-  
+
   const featurePermissions = rolePermissions[feature];
   if (!featurePermissions) return false;
-  
+
   return featurePermissions[action] === true;
 };
 

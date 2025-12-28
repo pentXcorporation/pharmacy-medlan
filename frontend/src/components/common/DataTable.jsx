@@ -3,7 +3,7 @@
  * Reusable data table with sorting, filtering, pagination using TanStack Table
  */
 
-import { useState } from 'react';
+import { useState } from "react";
 import {
   flexRender,
   getCoreRowModel,
@@ -11,11 +11,19 @@ import {
   getPaginationRowModel,
   getSortedRowModel,
   useReactTable,
-} from '@tanstack/react-table';
-import { ArrowUpDown, ArrowUp, ArrowDown, ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
+} from "@tanstack/react-table";
+import {
+  ArrowUpDown,
+  ArrowUp,
+  ArrowDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
   Table,
   TableBody,
@@ -23,15 +31,15 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Sortable header component
@@ -44,12 +52,12 @@ const SortableHeader = ({ column, children }) => {
       variant="ghost"
       size="sm"
       className="-ml-3 h-8 data-[state=open]:bg-accent"
-      onClick={() => column.toggleSorting(sorted === 'asc')}
+      onClick={() => column.toggleSorting(sorted === "asc")}
     >
       <span>{children}</span>
-      {sorted === 'asc' ? (
+      {sorted === "asc" ? (
         <ArrowUp className="ml-2 h-4 w-4" />
-      ) : sorted === 'desc' ? (
+      ) : sorted === "desc" ? (
         <ArrowDown className="ml-2 h-4 w-4" />
       ) : (
         <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />
@@ -157,17 +165,17 @@ const DataTable = ({
   columns,
   data = [],
   isLoading = false,
-  searchPlaceholder = 'Search...',
+  searchPlaceholder = "Search...",
   searchColumn,
   showSearch = true,
   showPagination = true,
   pageSize = 10,
   onRowClick,
-  emptyMessage = 'No data available.',
+  emptyMessage = "No data available.",
   className,
 }) => {
   const [sorting, setSorting] = useState([]);
-  const [globalFilter, setGlobalFilter] = useState('');
+  const [globalFilter, setGlobalFilter] = useState("");
 
   const table = useReactTable({
     data,
@@ -190,13 +198,13 @@ const DataTable = ({
   });
 
   return (
-    <div className={cn('space-y-4', className)}>
+    <div className={cn("space-y-4", className)}>
       {/* Search */}
       {showSearch && (
         <div className="flex items-center gap-4">
           <Input
             placeholder={searchPlaceholder}
-            value={globalFilter ?? ''}
+            value={globalFilter ?? ""}
             onChange={(e) => setGlobalFilter(e.target.value)}
             className="max-w-sm"
           />
@@ -231,9 +239,11 @@ const DataTable = ({
                 table.getRowModel().rows.map((row) => (
                   <TableRow
                     key={row.id}
-                    data-state={row.getIsSelected() && 'selected'}
+                    data-state={row.getIsSelected() && "selected"}
                     onClick={() => onRowClick?.(row.original)}
-                    className={cn(onRowClick && 'cursor-pointer hover:bg-accent/50')}
+                    className={cn(
+                      onRowClick && "cursor-pointer hover:bg-accent/50"
+                    )}
                   >
                     {row.getVisibleCells().map((cell) => (
                       <TableCell key={cell.id}>

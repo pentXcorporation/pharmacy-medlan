@@ -3,15 +3,15 @@
  * Dashboard statistics card with icon, value, and trend indicator
  */
 
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Skeleton } from '@/components/ui/skeleton';
+import { TrendingUp, TrendingDown, Minus } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 /**
  * Trend indicator component
  */
-const TrendIndicator = ({ value, suffix = '%' }) => {
+const TrendIndicator = ({ value, suffix = "%" }) => {
   if (value === undefined || value === null) return null;
 
   const isPositive = value > 0;
@@ -20,10 +20,10 @@ const TrendIndicator = ({ value, suffix = '%' }) => {
   return (
     <div
       className={cn(
-        'flex items-center gap-1 text-sm font-medium',
-        isPositive && 'text-emerald-600',
-        !isPositive && !isNeutral && 'text-destructive',
-        isNeutral && 'text-muted-foreground'
+        "flex items-center gap-1 text-sm font-medium",
+        isPositive && "text-emerald-600",
+        !isPositive && !isNeutral && "text-destructive",
+        isNeutral && "text-muted-foreground"
       )}
     >
       {isPositive ? (
@@ -34,7 +34,7 @@ const TrendIndicator = ({ value, suffix = '%' }) => {
         <TrendingDown className="h-4 w-4" />
       )}
       <span>
-        {isPositive && '+'}
+        {isPositive && "+"}
         {value}
         {suffix}
       </span>
@@ -67,9 +67,9 @@ const StatCard = ({
   description,
   icon: Icon,
   trend,
-  trendLabel = 'from last month',
-  iconColor = 'text-muted-foreground',
-  iconBgColor = 'bg-muted',
+  trendLabel = "from last month",
+  iconColor = "text-muted-foreground",
+  iconBgColor = "bg-muted",
   isLoading = false,
   className,
   onClick,
@@ -81,8 +81,8 @@ const StatCard = ({
   return (
     <Card
       className={cn(
-        'transition-all',
-        onClick && 'cursor-pointer hover:shadow-md hover:border-primary/50',
+        "transition-all",
+        onClick && "cursor-pointer hover:shadow-md hover:border-primary/50",
         className
       )}
       onClick={onClick}
@@ -92,8 +92,8 @@ const StatCard = ({
           {title}
         </CardTitle>
         {Icon && (
-          <div className={cn('rounded-md p-2', iconBgColor)}>
-            <Icon className={cn('h-4 w-4', iconColor)} />
+          <div className={cn("rounded-md p-2", iconBgColor)}>
+            <Icon className={cn("h-4 w-4", iconColor)} />
           </div>
         )}
       </CardHeader>

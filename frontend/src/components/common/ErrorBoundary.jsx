@@ -3,10 +3,16 @@
  * React error boundary for graceful error handling
  */
 
-import { Component } from 'react';
-import { AlertTriangle, RefreshCw, Home } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Component } from "react";
+import { AlertTriangle, RefreshCw, Home } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "@/components/ui/card";
 
 /**
  * ErrorBoundary class component
@@ -23,12 +29,12 @@ class ErrorBoundary extends Component {
 
   componentDidCatch(error, errorInfo) {
     this.setState({ errorInfo });
-    
+
     // Log error to console in development
     if (import.meta.env.DEV) {
-      console.error('ErrorBoundary caught an error:', error, errorInfo);
+      console.error("ErrorBoundary caught an error:", error, errorInfo);
     }
-    
+
     // Call onError callback if provided
     this.props.onError?.(error, errorInfo);
   }
@@ -39,7 +45,7 @@ class ErrorBoundary extends Component {
   };
 
   handleHome = () => {
-    window.location.href = '/';
+    window.location.href = "/";
   };
 
   render() {
@@ -61,8 +67,8 @@ class ErrorBoundary extends Component {
               </div>
               <CardTitle>Something went wrong</CardTitle>
               <CardDescription>
-                {this.props.message || 
-                  'An unexpected error occurred. Please try refreshing the page or contact support if the problem persists.'}
+                {this.props.message ||
+                  "An unexpected error occurred. Please try refreshing the page or contact support if the problem persists."}
               </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col gap-4">
@@ -79,7 +85,7 @@ class ErrorBoundary extends Component {
                   )}
                 </div>
               )}
-              
+
               {/* Action buttons */}
               <div className="flex gap-2 justify-center">
                 <Button onClick={this.handleReset} variant="outline">
@@ -104,7 +110,10 @@ class ErrorBoundary extends Component {
 /**
  * withErrorBoundary HOC for functional components
  */
-export const withErrorBoundary = (WrappedComponent, errorBoundaryProps = {}) => {
+export const withErrorBoundary = (
+  WrappedComponent,
+  errorBoundaryProps = {}
+) => {
   return function WithErrorBoundary(props) {
     return (
       <ErrorBoundary {...errorBoundaryProps}>

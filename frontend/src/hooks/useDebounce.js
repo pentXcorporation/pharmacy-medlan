@@ -3,7 +3,7 @@
  * Provides debouncing utilities for inputs and callbacks
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from "react";
 
 /**
  * Hook that debounces a value
@@ -34,18 +34,25 @@ export const useDebounce = (value, delay = 300) => {
  * @param {Array} dependencies - Dependencies for the callback
  * @returns {Function} Debounced callback
  */
-export const useDebouncedCallback = (callback, delay = 300, dependencies = []) => {
+export const useDebouncedCallback = (
+  callback,
+  delay = 300,
+  dependencies = []
+) => {
   const timeoutRef = useRef(null);
 
-  const debouncedCallback = useCallback((...args) => {
-    if (timeoutRef.current) {
-      clearTimeout(timeoutRef.current);
-    }
+  const debouncedCallback = useCallback(
+    (...args) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
 
-    timeoutRef.current = setTimeout(() => {
-      callback(...args);
-    }, delay);
-  }, [callback, delay, ...dependencies]);
+      timeoutRef.current = setTimeout(() => {
+        callback(...args);
+      }, delay);
+    },
+    [callback, delay, ...dependencies]
+  );
 
   // Cleanup on unmount
   useEffect(() => {
@@ -65,7 +72,7 @@ export const useDebouncedCallback = (callback, delay = 300, dependencies = []) =
  * @param {number} delay - Debounce delay (default: 300ms)
  * @returns {Object} Search state and handlers
  */
-export const useDebouncedSearch = (initialValue = '', delay = 300) => {
+export const useDebouncedSearch = (initialValue = "", delay = 300) => {
   const [searchTerm, setSearchTerm] = useState(initialValue);
   const debouncedSearchTerm = useDebounce(searchTerm, delay);
 
@@ -74,7 +81,7 @@ export const useDebouncedSearch = (initialValue = '', delay = 300) => {
   }, []);
 
   const clearSearch = useCallback(() => {
-    setSearchTerm('');
+    setSearchTerm("");
   }, []);
 
   return {

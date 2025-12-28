@@ -3,10 +3,10 @@
  * Protects routes requiring authentication
  */
 
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '@/hooks';
-import { ROUTES } from '@/config';
-import { PageLoader } from '@/components/common';
+import { Navigate, useLocation } from "react-router-dom";
+import { useAuth } from "@/hooks";
+import { ROUTES } from "@/config";
+import { PageLoader } from "@/components/common";
 
 /**
  * AuthGuard - Protects routes that require authentication

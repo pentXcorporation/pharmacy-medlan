@@ -2,8 +2,14 @@
  * Formatters
  * Date, currency, number, and text formatting utilities
  */
-import { format, formatDistance, formatRelative, isValid, parseISO } from 'date-fns';
-import { APP_CONFIG } from '@/config/app.config';
+import {
+  format,
+  formatDistance,
+  formatRelative,
+  isValid,
+  parseISO,
+} from "date-fns";
+import { APP_CONFIG } from "@/config/app.config";
 
 // ============================================
 // DATE FORMATTERS
@@ -16,9 +22,9 @@ import { APP_CONFIG } from '@/config/app.config';
  * @returns {string} Formatted date
  */
 export const formatDate = (date, formatStr = APP_CONFIG.LOCALE.DATE_FORMAT) => {
-  if (!date) return '-';
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  if (!isValid(dateObj)) return '-';
+  if (!date) return "-";
+  const dateObj = typeof date === "string" ? parseISO(date) : date;
+  if (!isValid(dateObj)) return "-";
   return format(dateObj, formatStr);
 };
 
@@ -46,9 +52,9 @@ export const formatTime = (date) => {
  * @returns {string} Relative time string
  */
 export const formatRelativeTime = (date) => {
-  if (!date) return '-';
-  const dateObj = typeof date === 'string' ? parseISO(date) : date;
-  if (!isValid(dateObj)) return '-';
+  if (!date) return "-";
+  const dateObj = typeof date === "string" ? parseISO(date) : date;
+  if (!isValid(dateObj)) return "-";
   return formatDistance(dateObj, new Date(), { addSuffix: true });
 };
 
@@ -59,7 +65,7 @@ export const formatRelativeTime = (date) => {
  */
 export const formatDateForApi = (date) => {
   if (!date || !isValid(date)) return null;
-  return format(date, 'yyyy-MM-dd');
+  return format(date, "yyyy-MM-dd");
 };
 
 /**
@@ -82,16 +88,19 @@ export const formatDateTimeForApi = (date) => {
  * @param {string} currency - Currency code (default from config)
  * @returns {string} Formatted currency string
  */
-export const formatCurrency = (amount, currency = APP_CONFIG.LOCALE.CURRENCY) => {
-  if (amount === null || amount === undefined) return '-';
-  
-  const formatter = new Intl.NumberFormat('en-LK', {
-    style: 'currency',
+export const formatCurrency = (
+  amount,
+  currency = APP_CONFIG.LOCALE.CURRENCY
+) => {
+  if (amount === null || amount === undefined) return "-";
+
+  const formatter = new Intl.NumberFormat("en-LK", {
+    style: "currency",
     currency,
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-  
+
   return formatter.format(amount);
 };
 
@@ -101,9 +110,9 @@ export const formatCurrency = (amount, currency = APP_CONFIG.LOCALE.CURRENCY) =>
  * @returns {string} Formatted number string
  */
 export const formatAmount = (amount) => {
-  if (amount === null || amount === undefined) return '-';
-  
-  return new Intl.NumberFormat('en-LK', {
+  if (amount === null || amount === undefined) return "-";
+
+  return new Intl.NumberFormat("en-LK", {
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   }).format(amount);
@@ -120,9 +129,9 @@ export const formatAmount = (amount) => {
  * @returns {string} Formatted number
  */
 export const formatNumber = (num, decimals = 0) => {
-  if (num === null || num === undefined) return '-';
-  
-  return new Intl.NumberFormat('en-LK', {
+  if (num === null || num === undefined) return "-";
+
+  return new Intl.NumberFormat("en-LK", {
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(num);
@@ -135,10 +144,10 @@ export const formatNumber = (num, decimals = 0) => {
  * @returns {string} Formatted percentage
  */
 export const formatPercent = (value, decimals = 1) => {
-  if (value === null || value === undefined) return '-';
-  
-  return new Intl.NumberFormat('en-LK', {
-    style: 'percent',
+  if (value === null || value === undefined) return "-";
+
+  return new Intl.NumberFormat("en-LK", {
+    style: "percent",
     minimumFractionDigits: decimals,
     maximumFractionDigits: decimals,
   }).format(value);
@@ -150,10 +159,10 @@ export const formatPercent = (value, decimals = 1) => {
  * @returns {string} Compact number
  */
 export const formatCompact = (num) => {
-  if (num === null || num === undefined) return '-';
-  
-  return new Intl.NumberFormat('en', {
-    notation: 'compact',
+  if (num === null || num === undefined) return "-";
+
+  return new Intl.NumberFormat("en", {
+    notation: "compact",
     maximumFractionDigits: 1,
   }).format(num);
 };
@@ -168,7 +177,7 @@ export const formatCompact = (num) => {
  * @returns {string} Capitalized string
  */
 export const capitalize = (str) => {
-  if (!str) return '';
+  if (!str) return "";
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 };
 
@@ -178,12 +187,12 @@ export const capitalize = (str) => {
  * @returns {string} Title case string
  */
 export const toTitleCase = (str) => {
-  if (!str) return '';
+  if (!str) return "";
   return str
     .toLowerCase()
-    .split(' ')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .split(" ")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
 };
 
 /**
@@ -193,9 +202,9 @@ export const toTitleCase = (str) => {
  * @returns {string} Truncated string
  */
 export const truncate = (str, maxLength = 50) => {
-  if (!str) return '';
+  if (!str) return "";
   if (str.length <= maxLength) return str;
-  return str.slice(0, maxLength) + '...';
+  return str.slice(0, maxLength) + "...";
 };
 
 /**
@@ -204,9 +213,9 @@ export const truncate = (str, maxLength = 50) => {
  * @returns {string} Formatted phone number
  */
 export const formatPhone = (phone) => {
-  if (!phone) return '-';
+  if (!phone) return "-";
   // Remove all non-digits
-  const cleaned = phone.replace(/\D/g, '');
+  const cleaned = phone.replace(/\D/g, "");
   // Format based on length (Sri Lankan format)
   if (cleaned.length === 10) {
     return `${cleaned.slice(0, 3)} ${cleaned.slice(3, 6)} ${cleaned.slice(6)}`;
@@ -220,10 +229,10 @@ export const formatPhone = (phone) => {
  * @returns {string} Masked email
  */
 export const maskEmail = (email) => {
-  if (!email) return '-';
-  const [localPart, domain] = email.split('@');
+  if (!email) return "-";
+  const [localPart, domain] = email.split("@");
   if (!domain) return email;
-  const maskedLocal = localPart.slice(0, 2) + '***';
+  const maskedLocal = localPart.slice(0, 2) + "***";
   return `${maskedLocal}@${domain}`;
 };
 
@@ -237,7 +246,7 @@ export const maskEmail = (email) => {
  * @returns {string} Formatted batch number
  */
 export const formatBatchNumber = (batchNumber) => {
-  return batchNumber || '-';
+  return batchNumber || "-";
 };
 
 /**
@@ -246,8 +255,8 @@ export const formatBatchNumber = (batchNumber) => {
  * @param {string} unit - Unit of measure
  * @returns {string} Formatted quantity with unit
  */
-export const formatQuantity = (quantity, unit = '') => {
-  if (quantity === null || quantity === undefined) return '-';
+export const formatQuantity = (quantity, unit = "") => {
+  if (quantity === null || quantity === undefined) return "-";
   return `${formatNumber(quantity)} ${unit}`.trim();
 };
 
@@ -257,28 +266,32 @@ export const formatQuantity = (quantity, unit = '') => {
  * @returns {object} { formatted, status, colorClass }
  */
 export const formatExpiryDate = (expiryDate) => {
-  if (!expiryDate) return { formatted: '-', status: 'unknown', colorClass: '' };
-  
-  const date = typeof expiryDate === 'string' ? parseISO(expiryDate) : expiryDate;
-  if (!isValid(date)) return { formatted: '-', status: 'unknown', colorClass: '' };
-  
+  if (!expiryDate) return { formatted: "-", status: "unknown", colorClass: "" };
+
+  const date =
+    typeof expiryDate === "string" ? parseISO(expiryDate) : expiryDate;
+  if (!isValid(date))
+    return { formatted: "-", status: "unknown", colorClass: "" };
+
   const now = new Date();
-  const daysUntilExpiry = Math.ceil((date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  
-  let status = 'valid';
-  let colorClass = 'text-green-600';
-  
+  const daysUntilExpiry = Math.ceil(
+    (date.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)
+  );
+
+  let status = "valid";
+  let colorClass = "text-green-600";
+
   if (daysUntilExpiry < 0) {
-    status = 'expired';
-    colorClass = 'text-red-600 font-semibold';
+    status = "expired";
+    colorClass = "text-red-600 font-semibold";
   } else if (daysUntilExpiry <= APP_CONFIG.INVENTORY.EXPIRY_CRITICAL_DAYS) {
-    status = 'critical';
-    colorClass = 'text-orange-600 font-semibold';
+    status = "critical";
+    colorClass = "text-orange-600 font-semibold";
   } else if (daysUntilExpiry <= APP_CONFIG.INVENTORY.EXPIRY_WARNING_DAYS) {
-    status = 'warning';
-    colorClass = 'text-yellow-600';
+    status = "warning";
+    colorClass = "text-yellow-600";
   }
-  
+
   return {
     formatted: formatDate(date),
     status,

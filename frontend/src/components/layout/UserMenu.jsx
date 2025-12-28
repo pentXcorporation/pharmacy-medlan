@@ -3,13 +3,13 @@
  * Dropdown menu with user profile, settings, and logout
  */
 
-import { useNavigate } from 'react-router-dom';
-import { LogOut, Settings, User, Shield, HelpCircle } from 'lucide-react';
-import { useAuth, usePermissions } from '@/hooks';
-import { ROUTES } from '@/config';
-import { ROLE_LABELS, ROLE_COLORS } from '@/constants';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Button } from '@/components/ui/button';
+import { useNavigate } from "react-router-dom";
+import { LogOut, Settings, User, Shield, HelpCircle } from "lucide-react";
+import { useAuth, usePermissions } from "@/hooks";
+import { ROUTES } from "@/config";
+import { ROLE_LABELS, ROLE_COLORS } from "@/constants";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,8 +18,8 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/dropdown-menu";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * User Menu dropdown component
@@ -43,15 +43,12 @@ const UserMenu = () => {
   }
 
   const roleLabel = ROLE_LABELS[role] || role;
-  const roleColor = ROLE_COLORS[role] || 'gray';
+  const roleColor = ROLE_COLORS[role] || "gray";
 
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button
-          variant="ghost"
-          className="relative h-10 w-10 rounded-full"
-        >
+        <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-9 w-9">
             <AvatarImage src={user.avatarUrl} alt={displayName} />
             <AvatarFallback className="bg-primary text-primary-foreground">
@@ -69,10 +66,10 @@ const UserMenu = () => {
             <p className="text-xs leading-none text-muted-foreground">
               {user.email || user.username}
             </p>
-            <Badge 
-              variant="outline" 
+            <Badge
+              variant="outline"
               className="w-fit text-xs"
-              style={{ 
+              style={{
                 borderColor: roleColor,
                 color: roleColor,
               }}
@@ -100,12 +97,12 @@ const UserMenu = () => {
           )}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => navigate('/help')}>
+        <DropdownMenuItem onClick={() => navigate("/help")}>
           <HelpCircle className="mr-2 h-4 w-4" />
           <span>Help & Support</span>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
-        <DropdownMenuItem 
+        <DropdownMenuItem
           onClick={handleLogout}
           className="text-destructive focus:text-destructive"
         >

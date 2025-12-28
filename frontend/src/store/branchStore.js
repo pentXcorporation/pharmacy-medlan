@@ -1,8 +1,8 @@
 /**
  * Branch Store - Zustand store for selected branch state
  */
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 const initialState = {
   selectedBranch: null,
@@ -45,7 +45,7 @@ export const useBranchStore = create(
       // Get selected branch name
       getSelectedBranchName: () => {
         const { selectedBranch } = get();
-        return selectedBranch?.name || 'Select Branch';
+        return selectedBranch?.name || "Select Branch";
       },
 
       // Clear selection
@@ -65,7 +65,7 @@ export const useBranchStore = create(
       },
     }),
     {
-      name: 'branch-storage',
+      name: "branch-storage",
       partialize: (state) => ({
         selectedBranch: state.selectedBranch,
       }),

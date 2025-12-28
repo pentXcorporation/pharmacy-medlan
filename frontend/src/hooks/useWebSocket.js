@@ -3,18 +3,18 @@
  * Provides real-time communication utilities
  */
 
-import { useState, useEffect, useCallback, useRef } from 'react';
-import { useAuthStore, useNotificationStore } from '@/store';
-import { API_CONFIG } from '@/config';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useAuthStore, useNotificationStore } from "@/store";
+import { API_CONFIG } from "@/config";
 
 /**
  * WebSocket connection states
  */
 export const WS_STATE = {
-  CONNECTING: 'CONNECTING',
-  CONNECTED: 'CONNECTED',
-  DISCONNECTED: 'DISCONNECTED',
-  ERROR: 'ERROR',
+  CONNECTING: "CONNECTING",
+  CONNECTED: "CONNECTED",
+  DISCONNECTED: "DISCONNECTED",
+  ERROR: "ERROR",
 };
 
 /**
@@ -39,7 +39,7 @@ export const useWebSocket = (options = {}) => {
 
   const [state, setState] = useState(WS_STATE.DISCONNECTED);
   const [lastMessage, setLastMessage] = useState(null);
-  
+
   const { isAuthenticated, accessToken } = useAuthStore();
   const { addNotification } = useNotificationStore();
 
@@ -47,7 +47,8 @@ export const useWebSocket = (options = {}) => {
    * Get WebSocket URL
    */
   const getWsUrl = useCallback(() => {
-    const wsUrl = API_CONFIG.WS_URL || API_CONFIG.BASE_URL.replace(/^http/, 'ws');
+    const wsUrl =
+      API_CONFIG.WS_URL || API_CONFIG.BASE_URL.replace(/^http/, "ws");
     return `${wsUrl}?token=${accessToken}`;
   }, [accessToken]);
 
@@ -73,24 +74,27 @@ export const useWebSocket = (options = {}) => {
         try {
           const data = JSON.parse(event.data);
           setLastMessage(data);
-          
+
           // Handle different message types
-          if (data.type === 'NOTIFICATION') {
+          if (data.type === "NOTIFICATION") {
             addNotification(data.payload);
           }
-          
+
           onMessage?.(data);
         } catch (error) {
-          console.error('Failed to parse WebSocket message:', error);
+          console.error("Failed to parse WebSocket message:", error);
         }
       };
 
       wsRef.current.onclose = (event) => {
         setState(WS_STATE.DISCONNECTED);
         onDisconnect?.(event);
-        
+
         // Attempt reconnection if not intentionally closed
-        if (!event.wasClean && reconnectAttemptsRef.current < maxReconnectAttempts) {
+        if (
+          !event.wasClean &&
+          reconnectAttemptsRef.current < maxReconnectAttempts
+        ) {
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttemptsRef.current++;
             connect();
@@ -106,7 +110,17 @@ export const useWebSocket = (options = {}) => {
       setState(WS_STATE.ERROR);
       onError?.(error);
     }
-  }, [isAuthenticated, getWsUrl, onConnect, onMessage, onDisconnect, onError, addNotification, maxReconnectAttempts, reconnectInterval]);
+  }, [
+    isAuthenticated,
+    getWsUrl,
+    onConnect,
+    onMessage,
+    onDisconnect,
+    onError,
+    addNotification,
+    maxReconnectAttempts,
+    reconnectInterval,
+  ]);
 
   /**
    * Disconnect from WebSocket
@@ -115,12 +129,12 @@ export const useWebSocket = (options = {}) => {
     if (reconnectTimeoutRef.current) {
       clearTimeout(reconnectTimeoutRef.current);
     }
-    
+
     if (wsRef.current) {
-      wsRef.current.close(1000, 'Client disconnecting');
+      wsRef.current.close(1000, "Client disconnecting");
       wsRef.current = null;
     }
-    
+
     setState(WS_STATE.DISCONNECTED);
   }, []);
 
@@ -133,7 +147,7 @@ export const useWebSocket = (options = {}) => {
       wsRef.current.send(JSON.stringify(data));
       return true;
     }
-    console.warn('WebSocket is not connected');
+    console.warn("WebSocket is not connected");
     return false;
   }, []);
 
@@ -141,17 +155,23 @@ export const useWebSocket = (options = {}) => {
    * Subscribe to a topic
    * @param {string} topic - Topic to subscribe to
    */
-  const subscribe = useCallback((topic) => {
-    return send({ type: 'SUBSCRIBE', topic });
-  }, [send]);
+  const subscribe = useCallback(
+    (topic) => {
+      return send({ type: "SUBSCRIBE", topic });
+    },
+    [send]
+  );
 
   /**
    * Unsubscribe from a topic
    * @param {string} topic - Topic to unsubscribe from
    */
-  const unsubscribe = useCallback((topic) => {
-    return send({ type: 'UNSUBSCRIBE', topic });
-  }, [send]);
+  const unsubscribe = useCallback(
+    (topic) => {
+      return send({ type: "UNSUBSCRIBE", topic });
+    },
+    [send]
+  );
 
   // Auto-connect on mount if authenticated
   useEffect(() => {
@@ -179,7 +199,7 @@ export const useWebSocket = (options = {}) => {
     isConnected: state === WS_STATE.CONNECTED,
     isConnecting: state === WS_STATE.CONNECTING,
     lastMessage,
-    
+
     // Actions
     connect,
     disconnect,
@@ -197,13 +217,16 @@ export const useWebSocket = (options = {}) => {
  */
 export const useSubscription = (topic, onMessage) => {
   const [messages, setMessages] = useState([]);
-  
-  const handleMessage = useCallback((data) => {
-    if (data.topic === topic) {
-      setMessages((prev) => [...prev.slice(-99), data.payload]);
-      onMessage?.(data.payload);
-    }
-  }, [topic, onMessage]);
+
+  const handleMessage = useCallback(
+    (data) => {
+      if (data.topic === topic) {
+        setMessages((prev) => [...prev.slice(-99), data.payload]);
+        onMessage?.(data.payload);
+      }
+    },
+    [topic, onMessage]
+  );
 
   const ws = useWebSocket({
     onMessage: handleMessage,
@@ -213,7 +236,7 @@ export const useSubscription = (topic, onMessage) => {
     if (ws.isConnected) {
       ws.subscribe(topic);
     }
-    
+
     return () => {
       if (ws.isConnected) {
         ws.unsubscribe(topic);

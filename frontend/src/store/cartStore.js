@@ -1,16 +1,16 @@
 /**
  * Cart Store - Zustand store for POS cart state
  */
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 const initialState = {
   items: [],
   customer: null,
-  paymentMethod: 'CASH',
+  paymentMethod: "CASH",
   discount: 0,
-  discountType: 'percentage', // 'percentage' | 'fixed'
-  notes: '',
+  discountType: "percentage", // 'percentage' | 'fixed'
+  notes: "",
   holdId: null,
 };
 
@@ -53,9 +53,7 @@ export const useCartStore = create(
           set({ items: items.filter((i) => i.id !== itemId) });
         } else {
           set({
-            items: items.map((i) =>
-              i.id === itemId ? { ...i, quantity } : i
-            ),
+            items: items.map((i) => (i.id === itemId ? { ...i, quantity } : i)),
           });
         }
       },
@@ -64,9 +62,7 @@ export const useCartStore = create(
       updateItemDiscount: (itemId, discount) => {
         const { items } = get();
         set({
-          items: items.map((i) =>
-            i.id === itemId ? { ...i, discount } : i
-          ),
+          items: items.map((i) => (i.id === itemId ? { ...i, discount } : i)),
         });
       },
 
@@ -81,7 +77,7 @@ export const useCartStore = create(
       },
 
       // Set overall discount
-      setDiscount: (discount, discountType = 'percentage') => {
+      setDiscount: (discount, discountType = "percentage") => {
         set({ discount, discountType });
       },
 
@@ -104,8 +100,8 @@ export const useCartStore = create(
       getDiscountAmount: () => {
         const { discount, discountType } = get();
         const subtotal = get().getSubtotal();
-        
-        if (discountType === 'percentage') {
+
+        if (discountType === "percentage") {
           return (subtotal * discount) / 100;
         }
         return discount;
@@ -132,19 +128,19 @@ export const useCartStore = create(
       // Hold current sale
       holdSale: (holdId) => {
         const state = get();
-        const heldSales = JSON.parse(localStorage.getItem('heldSales') || '[]');
+        const heldSales = JSON.parse(localStorage.getItem("heldSales") || "[]");
         heldSales.push({
           id: holdId || Date.now(),
           ...state,
           heldAt: new Date().toISOString(),
         });
-        localStorage.setItem('heldSales', JSON.stringify(heldSales));
+        localStorage.setItem("heldSales", JSON.stringify(heldSales));
         set(initialState);
       },
 
       // Get held sales
       getHeldSales: () => {
-        return JSON.parse(localStorage.getItem('heldSales') || '[]');
+        return JSON.parse(localStorage.getItem("heldSales") || "[]");
       },
 
       // Recall held sale
@@ -156,7 +152,7 @@ export const useCartStore = create(
           set({ ...saleData, holdId: id });
           // Remove from held sales
           const updatedHeldSales = heldSales.filter((s) => s.id !== holdId);
-          localStorage.setItem('heldSales', JSON.stringify(updatedHeldSales));
+          localStorage.setItem("heldSales", JSON.stringify(updatedHeldSales));
         }
       },
 
@@ -164,11 +160,11 @@ export const useCartStore = create(
       deleteHeldSale: (holdId) => {
         const heldSales = get().getHeldSales();
         const updatedHeldSales = heldSales.filter((s) => s.id !== holdId);
-        localStorage.setItem('heldSales', JSON.stringify(updatedHeldSales));
+        localStorage.setItem("heldSales", JSON.stringify(updatedHeldSales));
       },
     }),
     {
-      name: 'cart-storage',
+      name: "cart-storage",
       partialize: (state) => ({
         items: state.items,
         customer: state.customer,

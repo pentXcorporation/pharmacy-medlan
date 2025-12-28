@@ -3,17 +3,17 @@
  * Authentication form with validation
  */
 
-import { useState } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Loader2, LogIn } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { loginSchema } from '@/utils/validators';
-import { useLogin } from '../hooks/useLogin';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Checkbox } from '@/components/ui/checkbox';
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Eye, EyeOff, Loader2, LogIn } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { loginSchema } from "@/utils/validators";
+import { useLogin } from "../hooks/useLogin";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Form,
   FormControl,
@@ -21,7 +21,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from '@/components/ui/form';
+} from "@/components/ui/form";
 
 /**
  * LoginForm component
@@ -33,8 +33,8 @@ const LoginForm = ({ className }) => {
   const form = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
-      username: '',
-      password: '',
+      username: "",
+      password: "",
       rememberMe: false,
     },
   });
@@ -50,7 +50,7 @@ const LoginForm = ({ className }) => {
     <Form {...form}>
       <form
         onSubmit={form.handleSubmit(onSubmit)}
-        className={cn('space-y-6', className)}
+        className={cn("space-y-6", className)}
       >
         {/* Username Field */}
         <FormField
@@ -82,7 +82,7 @@ const LoginForm = ({ className }) => {
               <FormControl>
                 <div className="relative">
                   <Input
-                    type={showPassword ? 'text' : 'password'}
+                    type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
                     autoComplete="current-password"
                     disabled={isPending}
@@ -103,7 +103,7 @@ const LoginForm = ({ className }) => {
                       <Eye className="h-4 w-4 text-muted-foreground" />
                     )}
                     <span className="sr-only">
-                      {showPassword ? 'Hide password' : 'Show password'}
+                      {showPassword ? "Hide password" : "Show password"}
                     </span>
                   </Button>
                 </div>
@@ -142,12 +142,7 @@ const LoginForm = ({ className }) => {
         </div>
 
         {/* Submit Button */}
-        <Button
-          type="submit"
-          className="w-full"
-          size="lg"
-          disabled={isPending}
-        >
+        <Button type="submit" className="w-full" size="lg" disabled={isPending}>
           {isPending ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />

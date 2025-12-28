@@ -3,11 +3,11 @@
  * Consistent page header with title, description, and actions
  */
 
-import { ChevronRight, ArrowLeft } from 'lucide-react';
-import { Link, useNavigate } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
+import { ChevronRight, ArrowLeft } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
 /**
  * Breadcrumb item type
@@ -67,7 +67,7 @@ const PageHeader = ({
   };
 
   return (
-    <div className={cn('mb-6', className)}>
+    <div className={cn("mb-6", className)}>
       {/* Breadcrumbs */}
       {breadcrumbs.length > 0 && <Breadcrumbs items={breadcrumbs} />}
 

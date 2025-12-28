@@ -2,16 +2,16 @@
  * Axios API Client Configuration
  * Handles authentication, interceptors, and error handling
  */
-import axios from 'axios';
-import { API_CONFIG } from '@/config/api.config';
+import axios from "axios";
+import { API_CONFIG } from "@/config/api.config";
 
 // Create axios instance
 const apiClient = axios.create({
   baseURL: API_CONFIG.BASE_URL,
   timeout: API_CONFIG.TIMEOUT,
   headers: {
-    'Content-Type': API_CONFIG.HEADERS.CONTENT_TYPE,
-    'Accept': API_CONFIG.HEADERS.ACCEPT,
+    "Content-Type": API_CONFIG.HEADERS.CONTENT_TYPE,
+    Accept: API_CONFIG.HEADERS.ACCEPT,
   },
 });
 
@@ -20,14 +20,15 @@ export const authClient = axios.create({
   baseURL: API_CONFIG.AUTH_URL,
   timeout: API_CONFIG.TIMEOUT,
   headers: {
-    'Content-Type': API_CONFIG.HEADERS.CONTENT_TYPE,
-    'Accept': API_CONFIG.HEADERS.ACCEPT,
+    "Content-Type": API_CONFIG.HEADERS.CONTENT_TYPE,
+    Accept: API_CONFIG.HEADERS.ACCEPT,
   },
 });
 
 // Token management
 const getAccessToken = () => localStorage.getItem(API_CONFIG.TOKEN.ACCESS_KEY);
-const getRefreshToken = () => localStorage.getItem(API_CONFIG.TOKEN.REFRESH_KEY);
+const getRefreshToken = () =>
+  localStorage.getItem(API_CONFIG.TOKEN.REFRESH_KEY);
 
 // Request interceptor - Add auth token
 const addAuthToken = (config) => {
@@ -38,15 +39,19 @@ const addAuthToken = (config) => {
   return config;
 };
 
-apiClient.interceptors.request.use(addAuthToken, (error) => Promise.reject(error));
-authClient.interceptors.request.use(addAuthToken, (error) => Promise.reject(error));
+apiClient.interceptors.request.use(addAuthToken, (error) =>
+  Promise.reject(error)
+);
+authClient.interceptors.request.use(addAuthToken, (error) =>
+  Promise.reject(error)
+);
 
 // Flag to prevent multiple refresh attempts
 let isRefreshing = false;
 let failedQueue = [];
 
 const processQueue = (error, token = null) => {
-  failedQueue.forEach(prom => {
+  failedQueue.forEach((prom) => {
     if (error) {
       prom.reject(error);
     } else {
@@ -68,38 +73,40 @@ const errorInterceptor = async (error) => {
       // Queue the request while refreshing
       return new Promise((resolve, reject) => {
         failedQueue.push({ resolve, reject });
-      }).then(token => {
-        originalRequest.headers.Authorization = `Bearer ${token}`;
-        return apiClient(originalRequest);
-      }).catch(err => Promise.reject(err));
+      })
+        .then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return apiClient(originalRequest);
+        })
+        .catch((err) => Promise.reject(err));
     }
 
     originalRequest._retry = true;
     isRefreshing = true;
 
     const refreshToken = getRefreshToken();
-    
+
     if (!refreshToken) {
       // No refresh token, redirect to login
       isRefreshing = false;
-      window.location.href = '/login';
+      window.location.href = "/login";
       return Promise.reject(error);
     }
 
     try {
-      const response = await authClient.post('/auth/refresh', {
+      const response = await authClient.post("/auth/refresh", {
         refreshToken,
       });
 
       const { accessToken, refreshToken: newRefreshToken } = response.data.data;
-      
+
       localStorage.setItem(API_CONFIG.TOKEN.ACCESS_KEY, accessToken);
       if (newRefreshToken) {
         localStorage.setItem(API_CONFIG.TOKEN.REFRESH_KEY, newRefreshToken);
       }
 
       processQueue(null, accessToken);
-      
+
       originalRequest.headers.Authorization = `Bearer ${accessToken}`;
       return apiClient(originalRequest);
     } catch (refreshError) {
@@ -108,7 +115,7 @@ const errorInterceptor = async (error) => {
       localStorage.removeItem(API_CONFIG.TOKEN.ACCESS_KEY);
       localStorage.removeItem(API_CONFIG.TOKEN.REFRESH_KEY);
       localStorage.removeItem(API_CONFIG.TOKEN.USER_KEY);
-      window.location.href = '/login';
+      window.location.href = "/login";
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;
@@ -118,7 +125,7 @@ const errorInterceptor = async (error) => {
   // Handle other errors
   if (error.response?.status === 403) {
     // Forbidden - redirect to unauthorized page
-    window.location.href = '/401';
+    window.location.href = "/401";
   }
 
   return Promise.reject(error);
@@ -150,7 +157,7 @@ export const extractErrorMessage = (error) => {
   if (error.message) {
     return error.message;
   }
-  return 'An unexpected error occurred';
+  return "An unexpected error occurred";
 };
 
 export default apiClient;

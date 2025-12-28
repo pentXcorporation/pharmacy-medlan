@@ -3,12 +3,12 @@
  * Search input with debouncing and clear functionality
  */
 
-import { useState, useEffect } from 'react';
-import { Search, X, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useDebounce } from '@/hooks';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useState, useEffect } from "react";
+import { Search, X, Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useDebounce } from "@/hooks";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
 /**
  * SearchInput component with debouncing
@@ -17,19 +17,19 @@ const SearchInput = ({
   value: controlledValue,
   onChange,
   onSearch,
-  placeholder = 'Search...',
+  placeholder = "Search...",
   debounceMs = 300,
   isLoading = false,
   autoFocus = false,
   className,
   inputClassName,
-  size = 'default',
+  size = "default",
   showClear = true,
   ...props
 }) => {
   // Internal state for uncontrolled usage
-  const [internalValue, setInternalValue] = useState('');
-  
+  const [internalValue, setInternalValue] = useState("");
+
   // Use controlled or uncontrolled value
   const value = controlledValue !== undefined ? controlledValue : internalValue;
   const debouncedValue = useDebounce(value, debounceMs);
@@ -41,7 +41,7 @@ const SearchInput = ({
 
   const handleChange = (e) => {
     const newValue = e.target.value;
-    
+
     if (controlledValue !== undefined) {
       onChange?.(newValue);
     } else {
@@ -52,24 +52,24 @@ const SearchInput = ({
 
   const handleClear = () => {
     if (controlledValue !== undefined) {
-      onChange?.('');
+      onChange?.("");
     } else {
-      setInternalValue('');
-      onChange?.('');
+      setInternalValue("");
+      onChange?.("");
     }
   };
 
   const sizeClasses = {
-    sm: 'h-8 text-sm',
-    default: 'h-10',
-    lg: 'h-12 text-lg',
+    sm: "h-8 text-sm",
+    default: "h-10",
+    lg: "h-12 text-lg",
   };
 
   return (
-    <div className={cn('relative', className)}>
+    <div className={cn("relative", className)}>
       {/* Search Icon */}
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground pointer-events-none" />
-      
+
       {/* Input */}
       <Input
         type="search"
@@ -78,8 +78,8 @@ const SearchInput = ({
         placeholder={placeholder}
         autoFocus={autoFocus}
         className={cn(
-          'pl-9',
-          showClear && value && 'pr-9',
+          "pl-9",
+          showClear && value && "pr-9",
           sizeClasses[size],
           inputClassName
         )}
@@ -91,7 +91,8 @@ const SearchInput = ({
         {isLoading ? (
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground mr-2" />
         ) : (
-          showClear && value && (
+          showClear &&
+          value && (
             <Button
               type="button"
               variant="ghost"
@@ -113,8 +114,8 @@ const SearchInput = ({
  * CommandSearch - Search with command palette style
  */
 export const CommandSearch = ({
-  placeholder = 'Type a command or search...',
-  shortcutKey = 'K',
+  placeholder = "Type a command or search...",
+  shortcutKey = "K",
   ...props
 }) => (
   <SearchInput

@@ -3,15 +3,15 @@
  * Top navigation bar with user menu, branch selector, and notifications
  */
 
-import { Bell, Menu, Moon, Sun, Search } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useUiStore } from '@/store';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Separator } from '@/components/ui/separator';
-import BranchSelector from './BranchSelector';
-import UserMenu from './UserMenu';
-import NotificationDropdown from './NotificationDropdown';
+import { Bell, Menu, Moon, Sun, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useUiStore } from "@/store";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Separator } from "@/components/ui/separator";
+import BranchSelector from "./BranchSelector";
+import UserMenu from "./UserMenu";
+import NotificationDropdown from "./NotificationDropdown";
 
 /**
  * Main Header component
@@ -20,13 +20,13 @@ const Header = ({ className }) => {
   const { sidebarCollapsed, toggleSidebar, theme, setTheme } = useUiStore();
 
   const toggleTheme = () => {
-    setTheme(theme === 'light' ? 'dark' : 'light');
+    setTheme(theme === "light" ? "dark" : "light");
   };
 
   return (
     <header
       className={cn(
-        'flex h-16 items-center gap-4 border-b bg-card px-4',
+        "flex h-16 items-center gap-4 border-b bg-card px-4",
         className
       )}
     >
@@ -68,7 +68,7 @@ const Header = ({ className }) => {
           onClick={toggleTheme}
           className="shrink-0"
         >
-          {theme === 'light' ? (
+          {theme === "light" ? (
             <Moon className="h-5 w-5" />
           ) : (
             <Sun className="h-5 w-5" />

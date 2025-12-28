@@ -3,10 +3,10 @@
  */
 
 // Components
-export { default as SalesOverviewWidget } from './components/SalesOverviewWidget';
-export { default as InventoryAlertsWidget } from './components/InventoryAlertsWidget';
-export { default as RecentSalesWidget } from './components/RecentSalesWidget';
-export { default as QuickActionsWidget } from './components/QuickActionsWidget';
+export { default as SalesOverviewWidget } from "./components/SalesOverviewWidget";
+export { default as InventoryAlertsWidget } from "./components/InventoryAlertsWidget";
+export { default as RecentSalesWidget } from "./components/RecentSalesWidget";
+export { default as QuickActionsWidget } from "./components/QuickActionsWidget";
 
 // Hooks
 export {
@@ -15,4 +15,4 @@ export {
   useLowStockAlerts,
   useExpiringProducts,
   useSalesChart,
-} from './hooks/useDashboard';
+} from "./hooks/useDashboard";

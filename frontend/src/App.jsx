@@ -3,15 +3,15 @@
  * Root application component with all providers
  */
 
-import { useEffect } from 'react';
-import { RouterProvider } from 'react-router-dom';
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
-import { Toaster } from '@/components/ui/sonner';
-import { TooltipProvider } from '@/components/ui/tooltip';
-import { ErrorBoundary, GlobalConfirmDialog } from '@/components/common';
-import { useAuthStore, useUiStore } from '@/store';
-import router from '@/routes';
+import { useEffect } from "react";
+import { RouterProvider } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { Toaster } from "@/components/ui/sonner";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { ErrorBoundary, GlobalConfirmDialog } from "@/components/common";
+import { useAuthStore, useUiStore } from "@/store";
+import router from "@/routes";
 
 // Create React Query client
 const queryClient = new QueryClient({
@@ -36,12 +36,13 @@ const ThemeProvider = ({ children }) => {
 
   useEffect(() => {
     const root = window.document.documentElement;
-    root.classList.remove('light', 'dark');
-    
-    if (theme === 'system') {
-      const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
-        ? 'dark'
-        : 'light';
+    root.classList.remove("light", "dark");
+
+    if (theme === "system") {
+      const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
+        .matches
+        ? "dark"
+        : "light";
       root.classList.add(systemTheme);
     } else {
       root.classList.add(theme);
@@ -75,21 +76,21 @@ function App() {
           <AuthInitializer>
             <TooltipProvider>
               <RouterProvider router={router} />
-              
+
               {/* Global Toaster */}
-              <Toaster 
+              <Toaster
                 position="top-right"
                 expand={false}
                 richColors
                 closeButton
               />
-              
+
               {/* Global Confirm Dialog */}
               <GlobalConfirmDialog />
             </TooltipProvider>
           </AuthInitializer>
         </ThemeProvider>
-        
+
         {/* React Query Devtools (dev only) */}
         {import.meta.env.DEV && (
           <ReactQueryDevtools initialIsOpen={false} position="bottom-right" />

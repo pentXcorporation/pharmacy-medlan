@@ -3,9 +3,9 @@
  * Protects routes based on user roles
  */
 
-import { Navigate } from 'react-router-dom';
-import { useAuth, usePermissions } from '@/hooks';
-import { ROUTES } from '@/config';
+import { Navigate } from "react-router-dom";
+import { useAuth, usePermissions } from "@/hooks";
+import { ROUTES } from "@/config";
 
 /**
  * AccessDenied component
@@ -36,7 +36,7 @@ const RoleGuard = ({
   allowedRoles,
   minimumRole,
   feature,
-  action = 'view',
+  action = "view",
   redirectTo,
   fallback = <AccessDenied />,
   children,

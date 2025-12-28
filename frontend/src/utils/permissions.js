@@ -2,8 +2,11 @@
  * Permission Utilities
  * Helper functions for role-based access control
  */
-import { PERMISSIONS, hasPermission as checkPermission } from '@/constants/permissions';
-import { ROLES, ROLE_HIERARCHY } from '@/constants/roles';
+import {
+  PERMISSIONS,
+  hasPermission as checkPermission,
+} from "@/constants/permissions";
+import { ROLES, ROLE_HIERARCHY } from "@/constants/roles";
 
 /**
  * Check if user has permission for a feature action
@@ -37,7 +40,7 @@ export const hasAnyRole = (user, roles) => {
 export const hasAllRoles = (user, roles) => {
   if (!user?.role) return false;
   // Single role per user, so this checks if user's role is in all required roles
-  return roles.every(role => role === user.role);
+  return roles.every((role) => role === user.role);
 };
 
 /**
@@ -77,7 +80,13 @@ export const isAdmin = (user) => {
  * @returns {boolean}
  */
 export const canAccessPOS = (user) => {
-  return hasAnyRole(user, [ROLES.PHARMACIST, ROLES.CASHIER, ROLES.BRANCH_MANAGER, ROLES.ADMIN, ROLES.SUPER_ADMIN]);
+  return hasAnyRole(user, [
+    ROLES.PHARMACIST,
+    ROLES.CASHIER,
+    ROLES.BRANCH_MANAGER,
+    ROLES.ADMIN,
+    ROLES.SUPER_ADMIN,
+  ]);
 };
 
 /**
@@ -86,7 +95,7 @@ export const canAccessPOS = (user) => {
  * @returns {boolean}
  */
 export const canManageInventory = (user) => {
-  return hasPermission(user, 'inventory', 'adjust');
+  return hasPermission(user, "inventory", "adjust");
 };
 
 /**
@@ -95,7 +104,7 @@ export const canManageInventory = (user) => {
  * @returns {boolean}
  */
 export const canApproveOrders = (user) => {
-  return hasPermission(user, 'purchaseOrders', 'approve');
+  return hasPermission(user, "purchaseOrders", "approve");
 };
 
 /**
@@ -145,7 +154,7 @@ export const getRolePermissions = (role) => {
 export const getAccessibleFeatures = (role) => {
   const permissions = PERMISSIONS[role];
   if (!permissions) return [];
-  
+
   return Object.entries(permissions)
     .filter(([_, perms]) => perms.view)
     .map(([feature]) => feature);
@@ -159,22 +168,24 @@ export const getAccessibleFeatures = (role) => {
  */
 export const filterNavByPermissions = (navItems, user) => {
   if (!user?.role) return [];
-  
-  return navItems.filter(item => {
-    if (item.roles && !item.roles.includes(user.role)) {
-      return false;
-    }
-    if (item.feature && item.action) {
-      return hasPermission(user, item.feature, item.action);
-    }
-    return true;
-  }).map(item => {
-    if (item.children) {
-      return {
-        ...item,
-        children: filterNavByPermissions(item.children, user),
-      };
-    }
-    return item;
-  });
+
+  return navItems
+    .filter((item) => {
+      if (item.roles && !item.roles.includes(user.role)) {
+        return false;
+      }
+      if (item.feature && item.action) {
+        return hasPermission(user, item.feature, item.action);
+      }
+      return true;
+    })
+    .map((item) => {
+      if (item.children) {
+        return {
+          ...item,
+          children: filterNavByPermissions(item.children, user),
+        };
+      }
+      return item;
+    });
 };

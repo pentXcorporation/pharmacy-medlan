@@ -3,10 +3,10 @@
  * Dropdown for switching between branches (for authorized roles)
  */
 
-import { Building2, Check, ChevronsUpDown } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useBranch } from '@/hooks';
-import { Button } from '@/components/ui/button';
+import { Building2, Check, ChevronsUpDown } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useBranch } from "@/hooks";
+import { Button } from "@/components/ui/button";
 import {
   Command,
   CommandEmpty,
@@ -14,13 +14,13 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
-} from '@/components/ui/command';
+} from "@/components/ui/command";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from '@/components/ui/popover';
-import { useState } from 'react';
+} from "@/components/ui/popover";
+import { useState } from "react";
 
 /**
  * Branch Selector dropdown component
@@ -42,7 +42,7 @@ const BranchSelector = () => {
       <div className="flex items-center gap-2 px-3 py-2 text-sm">
         <Building2 className="h-4 w-4 text-muted-foreground" />
         <span className="hidden sm:inline">
-          {selectedBranch ? formatBranchName(selectedBranch) : 'No Branch'}
+          {selectedBranch ? formatBranchName(selectedBranch) : "No Branch"}
         </span>
       </div>
     );
@@ -60,7 +60,9 @@ const BranchSelector = () => {
         >
           <Building2 className="h-4 w-4 shrink-0" />
           <span className="truncate">
-            {selectedBranch ? formatBranchName(selectedBranch) : 'Select branch...'}
+            {selectedBranch
+              ? formatBranchName(selectedBranch)
+              : "Select branch..."}
           </span>
           <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
         </Button>
@@ -83,10 +85,10 @@ const BranchSelector = () => {
                 >
                   <Check
                     className={cn(
-                      'h-4 w-4',
+                      "h-4 w-4",
                       selectedBranch?.id === branch.id
-                        ? 'opacity-100'
-                        : 'opacity-0'
+                        ? "opacity-100"
+                        : "opacity-0"
                     )}
                   />
                   <div className="flex flex-col">

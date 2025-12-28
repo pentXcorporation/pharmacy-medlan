@@ -1,9 +1,9 @@
 /**
  * Auth Store - Zustand store for authentication state
  */
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
-import { API_CONFIG } from '@/config/api.config';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { API_CONFIG } from "@/config/api.config";
 
 const initialState = {
   user: null,
@@ -87,7 +87,7 @@ export const useAuthStore = create(
       initializeAuth: () => {
         const token = localStorage.getItem(API_CONFIG.TOKEN.ACCESS_KEY);
         const userStr = localStorage.getItem(API_CONFIG.TOKEN.USER_KEY);
-        
+
         if (token && userStr) {
           try {
             const user = JSON.parse(userStr);
@@ -107,7 +107,7 @@ export const useAuthStore = create(
       },
     }),
     {
-      name: 'auth-storage',
+      name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
         accessToken: state.accessToken,

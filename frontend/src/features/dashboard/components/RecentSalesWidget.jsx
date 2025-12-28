@@ -3,18 +3,24 @@
  * Displays recent sales transactions
  */
 
-import { Link } from 'react-router-dom';
-import { ShoppingCart, ArrowRight, User, Clock } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
-import { ROUTES } from '@/config';
-import { formatCurrency } from '@/utils/formatters';
-import { StatusBadge } from '@/components/common';
+import { Link } from "react-router-dom";
+import { ShoppingCart, ArrowRight, User, Clock } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { ROUTES } from "@/config";
+import { formatCurrency } from "@/utils/formatters";
+import { StatusBadge } from "@/components/common";
 
 /**
  * Single sale item
@@ -24,13 +30,13 @@ const SaleItem = ({ sale }) => {
     <div className="flex items-center gap-3 py-3">
       <Avatar className="h-9 w-9">
         <AvatarFallback className="bg-primary/10 text-primary text-xs">
-          {sale.customerName?.slice(0, 2).toUpperCase() || 'WK'}
+          {sale.customerName?.slice(0, 2).toUpperCase() || "WK"}
         </AvatarFallback>
       </Avatar>
       <div className="flex-1 min-w-0">
         <div className="flex items-center gap-2">
           <p className="text-sm font-medium truncate">
-            {sale.customerName || 'Walk-in Customer'}
+            {sale.customerName || "Walk-in Customer"}
           </p>
           <StatusBadge status={sale.status} size="sm" />
         </div>
@@ -47,7 +53,7 @@ const SaleItem = ({ sale }) => {
       <div className="text-right">
         <p className="text-sm font-semibold">{formatCurrency(sale.total)}</p>
         <p className="text-xs text-muted-foreground capitalize">
-          {sale.paymentMethod?.toLowerCase().replace('_', ' ')}
+          {sale.paymentMethod?.toLowerCase().replace("_", " ")}
         </p>
       </div>
     </div>
@@ -90,7 +96,9 @@ const RecentSalesWidget = ({ sales = [], isLoading = false }) => {
               <ShoppingCart className="h-4 w-4" />
               Recent Sales
             </CardTitle>
-            <CardDescription>Latest transactions at your branch</CardDescription>
+            <CardDescription>
+              Latest transactions at your branch
+            </CardDescription>
           </div>
           <Button variant="outline" size="sm" asChild>
             <Link to={ROUTES.POS.HISTORY}>

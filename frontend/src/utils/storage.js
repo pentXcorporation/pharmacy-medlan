@@ -28,7 +28,7 @@ export const setItem = (key, value) => {
   try {
     localStorage.setItem(key, JSON.stringify(value));
   } catch (error) {
-    console.error('Error saving to localStorage:', error);
+    console.error("Error saving to localStorage:", error);
   }
 };
 
@@ -40,7 +40,7 @@ export const removeItem = (key) => {
   try {
     localStorage.removeItem(key);
   } catch (error) {
-    console.error('Error removing from localStorage:', error);
+    console.error("Error removing from localStorage:", error);
   }
 };
 
@@ -51,7 +51,7 @@ export const clearAll = () => {
   try {
     localStorage.clear();
   } catch (error) {
-    console.error('Error clearing localStorage:', error);
+    console.error("Error clearing localStorage:", error);
   }
 };
 
@@ -80,7 +80,7 @@ export const setSessionItem = (key, value) => {
   try {
     sessionStorage.setItem(key, JSON.stringify(value));
   } catch (error) {
-    console.error('Error saving to sessionStorage:', error);
+    console.error("Error saving to sessionStorage:", error);
   }
 };
 
@@ -92,17 +92,17 @@ export const removeSessionItem = (key) => {
   try {
     sessionStorage.removeItem(key);
   } catch (error) {
-    console.error('Error removing from sessionStorage:', error);
+    console.error("Error removing from sessionStorage:", error);
   }
 };
 
 // Storage keys constants
 export const STORAGE_KEYS = {
-  THEME: 'theme',
-  SIDEBAR_COLLAPSED: 'sidebarCollapsed',
-  SELECTED_BRANCH: 'selectedBranch',
-  CART: 'cart',
-  HELD_SALES: 'heldSales',
-  TABLE_PAGE_SIZE: 'tablePageSize',
-  RECENT_SEARCHES: 'recentSearches',
+  THEME: "theme",
+  SIDEBAR_COLLAPSED: "sidebarCollapsed",
+  SELECTED_BRANCH: "selectedBranch",
+  CART: "cart",
+  HELD_SALES: "heldSales",
+  TABLE_PAGE_SIZE: "tablePageSize",
+  RECENT_SEARCHES: "recentSearches",
 };

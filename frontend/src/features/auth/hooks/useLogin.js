@@ -3,12 +3,12 @@
  * Handles login API call and authentication state
  */
 
-import { useMutation } from '@tanstack/react-query';
-import { useNavigate, useLocation } from 'react-router-dom';
-import { toast } from 'sonner';
-import { api } from '@/utils';
-import { useAuthStore } from '@/store';
-import { API_ENDPOINTS, ROUTES } from '@/config';
+import { useMutation } from "@tanstack/react-query";
+import { useNavigate, useLocation } from "react-router-dom";
+import { toast } from "sonner";
+import { api } from "@/utils";
+import { useAuthStore } from "@/store";
+import { API_ENDPOINTS, ROUTES } from "@/config";
 
 /**
  * Login mutation hook
@@ -34,13 +34,15 @@ export const useLogin = () => {
         refreshToken: data.refreshToken,
       });
 
-      toast.success(`Welcome back, ${data.user.firstName || data.user.username}!`);
-      
+      toast.success(
+        `Welcome back, ${data.user.firstName || data.user.username}!`
+      );
+
       // Navigate to intended destination
       navigate(from, { replace: true });
     },
     onError: (error) => {
-      const message = error.response?.data?.message || 'Invalid credentials';
+      const message = error.response?.data?.message || "Invalid credentials";
       toast.error(message);
     },
   });
@@ -65,7 +67,7 @@ export const useLogout = () => {
     onSettled: () => {
       // Always clear auth state
       clearAuth();
-      toast.success('Logged out successfully');
+      toast.success("Logged out successfully");
       navigate(ROUTES.AUTH.LOGIN, { replace: true });
     },
   });

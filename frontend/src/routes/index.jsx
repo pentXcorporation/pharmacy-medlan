@@ -3,18 +3,41 @@
  * Defines all routes with lazy loading and guards
  */
 
-import { lazy, Suspense } from 'react';
-import { createBrowserRouter, Navigate } from 'react-router-dom';
-import { ROUTES } from '@/config';
-import { ROLES } from '@/constants';
-import { MainLayout, AuthLayout } from '@/components/layout';
-import { PageLoader } from '@/components/common';
-import ErrorBoundary from '@/components/common/ErrorBoundary';
-import { AuthGuard, RoleGuard } from './guards';
+import { lazy, Suspense } from "react";
+import { createBrowserRouter, Navigate } from "react-router-dom";
+import { ROUTES } from "@/config";
+import { ROLES } from "@/constants";
+import { MainLayout, AuthLayout } from "@/components/layout";
+import { PageLoader } from "@/components/common";
+import ErrorBoundary from "@/components/common/ErrorBoundary";
+import { AuthGuard, RoleGuard } from "./guards";
 
 // Lazy load pages for code splitting
-const LoginPage = lazy(() => import('@/pages/auth/LoginPage'));
-const DashboardPage = lazy(() => import('@/pages/dashboard/DashboardPage'));
+const LoginPage = lazy(() => import("@/pages/auth/LoginPage"));
+const DashboardPage = lazy(() => import("@/pages/dashboard/DashboardPage"));
+
+// Products Pages
+const ProductsPage = lazy(() => import("@/pages/products/ProductsPage"));
+const ProductFormPage = lazy(() => import("@/pages/products/ProductFormPage"));
+const ProductViewPage = lazy(() => import("@/pages/products/ProductViewPage"));
+
+// Categories Pages
+const CategoriesPage = lazy(() => import("@/pages/categories/CategoriesPage"));
+
+// Inventory Pages
+const InventoryPage = lazy(() => import("@/pages/inventory/InventoryPage"));
+
+// Customers Pages
+const CustomersPage = lazy(() => import("@/pages/customers/CustomersPage"));
+const CustomerFormPage = lazy(() =>
+  import("@/pages/customers/CustomerFormPage")
+);
+
+// Suppliers Pages
+const SuppliersPage = lazy(() => import("@/pages/suppliers/SuppliersPage"));
+const SupplierFormPage = lazy(() =>
+  import("@/pages/suppliers/SupplierFormPage")
+);
 
 // Placeholder for pages not yet implemented
 const PlaceholderPage = ({ title }) => (
@@ -47,7 +70,7 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: '/forgot-password',
+        path: "/forgot-password",
         element: <PlaceholderPage title="Forgot Password" />,
       },
     ],
@@ -77,7 +100,13 @@ const router = createBrowserRouter([
         path: ROUTES.POS.ROOT,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN, ROLES.PHARMACIST, ROLES.CASHIER]}
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.OWNER,
+              ROLES.BRANCH_ADMIN,
+              ROLES.PHARMACIST,
+              ROLES.CASHIER,
+            ]}
           >
             <PlaceholderPage title="Point of Sale" />
           </RoleGuard>
@@ -95,49 +124,143 @@ const router = createBrowserRouter([
       // Products Routes
       {
         path: ROUTES.PRODUCTS.ROOT,
-        element: <PlaceholderPage title="Products" />,
+        element: <Navigate to={ROUTES.PRODUCTS.LIST} replace />,
       },
       {
         path: ROUTES.PRODUCTS.LIST,
-        element: <PlaceholderPage title="All Products" />,
+        element: (
+          <SuspenseWrapper>
+            <ProductsPage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: ROUTES.PRODUCTS.NEW,
         element: (
           <RoleGuard feature="products" action="create">
-            <PlaceholderPage title="Add Product" />
+            <SuspenseWrapper>
+              <ProductFormPage />
+            </SuspenseWrapper>
           </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.PRODUCTS.EDIT(":id"),
+        element: (
+          <RoleGuard feature="products" action="update">
+            <SuspenseWrapper>
+              <ProductFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.PRODUCTS.VIEW(":id"),
+        element: (
+          <SuspenseWrapper>
+            <ProductViewPage />
+          </SuspenseWrapper>
+        ),
+      },
+
+      // Categories Routes
+      {
+        path: ROUTES.CATEGORIES.ROOT,
+        element: <Navigate to={ROUTES.CATEGORIES.LIST} replace />,
+      },
+      {
+        path: ROUTES.CATEGORIES.LIST,
+        element: (
+          <SuspenseWrapper>
+            <CategoriesPage />
+          </SuspenseWrapper>
         ),
       },
 
       // Inventory Routes
       {
         path: ROUTES.INVENTORY.ROOT,
-        element: <PlaceholderPage title="Inventory" />,
+        element: (
+          <SuspenseWrapper>
+            <InventoryPage />
+          </SuspenseWrapper>
+        ),
       },
       {
         path: ROUTES.INVENTORY.STOCK,
-        element: <PlaceholderPage title="Stock Overview" />,
+        element: (
+          <SuspenseWrapper>
+            <InventoryPage />
+          </SuspenseWrapper>
+        ),
       },
 
       // Suppliers Routes
       {
         path: ROUTES.SUPPLIERS.ROOT,
-        element: <PlaceholderPage title="Suppliers" />,
+        element: <Navigate to={ROUTES.SUPPLIERS.LIST} replace />,
       },
       {
         path: ROUTES.SUPPLIERS.LIST,
-        element: <PlaceholderPage title="All Suppliers" />,
+        element: (
+          <SuspenseWrapper>
+            <SuppliersPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.SUPPLIERS.NEW,
+        element: (
+          <RoleGuard feature="suppliers" action="create">
+            <SuspenseWrapper>
+              <SupplierFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.SUPPLIERS.EDIT(":id"),
+        element: (
+          <RoleGuard feature="suppliers" action="update">
+            <SuspenseWrapper>
+              <SupplierFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
       },
 
       // Customers Routes
       {
         path: ROUTES.CUSTOMERS.ROOT,
-        element: <PlaceholderPage title="Customers" />,
+        element: <Navigate to={ROUTES.CUSTOMERS.LIST} replace />,
       },
       {
         path: ROUTES.CUSTOMERS.LIST,
-        element: <PlaceholderPage title="All Customers" />,
+        element: (
+          <SuspenseWrapper>
+            <CustomersPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.CUSTOMERS.NEW,
+        element: (
+          <RoleGuard feature="customers" action="create">
+            <SuspenseWrapper>
+              <CustomerFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.CUSTOMERS.EDIT(":id"),
+        element: (
+          <RoleGuard feature="customers" action="update">
+            <SuspenseWrapper>
+              <CustomerFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
       },
 
       // Finance Routes
@@ -157,7 +280,12 @@ const router = createBrowserRouter([
         path: ROUTES.REPORTS.ROOT,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN, ROLES.ACCOUNTANT]}
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.OWNER,
+              ROLES.BRANCH_ADMIN,
+              ROLES.ACCOUNTANT,
+            ]}
           >
             <PlaceholderPage title="Reports" />
           </RoleGuard>
@@ -204,7 +332,7 @@ const router = createBrowserRouter([
 
       // Catch-all redirect to dashboard
       {
-        path: '*',
+        path: "*",
         element: <Navigate to={ROUTES.DASHBOARD} replace />,
       },
     ],
@@ -212,7 +340,7 @@ const router = createBrowserRouter([
 
   // Root redirect
   {
-    path: '/',
+    path: "/",
     element: <Navigate to={ROUTES.DASHBOARD} replace />,
   },
 ]);

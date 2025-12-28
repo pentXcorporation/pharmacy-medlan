@@ -3,7 +3,7 @@
  * Quick access buttons for common actions
  */
 
-import { Link } from 'react-router-dom';
+import { Link } from "react-router-dom";
 import {
   ShoppingCart,
   Plus,
@@ -13,83 +13,89 @@ import {
   ArrowLeftRight,
   ClipboardList,
   Truck,
-} from 'lucide-react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { usePermissions } from '@/hooks';
-import { ROUTES } from '@/config';
+} from "lucide-react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { usePermissions } from "@/hooks";
+import { ROUTES } from "@/config";
 
 /**
  * Action button configuration
  */
 const QUICK_ACTIONS = [
   {
-    title: 'New Sale',
-    description: 'Start a POS transaction',
+    title: "New Sale",
+    description: "Start a POS transaction",
     icon: ShoppingCart,
     href: ROUTES.POS.NEW_SALE,
-    feature: 'pos',
-    color: 'bg-emerald-100 text-emerald-600',
+    feature: "pos",
+    color: "bg-emerald-100 text-emerald-600",
   },
   {
-    title: 'Add Product',
-    description: 'Add new inventory item',
+    title: "Add Product",
+    description: "Add new inventory item",
     icon: Plus,
     href: ROUTES.PRODUCTS.NEW,
-    feature: 'products',
-    action: 'create',
-    color: 'bg-blue-100 text-blue-600',
+    feature: "products",
+    action: "create",
+    color: "bg-blue-100 text-blue-600",
   },
   {
-    title: 'Stock Transfer',
-    description: 'Transfer between branches',
+    title: "Stock Transfer",
+    description: "Transfer between branches",
     icon: ArrowLeftRight,
     href: ROUTES.INVENTORY.TRANSFERS,
-    feature: 'inventory',
-    color: 'bg-purple-100 text-purple-600',
+    feature: "inventory",
+    color: "bg-purple-100 text-purple-600",
   },
   {
-    title: 'Purchase Order',
-    description: 'Create new PO',
+    title: "Purchase Order",
+    description: "Create new PO",
     icon: ClipboardList,
     href: ROUTES.PURCHASE_ORDERS.NEW,
-    feature: 'purchaseOrders',
-    action: 'create',
-    color: 'bg-amber-100 text-amber-600',
+    feature: "purchaseOrders",
+    action: "create",
+    color: "bg-amber-100 text-amber-600",
   },
   {
-    title: 'Add Customer',
-    description: 'Register new customer',
+    title: "Add Customer",
+    description: "Register new customer",
     icon: Users,
     href: ROUTES.CUSTOMERS.NEW,
-    feature: 'customers',
-    action: 'create',
-    color: 'bg-cyan-100 text-cyan-600',
+    feature: "customers",
+    action: "create",
+    color: "bg-cyan-100 text-cyan-600",
   },
   {
-    title: 'Add Supplier',
-    description: 'Register new supplier',
+    title: "Add Supplier",
+    description: "Register new supplier",
     icon: Truck,
     href: ROUTES.SUPPLIERS.NEW,
-    feature: 'suppliers',
-    action: 'create',
-    color: 'bg-orange-100 text-orange-600',
+    feature: "suppliers",
+    action: "create",
+    color: "bg-orange-100 text-orange-600",
   },
   {
-    title: 'View Stock',
-    description: 'Check inventory levels',
+    title: "View Stock",
+    description: "Check inventory levels",
     icon: Package,
     href: ROUTES.INVENTORY.STOCK,
-    feature: 'inventory',
-    color: 'bg-gray-100 text-gray-600',
+    feature: "inventory",
+    color: "bg-gray-100 text-gray-600",
   },
   {
-    title: 'Sales Report',
-    description: 'View sales analytics',
+    title: "Sales Report",
+    description: "View sales analytics",
     icon: FileText,
     href: ROUTES.REPORTS.SALES,
-    feature: 'reports',
-    color: 'bg-pink-100 text-pink-600',
+    feature: "reports",
+    color: "bg-pink-100 text-pink-600",
   },
 ];
 
@@ -102,7 +108,7 @@ const QuickActionsWidget = () => {
   // Filter actions based on permissions
   const availableActions = QUICK_ACTIONS.filter((action) => {
     if (!action.feature) return true;
-    return hasPermission(action.feature, action.action || 'view');
+    return hasPermission(action.feature, action.action || "view");
   });
 
   return (

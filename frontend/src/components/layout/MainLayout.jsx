@@ -3,11 +3,11 @@
  * Primary layout wrapper with sidebar, header, and content area
  */
 
-import { Outlet } from 'react-router-dom';
-import { cn } from '@/lib/utils';
-import { useUiStore } from '@/store';
-import Sidebar from './Sidebar';
-import Header from './Header';
+import { Outlet } from "react-router-dom";
+import { cn } from "@/lib/utils";
+import { useUiStore } from "@/store";
+import Sidebar from "./Sidebar";
+import Header from "./Header";
 
 /**
  * Main application layout

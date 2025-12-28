@@ -3,9 +3,9 @@
  * Displays sales statistics card
  */
 
-import { DollarSign, TrendingUp, ShoppingCart, CreditCard } from 'lucide-react';
-import { StatCard } from '@/components/common';
-import { formatCurrency } from '@/utils/formatters';
+import { DollarSign, TrendingUp, ShoppingCart, CreditCard } from "lucide-react";
+import { StatCard } from "@/components/common";
+import { formatCurrency } from "@/utils/formatters";
 
 /**
  * Sales overview widget with multiple stat cards
@@ -26,7 +26,11 @@ const SalesOverviewWidget = ({ data, isLoading }) => {
       <StatCard
         title="Today's Sales"
         value={data?.todaySalesCount || 0}
-        description={`${data?.averageTransactionValue ? formatCurrency(data.averageTransactionValue) : 'LKR 0.00'} avg`}
+        description={`${
+          data?.averageTransactionValue
+            ? formatCurrency(data.averageTransactionValue)
+            : "LKR 0.00"
+        } avg`}
         icon={ShoppingCart}
         iconColor="text-blue-600"
         iconBgColor="bg-blue-100"

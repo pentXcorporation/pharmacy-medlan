@@ -3,22 +3,31 @@
  * Real-time notification bell with dropdown list
  */
 
-import { useState } from 'react';
-import { Bell, Check, CheckCheck, X, AlertTriangle, Info, Package, ShoppingCart } from 'lucide-react';
-import { formatDistanceToNow } from 'date-fns';
-import { cn } from '@/lib/utils';
-import { useNotificationStore } from '@/store';
-import { NOTIFICATION_TYPE, ALERT_LEVEL } from '@/constants';
-import { Button } from '@/components/ui/button';
+import { useState } from "react";
+import {
+  Bell,
+  Check,
+  CheckCheck,
+  X,
+  AlertTriangle,
+  Info,
+  Package,
+  ShoppingCart,
+} from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
+import { cn } from "@/lib/utils";
+import { useNotificationStore } from "@/store";
+import { NOTIFICATION_TYPE, ALERT_LEVEL } from "@/constants";
+import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
+} from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Badge } from "@/components/ui/badge";
 
 /**
  * Get icon for notification type
@@ -44,13 +53,13 @@ const getNotificationIcon = (type) => {
 const getAlertColor = (level) => {
   switch (level) {
     case ALERT_LEVEL.CRITICAL:
-      return 'text-destructive';
+      return "text-destructive";
     case ALERT_LEVEL.WARNING:
-      return 'text-amber-500';
+      return "text-amber-500";
     case ALERT_LEVEL.INFO:
-      return 'text-blue-500';
+      return "text-blue-500";
     default:
-      return 'text-muted-foreground';
+      return "text-muted-foreground";
   }
 };
 
@@ -64,11 +73,11 @@ const NotificationItem = ({ notification, onMarkRead, onDismiss }) => {
   return (
     <div
       className={cn(
-        'flex gap-3 p-3 hover:bg-accent transition-colors',
-        !notification.read && 'bg-accent/50'
+        "flex gap-3 p-3 hover:bg-accent transition-colors",
+        !notification.read && "bg-accent/50"
       )}
     >
-      <div className={cn('shrink-0 mt-0.5', colorClass)}>
+      <div className={cn("shrink-0 mt-0.5", colorClass)}>
         <Icon className="h-5 w-5" />
       </div>
       <div className="flex-1 min-w-0">
@@ -78,8 +87,10 @@ const NotificationItem = ({ notification, onMarkRead, onDismiss }) => {
         </p>
         <p className="text-xs text-muted-foreground mt-1">
           {notification.createdAt
-            ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })
-            : 'Just now'}
+            ? formatDistanceToNow(new Date(notification.createdAt), {
+                addSuffix: true,
+              })
+            : "Just now"}
         </p>
       </div>
       <div className="flex flex-col gap-1 shrink-0">
@@ -130,7 +141,7 @@ const NotificationDropdown = () => {
               variant="destructive"
               className="absolute -top-1 -right-1 h-5 w-5 flex items-center justify-center p-0 text-xs"
             >
-              {unreadCount > 9 ? '9+' : unreadCount}
+              {unreadCount > 9 ? "9+" : unreadCount}
             </Badge>
           )}
           <span className="sr-only">Notifications</span>

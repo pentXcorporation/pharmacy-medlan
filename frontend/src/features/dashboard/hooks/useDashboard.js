@@ -3,10 +3,10 @@
  * Fetches dashboard data based on user role
  */
 
-import { useApiQuery } from '@/hooks';
-import { usePermissions } from '@/hooks';
-import { useBranchStore } from '@/store';
-import { API_ENDPOINTS } from '@/config';
+import { useApiQuery } from "@/hooks";
+import { usePermissions } from "@/hooks";
+import { useBranchStore } from "@/store";
+import { API_ENDPOINTS } from "@/config";
 
 /**
  * Dashboard stats query hook
@@ -20,7 +20,7 @@ export const useDashboardStats = () => {
     ? API_ENDPOINTS.DASHBOARD.STATS
     : `${API_ENDPOINTS.DASHBOARD.STATS}?branchId=${selectedBranch?.id}`;
 
-  return useApiQuery(['dashboard-stats', selectedBranch?.id], endpoint, {
+  return useApiQuery(["dashboard-stats", selectedBranch?.id], endpoint, {
     enabled: !!selectedBranch?.id || isOwnerOrAbove,
     staleTime: 60 * 1000, // 1 minute
   });
@@ -33,13 +33,13 @@ export const useRecentSales = (limit = 10) => {
   const { selectedBranch } = useBranchStore();
 
   return useApiQuery(
-    ['recent-sales', selectedBranch?.id, limit],
+    ["recent-sales", selectedBranch?.id, limit],
     API_ENDPOINTS.SALES.LIST,
     {
       params: {
         branchId: selectedBranch?.id,
         size: limit,
-        sort: 'createdAt,desc',
+        sort: "createdAt,desc",
       },
       enabled: !!selectedBranch?.id,
     }
@@ -53,7 +53,7 @@ export const useLowStockAlerts = (limit = 10) => {
   const { selectedBranch } = useBranchStore();
 
   return useApiQuery(
-    ['low-stock', selectedBranch?.id, limit],
+    ["low-stock", selectedBranch?.id, limit],
     API_ENDPOINTS.INVENTORY.LOW_STOCK,
     {
       params: {
@@ -72,7 +72,7 @@ export const useExpiringProducts = (days = 30, limit = 10) => {
   const { selectedBranch } = useBranchStore();
 
   return useApiQuery(
-    ['expiring-products', selectedBranch?.id, days, limit],
+    ["expiring-products", selectedBranch?.id, days, limit],
     API_ENDPOINTS.INVENTORY.EXPIRING,
     {
       params: {
@@ -88,11 +88,11 @@ export const useExpiringProducts = (days = 30, limit = 10) => {
 /**
  * Sales chart data hook
  */
-export const useSalesChart = (period = 'week') => {
+export const useSalesChart = (period = "week") => {
   const { selectedBranch } = useBranchStore();
 
   return useApiQuery(
-    ['sales-chart', selectedBranch?.id, period],
+    ["sales-chart", selectedBranch?.id, period],
     `${API_ENDPOINTS.DASHBOARD.STATS}/sales-chart`,
     {
       params: {

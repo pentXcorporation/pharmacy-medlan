@@ -3,37 +3,37 @@
  * Animated loading indicator with different sizes and variants
  */
 
-import { Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { Loader2 } from "lucide-react";
+import { cn } from "@/lib/utils";
 
 /**
  * LoadingSpinner component
  */
 const LoadingSpinner = ({
-  size = 'default',
+  size = "default",
   className,
-  label = 'Loading...',
+  label = "Loading...",
   showLabel = false,
   fullScreen = false,
   overlay = false,
 }) => {
   const sizeClasses = {
-    xs: 'h-3 w-3',
-    sm: 'h-4 w-4',
-    default: 'h-6 w-6',
-    lg: 'h-8 w-8',
-    xl: 'h-12 w-12',
+    xs: "h-3 w-3",
+    sm: "h-4 w-4",
+    default: "h-6 w-6",
+    lg: "h-8 w-8",
+    xl: "h-12 w-12",
   };
 
   const spinner = (
     <div
       className={cn(
-        'flex flex-col items-center justify-center gap-2',
-        fullScreen && 'min-h-screen',
+        "flex flex-col items-center justify-center gap-2",
+        fullScreen && "min-h-screen",
         className
       )}
     >
-      <Loader2 className={cn('animate-spin text-primary', sizeClasses[size])} />
+      <Loader2 className={cn("animate-spin text-primary", sizeClasses[size])} />
       {showLabel && (
         <span className="text-sm text-muted-foreground">{label}</span>
       )}
@@ -54,7 +54,7 @@ const LoadingSpinner = ({
 /**
  * PageLoader - Full page loading state
  */
-export const PageLoader = ({ message = 'Loading...' }) => (
+export const PageLoader = ({ message = "Loading..." }) => (
   <LoadingSpinner
     size="lg"
     showLabel
@@ -67,7 +67,7 @@ export const PageLoader = ({ message = 'Loading...' }) => (
  * ButtonSpinner - Inline spinner for buttons
  */
 export const ButtonSpinner = ({ className }) => (
-  <Loader2 className={cn('h-4 w-4 animate-spin', className)} />
+  <Loader2 className={cn("h-4 w-4 animate-spin", className)} />
 );
 
 /**

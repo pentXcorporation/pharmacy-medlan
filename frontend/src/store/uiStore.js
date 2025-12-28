@@ -1,22 +1,22 @@
 /**
  * UI Store - Zustand store for UI state
  */
-import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
 const initialState = {
   sidebarCollapsed: false,
   sidebarMobileOpen: false,
-  theme: 'light',
+  theme: "light",
   confirmDialog: {
     open: false,
-    title: '',
-    message: '',
+    title: "",
+    message: "",
     onConfirm: null,
     onCancel: null,
-    confirmText: 'Confirm',
-    cancelText: 'Cancel',
-    variant: 'default',
+    confirmText: "Confirm",
+    cancelText: "Cancel",
+    variant: "default",
   },
 };
 
@@ -49,17 +49,17 @@ export const useUiStore = create(
       setTheme: (theme) => {
         set({ theme });
         // Apply theme to document
-        if (theme === 'dark') {
-          document.documentElement.classList.add('dark');
+        if (theme === "dark") {
+          document.documentElement.classList.add("dark");
         } else {
-          document.documentElement.classList.remove('dark');
+          document.documentElement.classList.remove("dark");
         }
       },
 
       // Toggle theme
       toggleTheme: () => {
         const { theme } = get();
-        const newTheme = theme === 'light' ? 'dark' : 'light';
+        const newTheme = theme === "light" ? "dark" : "light";
         get().setTheme(newTheme);
       },
 
@@ -69,9 +69,9 @@ export const useUiStore = create(
         message,
         onConfirm,
         onCancel,
-        confirmText = 'Confirm',
-        cancelText = 'Cancel',
-        variant = 'default',
+        confirmText = "Confirm",
+        cancelText = "Cancel",
+        variant = "default",
       }) => {
         set({
           confirmDialog: {
@@ -116,7 +116,7 @@ export const useUiStore = create(
       },
     }),
     {
-      name: 'ui-storage',
+      name: "ui-storage",
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
         theme: state.theme,

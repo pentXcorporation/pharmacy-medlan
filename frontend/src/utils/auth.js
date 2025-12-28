@@ -2,7 +2,7 @@
  * Authentication Utilities
  * Token management and auth state helpers
  */
-import { API_CONFIG } from '@/config/api.config';
+import { API_CONFIG } from "@/config/api.config";
 
 /**
  * Get access token from storage
@@ -69,10 +69,10 @@ export const clearAuth = () => {
 export const isAuthenticated = () => {
   const token = getAccessToken();
   if (!token) return false;
-  
+
   // Check if token is expired
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
     const exp = payload.exp * 1000; // Convert to milliseconds
     return Date.now() < exp;
   } catch {
@@ -86,9 +86,9 @@ export const isAuthenticated = () => {
 export const getTokenExpiration = () => {
   const token = getAccessToken();
   if (!token) return null;
-  
+
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
     return payload.exp * 1000; // Convert to milliseconds
   } catch {
     return null;
@@ -102,7 +102,7 @@ export const getTokenExpiration = () => {
 export const shouldRefreshToken = (thresholdMs = 5 * 60 * 1000) => {
   const expiration = getTokenExpiration();
   if (!expiration) return false;
-  
+
   return expiration - Date.now() < thresholdMs;
 };
 
@@ -111,9 +111,9 @@ export const shouldRefreshToken = (thresholdMs = 5 * 60 * 1000) => {
  */
 export const parseToken = (token) => {
   if (!token) return null;
-  
+
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split(".")[1]));
     return payload;
   } catch {
     return null;

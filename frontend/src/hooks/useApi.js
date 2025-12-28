@@ -3,14 +3,14 @@
  * React Query hooks for API operations
  */
 
-import { 
-  useQuery, 
-  useMutation, 
+import {
+  useQuery,
+  useMutation,
   useQueryClient,
-  useInfiniteQuery 
-} from '@tanstack/react-query';
-import { api } from '@/utils';
-import { toast } from 'sonner';
+  useInfiniteQuery,
+} from "@tanstack/react-query";
+import { api } from "@/utils";
+import { toast } from "sonner";
 
 /**
  * Default query options
@@ -68,22 +68,28 @@ export const useApiMutation = (mutationKey, mutationFn, options = {}) => {
     onSuccess: (data, variables, context) => {
       // Invalidate related queries
       invalidateQueries.forEach((key) => {
-        queryClient.invalidateQueries({ queryKey: Array.isArray(key) ? key : [key] });
+        queryClient.invalidateQueries({
+          queryKey: Array.isArray(key) ? key : [key],
+        });
       });
-      
+
       // Show success toast
       if (successMessage) {
         toast.success(successMessage);
       }
-      
+
       // Call custom onSuccess
       onSuccess?.(data, variables, context);
     },
     onError: (error, variables, context) => {
       // Show error toast
-      const message = errorMessage || error.response?.data?.message || error.message || 'An error occurred';
+      const message =
+        errorMessage ||
+        error.response?.data?.message ||
+        error.message ||
+        "An error occurred";
       toast.error(message);
-      
+
       // Call custom onError
       onError?.(error, variables, context);
     },
@@ -101,7 +107,7 @@ export const useCreate = (endpoint, options = {}) => {
     `create-${endpoint}`,
     (data) => api.post(endpoint, data),
     {
-      successMessage: 'Created successfully',
+      successMessage: "Created successfully",
       ...options,
     }
   );
@@ -115,9 +121,9 @@ export const useCreate = (endpoint, options = {}) => {
 export const useUpdate = (endpoint, options = {}) => {
   return useApiMutation(
     `update-${endpoint}`,
-    ({ id, data }) => api.put(endpoint.replace(':id', id), data),
+    ({ id, data }) => api.put(endpoint.replace(":id", id), data),
     {
-      successMessage: 'Updated successfully',
+      successMessage: "Updated successfully",
       ...options,
     }
   );
@@ -131,9 +137,9 @@ export const useUpdate = (endpoint, options = {}) => {
 export const useDelete = (endpoint, options = {}) => {
   return useApiMutation(
     `delete-${endpoint}`,
-    (id) => api.delete(endpoint.replace(':id', id)),
+    (id) => api.delete(endpoint.replace(":id", id)),
     {
-      successMessage: 'Deleted successfully',
+      successMessage: "Deleted successfully",
       ...options,
     }
   );
@@ -147,13 +153,7 @@ export const useDelete = (endpoint, options = {}) => {
  * @returns {Object} Query result with pagination helpers
  */
 export const usePaginatedQuery = (queryKey, url, options = {}) => {
-  const { 
-    page = 0, 
-    size = 10, 
-    sort,
-    filters = {},
-    ...queryOptions 
-  } = options;
+  const { page = 0, size = 10, sort, filters = {}, ...queryOptions } = options;
 
   const params = {
     page,
@@ -162,29 +162,27 @@ export const usePaginatedQuery = (queryKey, url, options = {}) => {
     ...filters,
   };
 
-  const query = useApiQuery(
-    [queryKey, page, size, sort, filters],
-    url,
-    {
-      params,
-      keepPreviousData: true,
-      ...queryOptions,
-    }
-  );
+  const query = useApiQuery([queryKey, page, size, sort, filters], url, {
+    params,
+    keepPreviousData: true,
+    ...queryOptions,
+  });
 
   return {
     ...query,
     // Pagination helpers
-    pagination: query.data ? {
-      page: query.data.number ?? page,
-      size: query.data.size ?? size,
-      totalElements: query.data.totalElements ?? 0,
-      totalPages: query.data.totalPages ?? 0,
-      isFirst: query.data.first ?? page === 0,
-      isLast: query.data.last ?? true,
-      hasNext: !query.data.last,
-      hasPrevious: !query.data.first,
-    } : null,
+    pagination: query.data
+      ? {
+          page: query.data.number ?? page,
+          size: query.data.size ?? size,
+          totalElements: query.data.totalElements ?? 0,
+          totalPages: query.data.totalPages ?? 0,
+          isFirst: query.data.first ?? page === 0,
+          isLast: query.data.last ?? true,
+          hasNext: !query.data.last,
+          hasPrevious: !query.data.first,
+        }
+      : null,
     items: query.data?.content ?? [],
   };
 };

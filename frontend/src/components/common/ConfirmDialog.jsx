@@ -3,9 +3,9 @@
  * Reusable confirmation dialog with customizable actions
  */
 
-import { AlertTriangle, Trash2, LogOut, AlertCircle, Info } from 'lucide-react';
-import { cn } from '@/lib/utils';
-import { useUiStore } from '@/store';
+import { AlertTriangle, Trash2, LogOut, AlertCircle, Info } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { useUiStore } from "@/store";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -15,8 +15,8 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
-import { Button } from '@/components/ui/button';
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 /**
  * Dialog variant icons
@@ -34,29 +34,29 @@ const VARIANT_ICONS = {
  */
 const VARIANT_STYLES = {
   danger: {
-    iconBg: 'bg-destructive/10',
-    iconColor: 'text-destructive',
-    buttonVariant: 'destructive',
+    iconBg: "bg-destructive/10",
+    iconColor: "text-destructive",
+    buttonVariant: "destructive",
   },
   warning: {
-    iconBg: 'bg-amber-100',
-    iconColor: 'text-amber-600',
-    buttonVariant: 'default',
+    iconBg: "bg-amber-100",
+    iconColor: "text-amber-600",
+    buttonVariant: "default",
   },
   info: {
-    iconBg: 'bg-blue-100',
-    iconColor: 'text-blue-600',
-    buttonVariant: 'default',
+    iconBg: "bg-blue-100",
+    iconColor: "text-blue-600",
+    buttonVariant: "default",
   },
   logout: {
-    iconBg: 'bg-destructive/10',
-    iconColor: 'text-destructive',
-    buttonVariant: 'destructive',
+    iconBg: "bg-destructive/10",
+    iconColor: "text-destructive",
+    buttonVariant: "destructive",
   },
   default: {
-    iconBg: 'bg-muted',
-    iconColor: 'text-muted-foreground',
-    buttonVariant: 'default',
+    iconBg: "bg-muted",
+    iconColor: "text-muted-foreground",
+    buttonVariant: "default",
   },
 };
 
@@ -66,11 +66,11 @@ const VARIANT_STYLES = {
 const ConfirmDialog = ({
   open,
   onOpenChange,
-  title = 'Are you sure?',
+  title = "Are you sure?",
   description,
-  variant = 'default',
-  confirmLabel = 'Confirm',
-  cancelLabel = 'Cancel',
+  variant = "default",
+  confirmLabel = "Confirm",
+  cancelLabel = "Cancel",
   onConfirm,
   onCancel,
   isLoading = false,
@@ -96,8 +96,8 @@ const ConfirmDialog = ({
       <AlertDialogContent>
         <AlertDialogHeader>
           <div className="flex items-start gap-4">
-            <div className={cn('rounded-full p-2', styles.iconBg)}>
-              <Icon className={cn('h-6 w-6', styles.iconColor)} />
+            <div className={cn("rounded-full p-2", styles.iconBg)}>
+              <Icon className={cn("h-6 w-6", styles.iconColor)} />
             </div>
             <div>
               <AlertDialogTitle>{title}</AlertDialogTitle>
@@ -117,11 +117,11 @@ const ConfirmDialog = ({
             onClick={handleConfirm}
             disabled={isLoading}
             className={cn(
-              styles.buttonVariant === 'destructive' &&
-                'bg-destructive text-destructive-foreground hover:bg-destructive/90'
+              styles.buttonVariant === "destructive" &&
+                "bg-destructive text-destructive-foreground hover:bg-destructive/90"
             )}
           >
-            {isLoading ? 'Processing...' : confirmLabel}
+            {isLoading ? "Processing..." : confirmLabel}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
