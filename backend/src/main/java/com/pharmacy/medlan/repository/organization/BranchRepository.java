@@ -57,4 +57,16 @@ public interface BranchRepository extends JpaRepository<Branch, Long>, JpaSpecif
     boolean existsByGstinNumber(String gstinNumber);
 
     boolean existsByDrugLicenseNumber(String drugLicenseNumber);
+    
+    /**
+     * Find all active branches
+     */
+    @Query("SELECT b FROM Branch b WHERE b.isActive = true ORDER BY b.branchName")
+    List<Branch> findAllActive();
+    
+    /**
+     * Find branches by IDs
+     */
+    @Query("SELECT b FROM Branch b WHERE b.id IN :ids")
+    List<Branch> findByIds(@Param("ids") List<Long> ids);
 }

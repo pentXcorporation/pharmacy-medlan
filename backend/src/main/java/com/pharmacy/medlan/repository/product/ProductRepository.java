@@ -26,6 +26,12 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
     @Query("SELECT p FROM Product p JOIN p.branchInventories bi " +
             "WHERE bi.branch.id = :branchId AND bi.quantityAvailable < p.reorderLevel")
     List<Product> findLowStockProducts(@Param("branchId") Long branchId);
+    
+    /**
+     * Find all products that have inventory in a specific branch
+     */
+    @Query("SELECT DISTINCT p FROM Product p JOIN p.branchInventories bi WHERE bi.branch.id = :branchId")
+    List<Product> findByBranchId(@Param("branchId") Long branchId);
 
     boolean existsByProductCode(String productCode);
     boolean existsByBarcode(String barcode);
