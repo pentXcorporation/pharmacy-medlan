@@ -21,7 +21,9 @@
 12. [Stock Transfer APIs](#12-stock-transfer-apis)
 13. [Sales (POS) APIs](#13-sales-pos-apis)
 14. [Reports & Dashboard APIs](#14-reports--dashboard-apis)
-15. [Testing Workflow](#15-complete-testing-workflow)
+15. [Notification APIs](#15-notification-apis)
+16. [Barcode & QR Code APIs](#16-barcode--qr-code-apis)
+17. [Testing Workflow](#17-complete-testing-workflow)
 
 ---
 
@@ -1507,7 +1509,399 @@ Authorization: Bearer {{token}}
 
 ---
 
-## 15. Complete Testing Workflow
+## 15. Notification APIs
+
+### 15.1 Get All Notifications for Current User
+
+```http
+GET {{base_url}}/api/notifications
+Authorization: Bearer {{token}}
+```
+
+**Expected Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Notifications retrieved successfully",
+  "data": [
+    {
+      "id": 1,
+      "type": "LOW_STOCK_ALERT",
+      "title": "Low Stock Alert",
+      "message": "Product XYZ is running low on stock",
+      "referenceId": 123,
+      "referenceType": "PRODUCT",
+      "isRead": false,
+      "priority": "HIGH",
+      "createdAt": "2024-12-29T10:30:00"
+    }
+  ],
+  "timestamp": "2024-12-29T10:30:00"
+}
+```
+
+---
+
+### 15.2 Get Unread Notifications
+
+```http
+GET {{base_url}}/api/notifications/unread
+Authorization: Bearer {{token}}
+```
+
+---
+
+### 15.3 Get Unread Notification Count
+
+```http
+GET {{base_url}}/api/notifications/count
+Authorization: Bearer {{token}}
+```
+
+**Expected Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Unread count retrieved successfully",
+  "data": {
+    "unreadCount": 5
+  },
+  "timestamp": "2024-12-29T10:30:00"
+}
+```
+
+---
+
+### 15.4 Send Notification (Admin/Manager Only)
+
+```http
+POST {{base_url}}/api/notifications
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "userId": 2,
+  "title": "Important Update",
+  "message": "Please check the inventory for expired products",
+  "type": "SYSTEM_ALERT",
+  "priority": "HIGH",
+  "referenceId": null,
+  "referenceType": null
+}
+```
+
+**Notification Types Available:**
+- `LOW_STOCK_ALERT` - Low stock warning
+- `CRITICAL_STOCK_ALERT` - Critical stock level
+- `OUT_OF_STOCK_ALERT` - Out of stock
+- `EXPIRY_ALERT` - Product expiry warning
+- `EXPIRED_PRODUCT_ALERT` - Product expired
+- `NEAR_EXPIRY_ALERT` - Near expiry warning
+- `SALE` - Sale notification
+- `GRN` - GRN notification
+- `STOCK_TRANSFER` - Stock transfer notification
+- `PAYMENT_DUE` - Payment due reminder
+- `PAYMENT_RECEIVED` - Payment received
+- `SYSTEM_ALERT` - System alert
+- `USER` - User notification
+
+---
+
+### 15.5 Send Bulk Notifications (Admin/Manager Only)
+
+```http
+POST {{base_url}}/api/notifications/bulk?userIds=1,2,3,4
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "title": "System Maintenance Notice",
+  "message": "The system will be under maintenance from 2 AM to 4 AM",
+  "type": "MAINTENANCE",
+  "priority": "HIGH"
+}
+```
+
+---
+
+### 15.6 Send Notification to Branch (Admin/Manager Only)
+
+```http
+POST {{base_url}}/api/notifications/branch/{{branchId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "title": "Branch Update",
+  "message": "New inventory policies are now in effect",
+  "type": "SYSTEM_ALERT",
+  "priority": "NORMAL"
+}
+```
+
+---
+
+### 15.7 Send Notification to Role (Admin/Manager Only)
+
+```http
+POST {{base_url}}/api/notifications/role?branchId={{branchId}}&role=CASHIER
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "title": "Cashier Training",
+  "message": "Mandatory training session at 3 PM today",
+  "type": "USER",
+  "priority": "HIGH"
+}
+```
+
+---
+
+### 15.8 Mark Notification as Read
+
+```http
+PUT {{base_url}}/api/notifications/1/read
+Authorization: Bearer {{token}}
+```
+
+---
+
+### 15.9 Mark All Notifications as Read
+
+```http
+PUT {{base_url}}/api/notifications/read-all
+Authorization: Bearer {{token}}
+```
+
+---
+
+### 15.10 Delete Notification
+
+```http
+DELETE {{base_url}}/api/notifications/1
+Authorization: Bearer {{token}}
+```
+
+---
+
+### 15.11 Delete All Notifications
+
+```http
+DELETE {{base_url}}/api/notifications/all
+Authorization: Bearer {{token}}
+```
+
+---
+
+## 16. Barcode & QR Code APIs
+
+### 16.1 Generate Single Barcode
+
+```http
+POST {{base_url}}/api/barcodes/generate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "content": "MED-PRD-001",
+  "barcodeType": "CODE_128",
+  "width": 300,
+  "height": 100
+}
+```
+
+**Barcode Types Available:**
+- `CODE_128` - Most versatile (default)
+- `CODE_39` - Alphanumeric
+- `EAN_13` - 13-digit European Article Number
+- `EAN_8` - 8-digit compact EAN
+- `UPC_A` - 12-digit Universal Product Code
+- `UPC_E` - Compressed UPC
+- `ITF` - Interleaved 2 of 5
+- `CODABAR` - Numeric with special chars
+
+**Expected Response:** Returns PNG image binary
+
+---
+
+### 16.2 Generate Single QR Code
+
+```http
+POST {{base_url}}/api/barcodes/qr/generate
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "content": "{\"productId\":123,\"name\":\"Paracetamol 500mg\",\"price\":150}",
+  "barcodeType": "QR_CODE",
+  "width": 200,
+  "height": 200
+}
+```
+
+**Expected Response:** Returns PNG image binary
+
+---
+
+### 16.3 Generate Barcode for Product
+
+```http
+GET {{base_url}}/api/barcodes/product/{{productId}}?type=CODE_128&width=300&height=100
+Authorization: Bearer {{token}}
+```
+
+**Expected Response:** Returns PNG image binary with product barcode
+
+---
+
+### 16.4 Generate QR Code for Product
+
+```http
+GET {{base_url}}/api/barcodes/product/{{productId}}/qr?width=200&height=200
+Authorization: Bearer {{token}}
+```
+
+**Expected Response:** Returns PNG image with QR code containing product details
+
+---
+
+### 16.5 Generate Batch Barcodes
+
+```http
+POST {{base_url}}/api/barcodes/batch
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "requests": [
+    {"content": "MED-001", "barcodeType": "CODE_128"},
+    {"content": "MED-002", "barcodeType": "CODE_128"},
+    {"content": "MED-003", "barcodeType": "CODE_128"}
+  ],
+  "width": 300,
+  "height": 100
+}
+```
+
+**Expected Response:** Returns ZIP file containing all barcode images
+
+---
+
+### 16.6 Generate Barcode Sheet for Products (PDF)
+
+```http
+POST {{base_url}}/api/barcodes/sheet?labelsPerRow=3&labelWidth=60&labelHeight=30
+Authorization: Bearer {{token}}
+Content-Type: application/json
+```
+
+**Request Body:**
+```json
+{
+  "productIds": [1, 2, 3, 4, 5],
+  "includePrice": true,
+  "includeName": true
+}
+```
+
+**Expected Response:** Returns PDF file with printable barcode labels
+
+---
+
+### 16.7 Decode Barcode from Image
+
+```http
+POST {{base_url}}/api/barcodes/decode
+Authorization: Bearer {{token}}
+Content-Type: multipart/form-data
+```
+
+**Form Data:**
+- `file`: Image file (PNG, JPG, GIF)
+
+**Expected Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Barcode decoded successfully",
+  "data": {
+    "content": "MED-PRD-001",
+    "format": "CODE_128"
+  },
+  "timestamp": "2024-12-29T10:30:00"
+}
+```
+
+---
+
+### 16.8 Validate Barcode Format
+
+```http
+GET {{base_url}}/api/barcodes/validate?content=123456789012&type=EAN_13
+Authorization: Bearer {{token}}
+```
+
+**Expected Response (200 OK):**
+```json
+{
+  "success": true,
+  "message": "Barcode validation result",
+  "data": {
+    "valid": true,
+    "content": "123456789012",
+    "type": "EAN_13",
+    "message": "Valid EAN-13 barcode"
+  },
+  "timestamp": "2024-12-29T10:30:00"
+}
+```
+
+---
+
+### 16.9 Get Supported Barcode Formats
+
+```http
+GET {{base_url}}/api/barcodes/formats
+Authorization: Bearer {{token}}
+```
+
+**Expected Response (200 OK):**
+```json
+{
+  "success": true,
+  "data": {
+    "barcodeFormats": ["CODE_128", "CODE_39", "EAN_13", "EAN_8", "UPC_A", "UPC_E", "ITF", "CODABAR"],
+    "qrFormats": ["QR_CODE", "DATA_MATRIX", "AZTEC", "PDF_417"]
+  },
+  "timestamp": "2024-12-29T10:30:00"
+}
+```
+
+---
+
+## 17. Complete Testing Workflow
 
 Follow this order to test all APIs systematically:
 
