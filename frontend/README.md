@@ -1,103 +1,16 @@
-# MedLan Pharmacy Management System - Frontend
+# React + Vite
 
-Modern, production-ready React frontend for pharmacy management.
+This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
 
-## Tech Stack
+Currently, two official plugins are available:
 
-- **React 19** - UI library
-- **Vite** - Build tool
-- **Tailwind CSS** - Styling
-- **shadcn/ui** - Component library
-- **React Router** - Navigation
-- **React Query** - Server state management
-- **Zustand** - Client state management
-- **Axios** - HTTP client
-- **React Hook Form + Zod** - Form validation
-- **Sonner** - Toast notifications
+- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
+- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
 
-## Features
+## React Compiler
 
-- 🔐 Authentication & Authorization
-- 📊 Dashboard with real-time metrics
-- 🛒 Point of Sale (POS) system
-- 📦 Inventory management
-- 💊 Product management
-- 👥 Customer & Supplier management
-- 📋 Purchase Orders & GRN
-- 📈 Reports & Analytics
-- 🏢 Multi-branch support
+The React Compiler is currently not compatible with SWC. See [this issue](https://github.com/vitejs/vite-plugin-react/issues/428) for tracking the progress.
 
-## Setup
+## Expanding the ESLint configuration
 
-1. Install dependencies:
-```bash
-npm install
-```
-
-2. Configure environment:
-```bash
-# .env file already created with default values
-VITE_API_URL=http://localhost:8080
-```
-
-3. Start development server:
-```bash
-npm run dev
-```
-
-4. Build for production:
-```bash
-npm run build
-```
-
-## Default Login
-
-After backend initial setup:
-- Username: `admin`
-- Password: `admin123`
-
-## Project Structure
-
-```
-src/
-├── components/       # Reusable UI components
-│   ├── ui/          # Base UI components (Button, Card, etc.)
-│   └── Layout.jsx   # Main layout with sidebar
-├── pages/           # Page components
-├── services/        # API service layer
-├── store/           # Zustand state management
-├── lib/             # Utilities and helpers
-└── App.jsx          # Main app component
-```
-
-## Key Pages
-
-- `/` - Dashboard
-- `/pos` - Point of Sale
-- `/products` - Product management
-- `/inventory` - Stock levels
-- `/customers` - Customer management
-- `/suppliers` - Supplier management
-- `/branches` - Branch management
-
-## Design Principles
-
-- **Clean Code** - Minimal, readable, maintainable
-- **Performance** - Optimized rendering and data fetching
-- **User Experience** - Intuitive, responsive design
-- **Type Safety** - Proper validation and error handling
-- **Scalability** - Modular architecture
-
-## API Integration
-
-All API calls are centralized in `src/services/api.js` with proper error handling and authentication.
-
-## State Management
-
-- **Zustand** for global state (auth, selected branch)
-- **React Query** for server state (caching, refetching)
-- **Local state** for component-specific data
-
-## Styling
-
-Tailwind CSS with custom theme variables for consistent design. All colors and spacing follow the design system defined in `tailwind.config.js`.
+If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
