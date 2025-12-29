@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/sidebar";
 import { AppSidebar } from "./AppSidebar";
 import Header from "./Header";
+import { AccessibilityWidget } from "@/components/common";
 
 /**
  * Main application layout
@@ -28,6 +29,9 @@ const MainLayout = ({ children }) => {
           {children || <Outlet />}
         </main>
       </SidebarInset>
+
+      {/* Accessibility Widget */}
+      <AccessibilityWidget />
     </SidebarProvider>
   );
 };

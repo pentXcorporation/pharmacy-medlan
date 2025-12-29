@@ -209,6 +209,48 @@
   padding: 0.25rem 0.5rem;
 }
 
+/* Highlight links accessibility */
+.highlight-links a {
+  background-color: oklch(0.9 0.1 100) !important;
+  color: oklch(0.3 0.2 260) !important;
+  text-decoration: underline !important;
+  padding: 0.1em 0.2em;
+  border-radius: 2px;
+}
+
+.dark.highlight-links a {
+  background-color: oklch(0.3 0.15 260) !important;
+  color: oklch(0.95 0.05 100) !important;
+}
+
+/* Readable font */
+.readable-font,
+.readable-font * {
+  font-family: "OpenDyslexic", "Comic Sans MS", "Arial", sans-serif !important;
+  letter-spacing: 0.05em;
+  word-spacing: 0.1em;
+  line-height: 1.8 !important;
+}
+
+/* Large cursor */
+[data-cursor-size="large"],
+[data-cursor-size="large"] * {
+  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="black" stroke="white" stroke-width="1"><path d="M4 4l7 18 2-7 7-2z"/></svg>')
+      0 0,
+    auto !important;
+}
+
+[data-cursor-size="large"] a,
+[data-cursor-size="large"] button,
+[data-cursor-size="large"] [role="button"],
+[data-cursor-size="large"] input,
+[data-cursor-size="large"] select,
+[data-cursor-size="large"] textarea {
+  cursor: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="black" stroke="white" stroke-width="1"><path d="M18 11h-5V6h-2v5H6v2h5v5h2v-5h5z"/></svg>')
+      16 16,
+    pointer !important;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

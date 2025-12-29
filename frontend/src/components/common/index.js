@@ -25,3 +25,4 @@ export {
 } from "./ConfirmDialog";
 export { default as ErrorBoundary, withErrorBoundary } from "./ErrorBoundary";
 export { default as SearchInput, CommandSearch } from "./SearchInput";
+export { default as AccessibilityWidget } from "./AccessibilityWidget";
