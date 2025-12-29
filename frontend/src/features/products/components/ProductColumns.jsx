@@ -53,7 +53,8 @@ export const getProductColumns = ({
     cell: ({ row }) => (
       <span className="font-mono text-sm">{row.getValue("productCode")}</span>
     ),
-    size: 100,
+    size: 120,
+    enableSorting: true,
   },
   {
     accessorKey: "productName",
@@ -68,17 +69,20 @@ export const getProductColumns = ({
         )}
       </div>
     ),
-    size: 250,
+    size: 300,
+    enableSorting: true,
   },
   {
-    accessorKey: "category.categoryName",
+    accessorKey: "categoryName",
+    id: "categoryName",
     header: "Category",
     cell: ({ row }) => (
       <Badge variant="outline">
         {row.original.category?.categoryName || "-"}
       </Badge>
     ),
-    size: 120,
+    size: 150,
+    enableSorting: true,
   },
   {
     accessorKey: "dosageForm",
@@ -90,13 +94,15 @@ export const getProductColumns = ({
           "-"}
       </span>
     ),
-    size: 100,
+    size: 120,
+    enableSorting: true,
   },
   {
     accessorKey: "strength",
     header: "Strength",
     cell: ({ row }) => row.getValue("strength") || "-",
-    size: 80,
+    size: 100,
+    enableSorting: true,
   },
   {
     accessorKey: "drugSchedule",
@@ -116,7 +122,8 @@ export const getProductColumns = ({
         </Badge>
       );
     },
-    size: 80,
+    size: 100,
+    enableSorting: true,
   },
   {
     accessorKey: "sellingPrice",
@@ -126,7 +133,8 @@ export const getProductColumns = ({
         {formatCurrency(row.getValue("sellingPrice"))}
       </span>
     ),
-    size: 100,
+    size: 120,
+    enableSorting: true,
   },
   {
     accessorKey: "isActive",
@@ -139,12 +147,13 @@ export const getProductColumns = ({
         return <Badge variant="destructive">Discontinued</Badge>;
       }
       return (
-        <Badge variant={isActive ? "success" : "secondary"}>
+        <Badge variant={isActive ? "default" : "secondary"}>
           {isActive ? "Active" : "Inactive"}
         </Badge>
       );
     },
-    size: 100,
+    size: 120,
+    enableSorting: true,
   },
   {
     id: "actions",

@@ -35,7 +35,7 @@ const SuppliersPage = () => {
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Pagination state
   const [pagination, setPagination] = useState({
@@ -56,7 +56,7 @@ const SuppliersPage = () => {
           ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
           : "supplierName,asc",
       ...(searchQuery && { search: searchQuery }),
-      ...(statusFilter && { isActive: statusFilter === "active" }),
+      ...(statusFilter && statusFilter !== "all" && { isActive: statusFilter === "active" }),
     }),
     [pagination, sorting, searchQuery, statusFilter]
   );
@@ -186,7 +186,7 @@ const SuppliersPage = () => {
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>

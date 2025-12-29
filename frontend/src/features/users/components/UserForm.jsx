@@ -131,7 +131,10 @@ const UserForm = ({
     const submitData = {
       ...rest,
       ...(password && { password }),
-      branchId: data.branchId ? Number(data.branchId) : null,
+      branchId:
+        data.branchId && data.branchId !== "none"
+          ? Number(data.branchId)
+          : null,
     };
     onSubmit(submitData);
   };
@@ -291,7 +294,7 @@ const UserForm = ({
                   <FormLabel>Assigned Branch</FormLabel>
                   <Select
                     onValueChange={field.onChange}
-                    value={field.value || ""}
+                    value={field.value || "none"}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -299,7 +302,7 @@ const UserForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">No specific branch</SelectItem>
+                      <SelectItem value="none">No specific branch</SelectItem>
                       {branches.map((branch) => (
                         <SelectItem key={branch.id} value={String(branch.id)}>
                           {branch.branchName}

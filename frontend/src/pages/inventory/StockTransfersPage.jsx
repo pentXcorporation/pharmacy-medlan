@@ -41,7 +41,7 @@ const StockTransfersPage = () => {
   const confirm = useConfirm();
 
   // Filters state
-  const [statusFilter, setStatusFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Pagination state
   const [pagination, setPagination] = useState({
@@ -61,7 +61,7 @@ const StockTransfersPage = () => {
         sorting.length > 0
           ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
           : "requestedDate,desc",
-      ...(statusFilter && { status: statusFilter }),
+      ...(statusFilter && statusFilter !== "all" && { status: statusFilter }),
     }),
     [pagination, sorting, statusFilter]
   );
@@ -180,7 +180,7 @@ const StockTransfersPage = () => {
                 <SelectValue placeholder="Filter by status" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 {Object.entries(TRANSFER_STATUS_LABELS).map(
                   ([value, label]) => (
                     <SelectItem key={value} value={value}>

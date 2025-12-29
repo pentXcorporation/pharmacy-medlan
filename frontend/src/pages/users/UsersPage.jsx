@@ -37,8 +37,8 @@ const UsersPage = () => {
 
   // Filters state
   const [searchQuery, setSearchQuery] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
 
   // Pagination state
   const [pagination, setPagination] = useState({
@@ -59,8 +59,9 @@ const UsersPage = () => {
           ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
           : "firstName,asc",
       ...(searchQuery && { search: searchQuery }),
-      ...(roleFilter && { role: roleFilter }),
-      ...(statusFilter && { isActive: statusFilter === "active" }),
+      ...(roleFilter && roleFilter !== "all" && { role: roleFilter }),
+      ...(statusFilter &&
+        statusFilter !== "all" && { isActive: statusFilter === "active" }),
     }),
     [pagination, sorting, searchQuery, roleFilter, statusFilter]
   );
@@ -209,7 +210,7 @@ const UsersPage = () => {
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All</SelectItem>
+            <SelectItem value="all">All</SelectItem>
             <SelectItem value="active">Active</SelectItem>
             <SelectItem value="inactive">Inactive</SelectItem>
           </SelectContent>

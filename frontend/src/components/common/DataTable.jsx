@@ -86,72 +86,85 @@ const TableSkeleton = ({ columns, rows = 5 }) => (
 /**
  * Pagination controls
  */
-const Pagination = ({ table }) => {
-  const pageCount = table.getPageCount();
-  const currentPage = table.getState().pagination.pageIndex + 1;
+const Pagination = ({ table, pagination, total }) => {
+  // Use external pagination if provided (server-side), otherwise use table state (client-side)
+  const pageCount = pagination?.pageCount ?? table.getPageCount();
+  const currentPage =
+    (pagination?.pageIndex ?? table.getState().pagination.pageIndex) + 1;
+  const pageSize = pagination?.pageSize ?? table.getState().pagination.pageSize;
+  const totalItems = total ?? table.getFilteredRowModel().rows.length;
 
   return (
     <div className="flex items-center justify-between px-2 py-4">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <span>Rows per page:</span>
-        <Select
-          value={`${table.getState().pagination.pageSize}`}
-          onValueChange={(value) => table.setPageSize(Number(value))}
-        >
-          <SelectTrigger className="h-8 w-[70px]">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {[10, 20, 30, 50, 100].map((size) => (
-              <SelectItem key={size} value={`${size}`}>
-                {size}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <span>
+          Showing {Math.min((currentPage - 1) * pageSize + 1, totalItems)} to{" "}
+          {Math.min(currentPage * pageSize, totalItems)} of {totalItems} results
+        </span>
       </div>
 
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
-          Page {currentPage} of {pageCount || 1}
-        </span>
-        <div className="flex items-center gap-1">
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => table.setPageIndex(0)}
-            disabled={!table.getCanPreviousPage()}
+      <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Rows per page:</span>
+          <Select
+            value={`${pageSize}`}
+            onValueChange={(value) => table.setPageSize(Number(value))}
           >
-            <ChevronsLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => table.previousPage()}
-            disabled={!table.getCanPreviousPage()}
-          >
-            <ChevronLeft className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => table.nextPage()}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronRight className="h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="h-8 w-8"
-            onClick={() => table.setPageIndex(pageCount - 1)}
-            disabled={!table.getCanNextPage()}
-          >
-            <ChevronsRight className="h-4 w-4" />
-          </Button>
+            <SelectTrigger className="h-8 w-[70px]">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[10, 20, 30, 50, 100].map((size) => (
+                <SelectItem key={size} value={`${size}`}>
+                  {size}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-muted-foreground">
+            Page {currentPage} of {pageCount || 1}
+          </span>
+          <div className="flex items-center gap-1">
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => table.setPageIndex(0)}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronsLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => table.previousPage()}
+              disabled={!table.getCanPreviousPage()}
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => table.nextPage()}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronRight className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="outline"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => table.setPageIndex(pageCount - 1)}
+              disabled={!table.getCanNextPage()}
+            >
+              <ChevronsRight className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
       </div>
     </div>
@@ -165,17 +178,31 @@ const DataTable = ({
   columns,
   data = [],
   isLoading = false,
+  isFetching = false,
   searchPlaceholder = "Search...",
   searchColumn,
-  showSearch = true,
+  showSearch = false, // Disabled by default for server-side tables
   showPagination = true,
   pageSize = 10,
   onRowClick,
   emptyMessage = "No data available.",
   className,
+  // Server-side pagination props
+  pagination: externalPagination,
+  onPaginationChange,
+  // Server-side sorting props
+  sorting: externalSorting,
+  onSortingChange,
+  // Manual pagination/sorting (server-side mode)
+  manualPagination = !!onPaginationChange,
+  manualSorting = !!onSortingChange,
 }) => {
-  const [sorting, setSorting] = useState([]);
+  const [internalSorting, setInternalSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
+
+  // Use external state if provided, otherwise use internal state
+  const sorting = externalSorting ?? internalSorting;
+  const setSorting = onSortingChange ?? setInternalSorting;
 
   const table = useReactTable({
     data,
@@ -186,13 +213,23 @@ const DataTable = ({
     getFilteredRowModel: getFilteredRowModel(),
     onSortingChange: setSorting,
     onGlobalFilterChange: setGlobalFilter,
+    onPaginationChange: onPaginationChange,
+    manualPagination,
+    manualSorting,
+    pageCount: externalPagination?.pageCount ?? -1,
     state: {
       sorting,
       globalFilter,
+      ...(externalPagination && {
+        pagination: {
+          pageIndex: externalPagination.pageIndex,
+          pageSize: externalPagination.pageSize,
+        },
+      }),
     },
     initialState: {
       pagination: {
-        pageSize,
+        pageSize: externalPagination?.pageSize ?? pageSize,
       },
     },
   });
@@ -212,19 +249,37 @@ const DataTable = ({
       )}
 
       {/* Table */}
-      <div className="rounded-md border">
+      <div className="w-full overflow-auto">
         <Table>
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id}>
                 {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id} className="whitespace-nowrap">
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
+                  <TableHead
+                    key={header.id}
+                    className="whitespace-nowrap"
+                    style={{
+                      width: header.column.columnDef.size
+                        ? `${header.column.columnDef.size}px`
+                        : undefined,
+                      maxWidth: header.column.columnDef.size
+                        ? `${header.column.columnDef.size}px`
+                        : undefined,
+                    }}
+                  >
+                    {header.isPlaceholder ? null : header.column.getCanSort() ? (
+                      <SortableHeader column={header.column}>
+                        {flexRender(
                           header.column.columnDef.header,
                           header.getContext()
                         )}
+                      </SortableHeader>
+                    ) : (
+                      flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )
+                    )}
                   </TableHead>
                 ))}
               </TableRow>
@@ -242,7 +297,8 @@ const DataTable = ({
                     data-state={row.getIsSelected() && "selected"}
                     onClick={() => onRowClick?.(row.original)}
                     className={cn(
-                      onRowClick && "cursor-pointer hover:bg-accent/50"
+                      onRowClick && "cursor-pointer hover:bg-accent/50",
+                      isFetching && "opacity-50"
                     )}
                   >
                     {row.getVisibleCells().map((cell) => (
@@ -271,7 +327,13 @@ const DataTable = ({
       </div>
 
       {/* Pagination */}
-      {showPagination && <Pagination table={table} />}
+      {showPagination && (
+        <Pagination
+          table={table}
+          pagination={externalPagination}
+          total={externalPagination?.total}
+        />
+      )}
     </div>
   );
 };

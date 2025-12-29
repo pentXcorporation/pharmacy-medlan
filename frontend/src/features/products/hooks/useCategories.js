@@ -34,7 +34,19 @@ export const useActiveCategories = () => {
   return useQuery({
     queryKey: categoryKeys.active(),
     queryFn: () => categoryService.getActive(),
-    select: (response) => response.data,
+    select: (response) => {
+      // Handle both array and paginated response formats
+      const data = response.data;
+      if (Array.isArray(data)) {
+        return data;
+      }
+      // If paginated, return the content array
+      if (data && Array.isArray(data.content)) {
+        return data.content;
+      }
+      // Fallback to empty array
+      return [];
+    },
   });
 };
 

@@ -111,9 +111,7 @@ const SaleReturnsPage = () => {
             <Button
               variant="ghost"
               size="icon"
-              onClick={() =>
-                navigate(ROUTES.SALE_RETURNS.VIEW(returnItem.id))
-              }
+              onClick={() => navigate(ROUTES.SALE_RETURNS.VIEW(returnItem.id))}
               title="View Details"
             >
               <Eye className="h-4 w-4" />

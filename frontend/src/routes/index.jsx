@@ -331,10 +331,6 @@ const router = createBrowserRouter([
 
       // Products Routes
       {
-        path: ROUTES.PRODUCTS.ROOT,
-        element: <Navigate to={ROUTES.PRODUCTS.LIST} replace />,
-      },
-      {
         path: ROUTES.PRODUCTS.LIST,
         element: (
           <SuspenseWrapper>
@@ -373,10 +369,6 @@ const router = createBrowserRouter([
 
       // Categories Routes
       {
-        path: ROUTES.CATEGORIES.ROOT,
-        element: <Navigate to={ROUTES.CATEGORIES.LIST} replace />,
-      },
-      {
         path: ROUTES.CATEGORIES.LIST,
         element: (
           <SuspenseWrapper>
@@ -404,10 +396,6 @@ const router = createBrowserRouter([
       },
 
       // Suppliers Routes
-      {
-        path: ROUTES.SUPPLIERS.ROOT,
-        element: <Navigate to={ROUTES.SUPPLIERS.LIST} replace />,
-      },
       {
         path: ROUTES.SUPPLIERS.LIST,
         element: (
@@ -438,10 +426,6 @@ const router = createBrowserRouter([
       },
 
       // Customers Routes
-      {
-        path: ROUTES.CUSTOMERS.ROOT,
-        element: <Navigate to={ROUTES.CUSTOMERS.LIST} replace />,
-      },
       {
         path: ROUTES.CUSTOMERS.LIST,
         element: (
@@ -538,10 +522,6 @@ const router = createBrowserRouter([
 
       // Employees Routes
       {
-        path: ROUTES.EMPLOYEES.ROOT,
-        element: <Navigate to={ROUTES.EMPLOYEES.LIST} replace />,
-      },
-      {
         path: ROUTES.EMPLOYEES.LIST,
         element: (
           <RoleGuard
@@ -555,10 +535,6 @@ const router = createBrowserRouter([
       },
 
       // Branches Routes
-      {
-        path: ROUTES.BRANCHES.ROOT,
-        element: <Navigate to={ROUTES.BRANCHES.LIST} replace />,
-      },
       {
         path: ROUTES.BRANCHES.LIST,
         element: (
@@ -592,10 +568,6 @@ const router = createBrowserRouter([
 
       // Users Routes (Super Admin only)
       {
-        path: ROUTES.USERS.ROOT,
-        element: <Navigate to={ROUTES.USERS.LIST} replace />,
-      },
-      {
         path: ROUTES.USERS.LIST,
         element: (
           <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
@@ -627,10 +599,6 @@ const router = createBrowserRouter([
       },
 
       // Purchase Orders Routes
-      {
-        path: ROUTES.PURCHASE_ORDERS.ROOT,
-        element: <Navigate to={ROUTES.PURCHASE_ORDERS.LIST} replace />,
-      },
       {
         path: ROUTES.PURCHASE_ORDERS.LIST,
         element: (
@@ -673,10 +641,6 @@ const router = createBrowserRouter([
       },
 
       // GRN Routes
-      {
-        path: ROUTES.GRN.ROOT,
-        element: <Navigate to={ROUTES.GRN.LIST} replace />,
-      },
       {
         path: ROUTES.GRN.LIST,
         element: (

@@ -156,21 +156,31 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Category *</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select 
+                    onValueChange={field.onChange} 
+                    value={field.value}
+                    disabled={loadingCategories}
+                  >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {categories.map((category) => (
-                        <SelectItem
-                          key={category.id}
-                          value={category.id.toString()}
-                        >
-                          {category.categoryName}
+                      {!loadingCategories && categories && categories.length > 0 ? (
+                        categories.map((category) => (
+                          <SelectItem
+                            key={category.id}
+                            value={category.id.toString()}
+                          >
+                            {category.categoryName}
+                          </SelectItem>
+                        ))
+                      ) : !loadingCategories ? (
+                        <SelectItem value="none" disabled>
+                          No categories available
                         </SelectItem>
-                      ))}
+                      ) : null}
                     </SelectContent>
                   </Select>
                   <FormMessage />
