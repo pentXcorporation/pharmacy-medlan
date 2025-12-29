@@ -3,6 +3,7 @@
  * Dashboard statistics card with icon, value, and trend indicator
  */
 
+import * as React from "react";
 import { TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -60,28 +61,80 @@ const StatCardSkeleton = () => (
 
 /**
  * StatCard component for dashboard metrics
+ * @param {Object} props
+ * @param {string} props.variant - "default" | "success" | "warning" | "destructive"
+ * @param {boolean} props.loading - Alias for isLoading
  */
 const StatCard = ({
   title,
   value,
   description,
-  icon: Icon,
+  icon,
   trend,
   trendLabel = "from last month",
   iconColor = "text-muted-foreground",
   iconBgColor = "bg-muted",
   isLoading = false,
+  loading, // Alias for isLoading
+  variant = "default",
   className,
   onClick,
 }) => {
-  if (isLoading) {
+  // Support both isLoading and loading props
+  const showLoading = isLoading || loading;
+  
+  if (showLoading) {
     return <StatCardSkeleton />;
   }
+
+  // Variant styles for the card
+  const variantStyles = {
+    default: "",
+    success: "border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-900/20",
+    warning: "border-amber-200 bg-amber-50/50 dark:border-amber-800 dark:bg-amber-900/20",
+    destructive: "border-red-200 bg-red-50/50 dark:border-red-800 dark:bg-red-900/20",
+  };
+
+  // Variant colors for the icon
+  const variantIconColors = {
+    default: iconColor,
+    success: "text-emerald-600",
+    warning: "text-amber-600",
+    destructive: "text-red-600",
+  };
+
+  const variantIconBgColors = {
+    default: iconBgColor,
+    success: "bg-emerald-100 dark:bg-emerald-900/50",
+    warning: "bg-amber-100 dark:bg-amber-900/50",
+    destructive: "bg-red-100 dark:bg-red-900/50",
+  };
+
+  // Render the icon properly based on its type
+  const renderIcon = () => {
+    if (!icon) return null;
+    
+    // If icon is a valid React element (JSX), render it directly
+    if (React.isValidElement(icon)) {
+      return React.cloneElement(icon, {
+        className: cn("h-4 w-4", variantIconColors[variant], icon.props?.className),
+      });
+    }
+    
+    // If icon is a component reference (function), render it as component
+    if (typeof icon === "function") {
+      const IconComponent = icon;
+      return <IconComponent className={cn("h-4 w-4", variantIconColors[variant])} />;
+    }
+    
+    return null;
+  };
 
   return (
     <Card
       className={cn(
         "transition-all",
+        variantStyles[variant],
         onClick && "cursor-pointer hover:shadow-md hover:border-primary/50",
         className
       )}
@@ -91,9 +144,9 @@ const StatCard = ({
         <CardTitle className="text-sm font-medium text-muted-foreground">
           {title}
         </CardTitle>
-        {Icon && (
-          <div className={cn("rounded-md p-2", iconBgColor)}>
-            <Icon className={cn("h-4 w-4", iconColor)} />
+        {icon && (
+          <div className={cn("rounded-md p-2", variantIconBgColors[variant])}>
+            {renderIcon()}
           </div>
         )}
       </CardHeader>

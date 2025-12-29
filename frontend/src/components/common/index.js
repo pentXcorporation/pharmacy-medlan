@@ -16,6 +16,7 @@ export {
   PageLoader,
   ButtonSpinner,
   CardLoader,
+  LoadingScreen,
 } from "./LoadingSpinner";
 export {
   default as ConfirmDialog,

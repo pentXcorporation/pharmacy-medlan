@@ -79,4 +79,17 @@ export const CardLoader = () => (
   </div>
 );
 
+/**
+ * LoadingScreen - Full screen loading overlay
+ */
+export const LoadingScreen = ({ message = "Loading..." }) => (
+  <LoadingSpinner
+    size="xl"
+    showLabel
+    label={message}
+    fullScreen
+    overlay
+  />
+);
+
 export default LoadingSpinner;
