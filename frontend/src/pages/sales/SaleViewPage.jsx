@@ -68,7 +68,7 @@ const SaleViewPage = () => {
               <Button
                 variant="outline"
                 onClick={() =>
-                  navigate(`${ROUTES.SALES.RETURNS}/new?saleId=${sale.id}`)
+                  navigate(`${ROUTES.SALE_RETURNS.CREATE}?saleId=${sale.id}`)
                 }
               >
                 <Undo2 className="h-4 w-4 mr-2" />

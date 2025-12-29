@@ -148,7 +148,7 @@ const SalesHistoryPage = () => {
                   variant="ghost"
                   size="icon"
                   onClick={() =>
-                    navigate(`${ROUTES.SALES.RETURNS}/new?saleId=${sale.id}`)
+                    navigate(`${ROUTES.SALE_RETURNS.CREATE}?saleId=${sale.id}`)
                   }
                   title="Process Return"
                 >

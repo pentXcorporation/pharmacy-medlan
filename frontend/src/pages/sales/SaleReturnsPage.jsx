@@ -112,7 +112,7 @@ const SaleReturnsPage = () => {
               variant="ghost"
               size="icon"
               onClick={() =>
-                navigate(`${ROUTES.SALES.RETURNS}/${returnItem.id}`)
+                navigate(ROUTES.SALE_RETURNS.VIEW(returnItem.id))
               }
               title="View Details"
             >
@@ -145,7 +145,7 @@ const SaleReturnsPage = () => {
         title="Sale Returns"
         description="View and manage sale returns"
       >
-        <Button onClick={() => navigate(`${ROUTES.SALES.RETURNS}/new`)}>
+        <Button onClick={() => navigate(ROUTES.SALE_RETURNS.CREATE)}>
           Process Return
         </Button>
       </PageHeader>

@@ -146,7 +146,7 @@ const SaleReturnFormPage = () => {
       },
       {
         onSuccess: () => {
-          navigate(ROUTES.SALES.RETURNS);
+          navigate(ROUTES.SALE_RETURNS.LIST);
         },
       }
     );
