@@ -22,17 +22,25 @@ export const categoryKeys = {
 export const useCategories = () => {
   return useQuery({
     queryKey: categoryKeys.lists(),
-    queryFn: () => categoryService.getAll(),
+    queryFn: async () => {
+      const response = await categoryService.getAll();
+      console.log("Categories API raw response:", response);
+      return response;
+    },
     select: (response) => {
+      console.log("Categories response in select:", response);
       // Axios response: { data: { success, message, data: [...], timestamp } }
       const apiResponse = response.data;
-      
+      console.log("API response (response.data):", apiResponse);
+
       // Extract the actual data from ApiResponse wrapper
       const categories = apiResponse?.data;
-      
+      console.log("Categories (apiResponse.data):", categories);
+
       // Ensure we have an array
       const categoryList = Array.isArray(categories) ? categories : [];
-      
+      console.log("Final categoryList:", categoryList);
+
       // Return in paginated format for DataTable compatibility
       return {
         content: categoryList,
@@ -54,7 +62,7 @@ export const useActiveCategories = () => {
       // Axios response: { data: { success, message, data: [...], timestamp } }
       const apiResponse = response.data;
       const categories = apiResponse?.data;
-      
+
       // Return array of categories
       return Array.isArray(categories) ? categories : [];
     },

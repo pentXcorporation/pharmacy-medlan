@@ -25,7 +25,7 @@ import { useConfirm } from "@/components/common/ConfirmDialog";
  */
 const CategoriesPage = () => {
   const navigate = useNavigate();
-  const confirm = useConfirm();
+  const { confirm } = useConfirm();
 
   // Search state
   const [searchQuery, setSearchQuery] = useState("");

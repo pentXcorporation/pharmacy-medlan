@@ -12,6 +12,8 @@ const apiClient = axios.create({
   headers: {
     "Content-Type": API_CONFIG.HEADERS.CONTENT_TYPE,
     Accept: API_CONFIG.HEADERS.ACCEPT,
+    // Skip ngrok browser warning for free tier tunnels
+    "ngrok-skip-browser-warning": "true",
   },
 });
 
@@ -22,6 +24,8 @@ export const authClient = axios.create({
   headers: {
     "Content-Type": API_CONFIG.HEADERS.CONTENT_TYPE,
     Accept: API_CONFIG.HEADERS.ACCEPT,
+    // Skip ngrok browser warning for free tier tunnels
+    "ngrok-skip-browser-warning": "true",
   },
 });
 
