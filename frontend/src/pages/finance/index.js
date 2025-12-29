@@ -7,3 +7,4 @@ export { default as TransactionsPage } from "./TransactionsPage";
 export { default as InvoicesPage } from "./InvoicesPage";
 export { default as ChequesPage } from "./ChequesPage";
 export { default as BanksPage } from "./BanksPage";
+export { default as CashRegisterPage } from "./CashRegisterPage";

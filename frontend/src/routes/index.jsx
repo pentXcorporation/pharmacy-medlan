@@ -114,6 +114,7 @@ const TransactionsPage = lazy(() => import("@/pages/finance/TransactionsPage"));
 const InvoicesPage = lazy(() => import("@/pages/finance/InvoicesPage"));
 const ChequesPage = lazy(() => import("@/pages/finance/ChequesPage"));
 const BanksPage = lazy(() => import("@/pages/finance/BanksPage"));
+const CashRegisterPage = lazy(() => import("@/pages/finance/CashRegisterPage"));
 
 // Employees Pages
 const EmployeesPage = lazy(() => import("@/pages/employees/EmployeesPage"));
@@ -633,7 +634,9 @@ const router = createBrowserRouter([
           <RoleGuard
             allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
           >
-            <PlaceholderPage title="Cash Register" />
+            <SuspenseWrapper>
+              <CashRegisterPage />
+            </SuspenseWrapper>
           </RoleGuard>
         ),
       },

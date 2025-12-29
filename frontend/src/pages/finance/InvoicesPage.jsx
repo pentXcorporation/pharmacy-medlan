@@ -3,7 +3,7 @@
  * Manages customer and supplier invoices
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Plus, Download, Eye, Edit, FileText } from "lucide-react";
 import { PageHeader, DataTable } from "@/components/common";
 import { Button } from "@/components/ui/button";
@@ -26,10 +26,13 @@ import {
 import { MoreHorizontal } from "lucide-react";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { INVOICE_STATUS, PAYMENT_STATUS } from "@/constants";
+import InvoiceFormDialog from "./InvoiceFormDialog";
+import { toast } from "sonner";
 
 const InvoicesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -148,11 +151,28 @@ const InvoicesPage = () => {
     outstandingAmount: 0,
   };
 
+  const handleCreateInvoice = useCallback(async (data) => {
+    try {
+      // TODO: Call API to create invoice
+      console.log("Creating invoice:", data);
+
+      toast.success("Invoice Created", {
+        description: "The invoice has been successfully created.",
+      });
+
+      // TODO: Refresh data after creation
+    } catch (error) {
+      toast.error("Error", {
+        description: "Failed to create invoice. Please try again.",
+      });
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       <PageHeader title="Invoices" description="Manage all invoices">
         <div className="flex gap-2">
-          <Button>
+          <Button onClick={() => setIsFormOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Invoice
           </Button>
@@ -162,6 +182,12 @@ const InvoicesPage = () => {
           </Button>
         </div>
       </PageHeader>
+
+      <InvoiceFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onSubmit={handleCreateInvoice}
+      />
 
       {/* Statistics */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">

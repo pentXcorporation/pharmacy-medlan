@@ -3,7 +3,7 @@
  * Manages cheque payments and collections
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { Plus, Download } from "lucide-react";
 import { PageHeader, DataTable } from "@/components/common";
 import { Button } from "@/components/ui/button";
@@ -19,10 +19,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/utils/formatters";
 import { CHEQUE_STATUS } from "@/constants";
+import ChequeFormDialog from "./ChequeFormDialog";
+import { toast } from "sonner";
 
 const ChequesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [isFormOpen, setIsFormOpen] = useState(false);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
@@ -106,6 +109,23 @@ const ChequesPage = () => {
     bouncedCount: 0,
   };
 
+  const handleCreateCheque = useCallback(async (data) => {
+    try {
+      // TODO: Call API to create cheque
+      console.log("Creating cheque:", data);
+
+      toast.success("Cheque Created", {
+        description: "The cheque has been successfully recorded.",
+      });
+
+      // TODO: Refresh data after creation
+    } catch (error) {
+      toast.error("Error", {
+        description: "Failed to create cheque. Please try again.",
+      });
+    }
+  }, []);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -113,7 +133,7 @@ const ChequesPage = () => {
         description="Track cheque payments and collections"
       >
         <div className="flex gap-2">
-          <Button>
+          <Button onClick={() => setIsFormOpen(true)}>
             <Plus className="mr-2 h-4 w-4" />
             New Cheque
           </Button>
@@ -123,6 +143,12 @@ const ChequesPage = () => {
           </Button>
         </div>
       </PageHeader>
+
+      <ChequeFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onSubmit={handleCreateCheque}
+      />
 
       {/* Statistics */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
