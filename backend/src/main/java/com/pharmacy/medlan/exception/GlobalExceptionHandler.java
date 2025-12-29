@@ -164,11 +164,26 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleGenericException(
             Exception ex, HttpServletRequest request) {
-        log.error("Unexpected error: ", ex);
+        log.error("Unexpected error on path {}: {}", request.getRequestURI(), ex.getMessage(), ex);
+        
+        // Include more details in development (you can make this conditional based on profile)
+        String message = "An unexpected error occurred";
+        String errorDetail = ex.getMessage();
+        
+        // Get root cause for better debugging
+        Throwable rootCause = ex;
+        while (rootCause.getCause() != null && rootCause.getCause() != rootCause) {
+            rootCause = rootCause.getCause();
+        }
+        
+        if (rootCause != ex) {
+            errorDetail = errorDetail + " | Root cause: " + rootCause.getMessage();
+        }
+        
         ErrorResponse error = ErrorResponse.of(
                 HttpStatus.INTERNAL_SERVER_ERROR.value(),
                 "Internal Server Error",
-                "An unexpected error occurred",
+                errorDetail != null ? errorDetail : message,
                 request.getRequestURI()
         );
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(error);
