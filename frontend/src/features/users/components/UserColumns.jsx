@@ -28,8 +28,11 @@ import { ROLE_LABELS } from "@/constants";
 /**
  * Get initials from name
  */
-const getInitials = (firstName, lastName) => {
-  return `${firstName?.[0] || ""}${lastName?.[0] || ""}`.toUpperCase();
+const getInitials = (fullName) => {
+  if (!fullName) return "??";
+  const parts = fullName.trim().split(/\s+/);
+  if (parts.length === 1) return parts[0].substring(0, 2).toUpperCase();
+  return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
 };
 
 /**
@@ -88,19 +91,15 @@ export const getUserColumns = ({
   {
     id: "user",
     header: "User",
-    accessorFn: (row) => `${row.firstName} ${row.lastName}`,
+    accessorFn: (row) => row.fullName,
     cell: ({ row }) => (
       <div className="flex items-center gap-3">
         <Avatar className="h-8 w-8">
           <AvatarImage src={row.original.avatarUrl} />
-          <AvatarFallback>
-            {getInitials(row.original.firstName, row.original.lastName)}
-          </AvatarFallback>
+          <AvatarFallback>{getInitials(row.original.fullName)}</AvatarFallback>
         </Avatar>
         <div>
-          <div className="font-medium">
-            {row.original.firstName} {row.original.lastName}
-          </div>
+          <div className="font-medium">{row.original.fullName}</div>
           <div className="text-sm text-muted-foreground">
             @{row.original.username}
           </div>
@@ -139,9 +138,9 @@ export const getUserColumns = ({
     ),
   },
   {
-    accessorKey: "phone",
+    accessorKey: "phoneNumber",
     header: "Phone",
-    cell: ({ row }) => row.getValue("phone") || "-",
+    cell: ({ row }) => row.getValue("phoneNumber") || "-",
   },
   {
     accessorKey: "isActive",

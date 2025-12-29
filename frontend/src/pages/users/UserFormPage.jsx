@@ -64,7 +64,7 @@ const UserFormPage = () => {
         title={isEditing ? "Edit User" : "Add New User"}
         description={
           isEditing
-            ? `Editing: ${user?.firstName} ${user?.lastName}`
+            ? `Editing: ${user?.fullName || user?.username}`
             : "Create a new user account"
         }
         actions={

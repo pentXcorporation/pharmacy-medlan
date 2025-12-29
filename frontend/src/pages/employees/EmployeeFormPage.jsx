@@ -11,7 +11,6 @@ import { z } from "zod";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -42,17 +41,27 @@ import { ROUTES } from "@/config";
 import { ROLES } from "@/constants";
 import { toast } from "sonner";
 
-// Validation schema
-const employeeSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+// Validation schema for creating employee
+const createEmployeeSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  password: z.string().min(6, "Password must be at least 6 characters"),
+  fullName: z.string().min(1, "Full name is required"),
   email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  phoneNumber: z.string().optional().or(z.literal("")),
   role: z.string().min(1, "Role is required"),
   branchId: z.string().optional(),
-  address: z.string().optional(),
-  emergencyContact: z.string().optional(),
-  salary: z.string().optional(),
+  employeeCode: z.string().optional(),
+});
+
+// Validation schema for editing employee
+const editEmployeeSchema = z.object({
+  username: z.string().min(3, "Username must be at least 3 characters"),
+  fullName: z.string().min(1, "Full name is required"),
+  email: z.string().email("Invalid email address"),
+  phoneNumber: z.string().optional().or(z.literal("")),
+  role: z.string().min(1, "Role is required"),
+  branchId: z.string().optional(),
+  employeeCode: z.string().optional(),
 });
 
 const EmployeeFormPage = () => {
@@ -73,17 +82,18 @@ const EmployeeFormPage = () => {
 
   // Form
   const form = useForm({
-    resolver: zodResolver(employeeSchema),
+    resolver: zodResolver(
+      isEditing ? editEmployeeSchema : createEmployeeSchema
+    ),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      username: "",
+      password: "",
+      fullName: "",
       email: "",
-      phone: "",
+      phoneNumber: "",
       role: "",
       branchId: "",
-      address: "",
-      emergencyContact: "",
-      salary: "",
+      employeeCode: "",
     },
   });
 
@@ -91,15 +101,13 @@ const EmployeeFormPage = () => {
   useEffect(() => {
     if (employee) {
       form.reset({
-        firstName: employee.firstName || "",
-        lastName: employee.lastName || "",
+        username: employee.username || "",
+        fullName: employee.fullName || "",
         email: employee.email || "",
-        phone: employee.phone || "",
+        phoneNumber: employee.phoneNumber || "",
         role: employee.role || "",
         branchId: employee.branchId ? String(employee.branchId) : "",
-        address: employee.address || "",
-        emergencyContact: employee.emergencyContact || "",
-        salary: employee.salary ? String(employee.salary) : "",
+        employeeCode: employee.employeeCode || "",
       });
     }
   }, [employee, form]);
@@ -107,17 +115,32 @@ const EmployeeFormPage = () => {
   // Submit handler
   const onSubmit = async (data) => {
     try {
-      const payload = {
-        ...data,
-        branchId: data.branchId ? parseInt(data.branchId) : null,
-        salary: data.salary ? parseFloat(data.salary) : null,
-      };
-
       if (isEditing) {
-        await updateMutation.mutateAsync({ id, data: payload });
+        // For update - only send fields that UpdateUserRequest accepts
+        const updatePayload = {
+          fullName: data.fullName,
+          email: data.email,
+          phoneNumber: data.phoneNumber || null,
+          role: data.role,
+        };
+        await updateMutation.mutateAsync({ id, data: updatePayload });
         toast.success("Employee updated successfully");
       } else {
-        await createMutation.mutateAsync(payload);
+        // For create - send all fields including username, password, etc.
+        const createPayload = {
+          username: data.username,
+          password: data.password,
+          fullName: data.fullName,
+          email: data.email,
+          phoneNumber: data.phoneNumber || null,
+          role: data.role,
+          branchId:
+            data.branchId && data.branchId !== "all"
+              ? parseInt(data.branchId)
+              : null,
+          employeeCode: data.employeeCode || null,
+        };
+        await createMutation.mutateAsync(createPayload);
         toast.success("Employee created successfully");
       }
       navigate(ROUTES.EMPLOYEES.LIST);
@@ -164,12 +187,16 @@ const EmployeeFormPage = () => {
               <div className="grid gap-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
-                  name="firstName"
+                  name="username"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>First Name *</FormLabel>
+                      <FormLabel>Username *</FormLabel>
                       <FormControl>
-                        <Input placeholder="John" {...field} />
+                        <Input
+                          placeholder="johndoe"
+                          {...field}
+                          disabled={isEditing}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -178,18 +205,56 @@ const EmployeeFormPage = () => {
 
                 <FormField
                   control={form.control}
-                  name="lastName"
+                  name="employeeCode"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Last Name *</FormLabel>
+                      <FormLabel>Employee Code</FormLabel>
                       <FormControl>
-                        <Input placeholder="Doe" {...field} />
+                        <Input
+                          placeholder="EMP001"
+                          {...field}
+                          disabled={isEditing}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}
                 />
               </div>
+
+              <FormField
+                control={form.control}
+                name="fullName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Full Name *</FormLabel>
+                    <FormControl>
+                      <Input placeholder="John Doe" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              {!isEditing && (
+                <FormField
+                  control={form.control}
+                  name="password"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Password *</FormLabel>
+                      <FormControl>
+                        <Input
+                          type="password"
+                          placeholder="••••••••"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              )}
 
               {/* Contact Information */}
               <div className="grid gap-4 md:grid-cols-2">
@@ -213,10 +278,10 @@ const EmployeeFormPage = () => {
 
                 <FormField
                   control={form.control}
-                  name="phone"
+                  name="phoneNumber"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Phone *</FormLabel>
+                      <FormLabel>Phone</FormLabel>
                       <FormControl>
                         <Input placeholder="+94 XX XXX XXXX" {...field} />
                       </FormControl>
@@ -273,6 +338,7 @@ const EmployeeFormPage = () => {
                       <Select
                         onValueChange={field.onChange}
                         defaultValue={field.value}
+                        disabled={isEditing}
                       >
                         <FormControl>
                           <SelectTrigger>
@@ -280,7 +346,7 @@ const EmployeeFormPage = () => {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="">All Branches</SelectItem>
+                          <SelectItem value="all">All Branches</SelectItem>
                           {branches.map((branch) => (
                             <SelectItem
                               key={branch.id}
@@ -292,62 +358,10 @@ const EmployeeFormPage = () => {
                         </SelectContent>
                       </Select>
                       <FormDescription>
-                        Leave empty for multi-branch access
+                        {isEditing
+                          ? "Branch cannot be changed after creation"
+                          : "Leave empty for multi-branch access"}
                       </FormDescription>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              {/* Additional Information */}
-              <FormField
-                control={form.control}
-                name="address"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Address</FormLabel>
-                    <FormControl>
-                      <Textarea
-                        placeholder="Enter address"
-                        rows={2}
-                        {...field}
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <FormField
-                  control={form.control}
-                  name="emergencyContact"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Emergency Contact</FormLabel>
-                      <FormControl>
-                        <Input placeholder="+94 XX XXX XXXX" {...field} />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={form.control}
-                  name="salary"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Salary (Monthly)</FormLabel>
-                      <FormControl>
-                        <Input
-                          type="number"
-                          step="0.01"
-                          placeholder="0.00"
-                          {...field}
-                        />
-                      </FormControl>
                       <FormMessage />
                     </FormItem>
                   )}

@@ -24,6 +24,7 @@ export const useBranches = (params = {}, options = {}) => {
   return useQuery({
     queryKey: branchKeys.list(params),
     queryFn: () => branchService.getAll(params),
+    select: (response) => response.data.data, // ApiResponse.data contains PageResponse or List
     ...options,
   });
 };
@@ -35,7 +36,10 @@ export const useActiveBranches = (options = {}) => {
   return useQuery({
     queryKey: branchKeys.active(),
     queryFn: () => branchService.getAllList(),
-    select: (data) => data?.filter((b) => b.isActive) || [],
+    select: (response) => {
+      const data = response.data.data; // ApiResponse.data contains List
+      return Array.isArray(data) ? data.filter((b) => b.isActive) : [];
+    },
     staleTime: 5 * 60 * 1000,
     ...options,
   });
@@ -48,6 +52,7 @@ export const useBranch = (id, options = {}) => {
   return useQuery({
     queryKey: branchKeys.detail(id),
     queryFn: () => branchService.getById(id),
+    select: (response) => response.data.data, // ApiResponse.data contains BranchResponse
     enabled: Boolean(id),
     ...options,
   });

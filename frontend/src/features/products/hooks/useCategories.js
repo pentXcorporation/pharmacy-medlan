@@ -70,7 +70,7 @@ export const useCategory = (id) => {
   return useQuery({
     queryKey: categoryKeys.detail(id),
     queryFn: () => categoryService.getById(id),
-    select: (response) => response.data,
+    select: (response) => response.data.data, // ApiResponse.data contains CategoryResponse
     enabled: !!id,
   });
 };

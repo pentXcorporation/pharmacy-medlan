@@ -28,48 +28,42 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ButtonSpinner } from "@/components/common";
-import { ROLES, ROLE_LABELS, GENDER_LABELS } from "@/constants";
+import { ROLES, ROLE_LABELS } from "@/constants";
 
-// Validation schema
-const userSchema = z
+// Validation schema for creating user
+const createUserSchema = z
   .object({
-    firstName: z.string().min(1, "First name is required").max(50),
-    lastName: z.string().min(1, "Last name is required").max(50),
-    email: z.string().email("Invalid email").min(1, "Email is required"),
-    phone: z
-      .string()
-      .min(10, "Phone must be at least 10 digits")
-      .max(15)
-      .optional()
-      .or(z.literal("")),
     username: z
       .string()
       .min(3, "Username must be at least 3 characters")
-      .max(50),
-    password: z
-      .string()
-      .min(8, "Password must be at least 8 characters")
-      .optional()
-      .or(z.literal("")),
-    confirmPassword: z.string().optional().or(z.literal("")),
-    gender: z.string().optional().nullable(),
+      .max(100),
+    password: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm password"),
+    fullName: z.string().min(1, "Full name is required").max(200),
+    email: z.string().email("Invalid email").min(1, "Email is required"),
+    phoneNumber: z.string().optional().or(z.literal("")),
     role: z.string().min(1, "Role is required"),
-    branchId: z.string().optional().nullable(),
+    branchId: z.string().optional(),
+    employeeCode: z.string().optional().or(z.literal("")),
+    discountLimit: z.string().optional().or(z.literal("")),
+    creditTransactionLimit: z.string().optional().or(z.literal("")),
     isActive: z.boolean().default(true),
   })
-  .refine(
-    (data) => {
-      // Password confirmation only required when password is provided
-      if (data.password && data.password !== data.confirmPassword) {
-        return false;
-      }
-      return true;
-    },
-    {
-      message: "Passwords don't match",
-      path: ["confirmPassword"],
-    }
-  );
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  });
+
+// Validation schema for editing user
+const editUserSchema = z.object({
+  fullName: z.string().min(1, "Full name is required").max(200),
+  email: z.string().email("Invalid email").min(1, "Email is required"),
+  phoneNumber: z.string().optional().or(z.literal("")),
+  role: z.string().min(1, "Role is required"),
+  discountLimit: z.string().optional().or(z.literal("")),
+  creditTransactionLimit: z.string().optional().or(z.literal("")),
+  isActive: z.boolean().default(true),
+});
 
 /**
  * UserForm component
@@ -90,18 +84,19 @@ const UserForm = ({
   const isEditing = Boolean(user);
 
   const form = useForm({
-    resolver: zodResolver(userSchema),
+    resolver: zodResolver(isEditing ? editUserSchema : createUserSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
-      email: "",
-      phone: "",
       username: "",
       password: "",
       confirmPassword: "",
-      gender: "",
+      fullName: "",
+      email: "",
+      phoneNumber: "",
       role: "",
       branchId: "",
+      employeeCode: "",
+      discountLimit: "",
+      creditTransactionLimit: "",
       isActive: true,
     },
   });
@@ -110,33 +105,51 @@ const UserForm = ({
   useEffect(() => {
     if (user) {
       form.reset({
-        firstName: user.firstName || "",
-        lastName: user.lastName || "",
+        fullName: user.fullName || "",
         email: user.email || "",
-        phone: user.phone || "",
-        username: user.username || "",
-        password: "",
-        confirmPassword: "",
-        gender: user.gender || "",
+        phoneNumber: user.phoneNumber || "",
         role: user.role || "",
-        branchId: user.branchId ? String(user.branchId) : "",
+        discountLimit: user.discountLimit ? String(user.discountLimit) : "",
+        creditTransactionLimit: user.creditTransactionLimit
+          ? String(user.creditTransactionLimit)
+          : "",
         isActive: user.isActive ?? true,
       });
     }
   }, [user, form]);
 
   const handleSubmit = (data) => {
-    // Remove confirm password and empty password from submission
-    const { confirmPassword, password, ...rest } = data;
-    const submitData = {
-      ...rest,
-      ...(password && { password }),
-      branchId:
-        data.branchId && data.branchId !== "none"
-          ? Number(data.branchId)
+    if (isEditing) {
+      // For update: only send UpdateUserRequest fields
+      const updatePayload = {
+        fullName: data.fullName,
+        email: data.email,
+        phoneNumber: data.phoneNumber || null,
+        role: data.role,
+        isActive: data.isActive,
+        discountLimit: data.discountLimit
+          ? parseFloat(data.discountLimit)
           : null,
-    };
-    onSubmit(submitData);
+        creditTransactionLimit: data.creditTransactionLimit
+          ? parseFloat(data.creditTransactionLimit)
+          : null,
+      };
+      onSubmit(updatePayload);
+    } else {
+      // For create: send CreateUserRequest fields
+      const { confirmPassword, ...rest } = data;
+      const createPayload = {
+        ...rest,
+        branchId: data.branchId ? Number(data.branchId) : null,
+        discountLimit: data.discountLimit
+          ? parseFloat(data.discountLimit)
+          : null,
+        creditTransactionLimit: data.creditTransactionLimit
+          ? parseFloat(data.creditTransactionLimit)
+          : null,
+      };
+      onSubmit(createPayload);
+    }
   };
 
   // Filter roles based on permissions (you might want to get this from context)
@@ -153,26 +166,12 @@ const UserForm = ({
           <CardContent className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="firstName"
+              name="fullName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>First Name *</FormLabel>
+                  <FormLabel>Full Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="John" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Doe" {...field} />
+                    <Input placeholder="John Doe" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -199,41 +198,13 @@ const UserForm = ({
 
             <FormField
               control={form.control}
-              name="phone"
+              name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Phone</FormLabel>
+                  <FormLabel>Phone Number</FormLabel>
                   <FormControl>
                     <Input placeholder="+94 77 123 4567" {...field} />
                   </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="gender"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Gender</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value || ""}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {Object.entries(GENDER_LABELS).map(([value, label]) => (
-                        <SelectItem key={value} value={value}>
-                          {label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -247,19 +218,37 @@ const UserForm = ({
             <CardTitle>Account Information</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="username"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Username *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="johndoe" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {!isEditing && (
+              <>
+                <FormField
+                  control={form.control}
+                  name="username"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Username *</FormLabel>
+                      <FormControl>
+                        <Input placeholder="johndoe" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="employeeCode"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Employee Code</FormLabel>
+                      <FormControl>
+                        <Input placeholder="EMP001" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </>
+            )}
 
             <FormField
               control={form.control}
@@ -286,32 +275,78 @@ const UserForm = ({
               )}
             />
 
+            {!isEditing && (
+              <FormField
+                control={form.control}
+                name="branchId"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Assigned Branch</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value || "none"}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select branch" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="none">No specific branch</SelectItem>
+                        {branches.map((branch) => (
+                          <SelectItem key={branch.id} value={String(branch.id)}>
+                            {branch.branchName}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>
+                      Branch the user is assigned to work at
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+
             <FormField
               control={form.control}
-              name="branchId"
+              name="discountLimit"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Assigned Branch</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    value={field.value || "none"}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select branch" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="none">No specific branch</SelectItem>
-                      {branches.map((branch) => (
-                        <SelectItem key={branch.id} value={String(branch.id)}>
-                          {branch.branchName}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <FormLabel>Discount Limit</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      {...field}
+                    />
+                  </FormControl>
                   <FormDescription>
-                    Branch the user is assigned to work at
+                    Maximum discount percentage this user can apply
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="creditTransactionLimit"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Credit Transaction Limit</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormDescription>
+                    Maximum credit amount this user can authorize
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -321,49 +356,50 @@ const UserForm = ({
         </Card>
 
         {/* Password */}
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {isEditing ? "Change Password" : "Set Password"}
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>
-                    {isEditing ? "New Password" : "Password *"}
-                  </FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
-                  {isEditing && (
-                    <FormDescription>
-                      Leave blank to keep current password
-                    </FormDescription>
-                  )}
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        {!isEditing && (
+          <Card>
+            <CardHeader>
+              <CardTitle>Set Password</CardTitle>
+            </CardHeader>
+            <CardContent className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="password"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Password *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <Input type="password" placeholder="••••••••" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-          </CardContent>
-        </Card>
+              <FormField
+                control={form.control}
+                name="confirmPassword"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Confirm Password *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="password"
+                        placeholder="••••••••"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </CardContent>
+          </Card>
+        )}
 
         {/* Status */}
         <Card>

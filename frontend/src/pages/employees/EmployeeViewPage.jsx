@@ -66,7 +66,7 @@ const EmployeeViewPage = () => {
   return (
     <div className="container mx-auto py-6 space-y-6">
       <PageHeader
-        title={`${employee.firstName} ${employee.lastName}`}
+        title={employee.fullName || employee.username}
         description="Employee details and information"
       >
         <div className="flex gap-2">
@@ -91,9 +91,10 @@ const EmployeeViewPage = () => {
             <div className="flex items-start justify-between">
               <div>
                 <CardTitle className="text-2xl">
-                  {employee.firstName} {employee.lastName}
+                  {employee.fullName || employee.username}
                 </CardTitle>
                 <CardDescription>
+                  @{employee.username} &middot;{" "}
                   {ROLE_LABELS[employee.role] || employee.role}
                 </CardDescription>
               </div>
@@ -109,16 +110,17 @@ const EmployeeViewPage = () => {
                   <Mail className="h-4 w-4 text-muted-foreground" />
                   <span>{employee.email}</span>
                 </div>
-                {employee.phone && (
+                {employee.phoneNumber && (
                   <div className="flex items-center gap-3 text-sm">
                     <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{employee.phone}</span>
+                    <span>{employee.phoneNumber}</span>
                   </div>
                 )}
-                {employee.address && (
-                  <div className="flex items-start gap-3 text-sm">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <span>{employee.address}</span>
+                {employee.employeeCode && (
+                  <div className="flex items-center gap-3 text-sm">
+                    <Briefcase className="h-4 w-4 text-muted-foreground" />
+                    <span className="text-muted-foreground">Code:</span>
+                    <span className="font-medium">{employee.employeeCode}</span>
                   </div>
                 )}
               </div>
@@ -155,20 +157,6 @@ const EmployeeViewPage = () => {
                 )}
               </div>
             </div>
-
-            {/* Emergency Contact */}
-            {employee.emergencyContact && (
-              <>
-                <Separator />
-                <div>
-                  <h3 className="font-semibold mb-3">Emergency Contact</h3>
-                  <div className="flex items-center gap-3 text-sm">
-                    <Phone className="h-4 w-4 text-muted-foreground" />
-                    <span>{employee.emergencyContact}</span>
-                  </div>
-                </div>
-              </>
-            )}
           </CardContent>
         </Card>
 
@@ -190,16 +178,6 @@ const EmployeeViewPage = () => {
                   <p className="text-sm text-muted-foreground">Employee ID</p>
                   <p className="text-sm font-medium">#{employee.id}</p>
                 </div>
-                {employee.salary && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">
-                      Monthly Salary
-                    </p>
-                    <p className="text-sm font-medium">
-                      Rs. {parseFloat(employee.salary).toLocaleString()}
-                    </p>
-                  </div>
-                )}
               </div>
             </CardContent>
           </Card>

@@ -25,6 +25,7 @@ export const useUsers = (params = {}, options = {}) => {
   return useQuery({
     queryKey: userKeys.list(params),
     queryFn: () => userService.getAll(params),
+    select: (response) => response.data.data, // ApiResponse.data contains PageResponse
     ...options,
   });
 };
@@ -36,6 +37,7 @@ export const useUser = (id, options = {}) => {
   return useQuery({
     queryKey: userKeys.detail(id),
     queryFn: () => userService.getById(id),
+    select: (response) => response.data.data, // ApiResponse.data contains UserResponse
     enabled: Boolean(id),
     ...options,
   });
@@ -48,6 +50,7 @@ export const useUsersByRole = (role, options = {}) => {
   return useQuery({
     queryKey: userKeys.byRole(role),
     queryFn: () => userService.getByRole(role),
+    select: (response) => response.data.data, // ApiResponse.data contains List<UserResponse>
     enabled: Boolean(role),
     ...options,
   });
@@ -60,6 +63,7 @@ export const useUsersByBranch = (branchId, options = {}) => {
   return useQuery({
     queryKey: userKeys.byBranch(branchId),
     queryFn: () => userService.getByBranch(branchId),
+    select: (response) => response.data.data, // ApiResponse.data contains List<UserResponse>
     enabled: Boolean(branchId),
     ...options,
   });

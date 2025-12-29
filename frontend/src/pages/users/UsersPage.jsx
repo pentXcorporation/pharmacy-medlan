@@ -59,7 +59,9 @@ const UsersPage = () => {
           ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
           : "firstName,asc",
       ...(searchQuery && { search: searchQuery }),
-      ...(roleFilter && roleFilter !== "all" && { role: roleFilter }),
+      ...(roleFilter &&
+        roleFilter !== "all" &&
+        roleFilter !== "" && { role: roleFilter }),
       ...(statusFilter &&
         statusFilter !== "all" && { isActive: statusFilter === "active" }),
     }),
@@ -92,7 +94,9 @@ const UsersPage = () => {
     async (user) => {
       const confirmed = await confirm({
         title: "Delete User",
-        description: `Are you sure you want to delete "${user.firstName} ${user.lastName}"? This action cannot be undone.`,
+        description: `Are you sure you want to delete "${
+          user.fullName || user.username
+        }"? This action cannot be undone.`,
         confirmText: "Delete",
         cancelText: "Cancel",
         variant: "destructive",
@@ -116,7 +120,9 @@ const UsersPage = () => {
     async (user) => {
       const confirmed = await confirm({
         title: "Deactivate User",
-        description: `Deactivate "${user.firstName} ${user.lastName}"? They won't be able to log in.`,
+        description: `Deactivate "${
+          user.fullName || user.username
+        }"? They won't be able to log in.`,
         confirmText: "Deactivate",
         cancelText: "Cancel",
       });
@@ -197,7 +203,7 @@ const UsersPage = () => {
             <SelectValue placeholder="Filter by role" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All Roles</SelectItem>
+            <SelectItem value="all">All Roles</SelectItem>
             {Object.entries(ROLE_LABELS).map(([value, label]) => (
               <SelectItem key={value} value={value}>
                 {label}

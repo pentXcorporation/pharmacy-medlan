@@ -91,9 +91,7 @@ const EmployeesPage = () => {
         const user = row.original;
         return (
           <div>
-            <p className="font-medium">
-              {user.firstName} {user.lastName}
-            </p>
+            <p className="font-medium">{user.fullName || user.username}</p>
             <p className="text-sm text-muted-foreground">{user.email}</p>
           </div>
         );
@@ -112,7 +110,7 @@ const EmployeesPage = () => {
       cell: ({ row }) => row.getValue("branchName") || "All Branches",
     },
     {
-      accessorKey: "phone",
+      accessorKey: "phoneNumber",
       header: "Phone",
     },
     {

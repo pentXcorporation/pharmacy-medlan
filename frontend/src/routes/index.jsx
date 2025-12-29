@@ -65,6 +65,7 @@ const SupplierFormPage = lazy(() =>
 // Users Pages
 const UsersPage = lazy(() => import("@/pages/users/UsersPage"));
 const UserFormPage = lazy(() => import("@/pages/users/UserFormPage"));
+const UserViewPage = lazy(() => import("@/pages/users/UserViewPage"));
 
 // Branches Pages
 const BranchesPage = lazy(() => import("@/pages/branches/BranchesPage"));
@@ -924,6 +925,16 @@ const router = createBrowserRouter([
           <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
             <SuspenseWrapper>
               <UserFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.USERS.VIEW(":id"),
+        element: (
+          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+            <SuspenseWrapper>
+              <UserViewPage />
             </SuspenseWrapper>
           </RoleGuard>
         ),
