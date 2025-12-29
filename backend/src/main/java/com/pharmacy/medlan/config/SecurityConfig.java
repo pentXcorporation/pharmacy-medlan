@@ -4,6 +4,10 @@ import com.pharmacy.medlan.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.expression.method.DefaultMethodSecurityExpressionHandler;
+import org.springframework.security.access.expression.method.MethodSecurityExpressionHandler;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchy;
+import org.springframework.security.access.hierarchicalroles.RoleHierarchyImpl;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -77,6 +81,38 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Role Hierarchy Configuration
+     * SUPER_ADMIN has all permissions of all other roles
+     * This ensures SUPER_ADMIN can access everything in the system
+     */
+    @Bean
+    public RoleHierarchy roleHierarchy() {
+        String hierarchy = """
+            ROLE_SUPER_ADMIN > ROLE_ADMIN
+            ROLE_SUPER_ADMIN > ROLE_OWNER
+            ROLE_ADMIN > ROLE_BRANCH_MANAGER
+            ROLE_OWNER > ROLE_BRANCH_MANAGER
+            ROLE_BRANCH_MANAGER > ROLE_MANAGER
+            ROLE_MANAGER > ROLE_PHARMACIST
+            ROLE_MANAGER > ROLE_INVENTORY_MANAGER
+            ROLE_MANAGER > ROLE_ACCOUNTANT
+            ROLE_PHARMACIST > ROLE_CASHIER
+            """;
+        return RoleHierarchyImpl.fromHierarchy(hierarchy);
+    }
+
+    /**
+     * Method Security Expression Handler with Role Hierarchy
+     * This enables the role hierarchy for @PreAuthorize annotations
+     */
+    @Bean
+    public MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
+        DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
+        handler.setRoleHierarchy(roleHierarchy);
+        return handler;
     }
 
     @Bean
