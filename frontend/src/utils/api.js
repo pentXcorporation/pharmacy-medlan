@@ -124,8 +124,14 @@ const errorInterceptor = async (error) => {
 
   // Handle other errors
   if (error.response?.status === 403) {
-    // Forbidden - redirect to unauthorized page
-    window.location.href = "/401";
+    // Forbidden - don't redirect, just reject with error
+    // Let the component handle it via onError callback
+    console.error("Forbidden (403):", error.response?.data);
+  }
+
+  // Handle 500 errors - log but don't redirect
+  if (error.response?.status === 500) {
+    console.error("Server Error (500):", error.response?.data);
   }
 
   return Promise.reject(error);

@@ -30,16 +30,39 @@ export const categoryService = {
 
   /**
    * Create new category
+   * Backend expects query params: categoryName, categoryCode, description
    */
   create: (data) => {
-    return api.post(API_ENDPOINTS.CATEGORIES.BASE, data);
+    const params = new URLSearchParams();
+    params.append("categoryName", data.name || data.categoryName);
+    if (data.code || data.categoryCode) {
+      params.append("categoryCode", data.code || data.categoryCode);
+    }
+    if (data.description) {
+      params.append("description", data.description);
+    }
+    // Send empty body - backend expects @RequestParam not @RequestBody
+    return api.post(
+      `${API_ENDPOINTS.CATEGORIES.BASE}?${params.toString()}`,
+      {}
+    );
   },
 
   /**
    * Update category
+   * Backend expects query params: categoryName, description
    */
   update: (id, data) => {
-    return api.put(API_ENDPOINTS.CATEGORIES.BY_ID(id), data);
+    const params = new URLSearchParams();
+    params.append("categoryName", data.name || data.categoryName);
+    if (data.description) {
+      params.append("description", data.description);
+    }
+    // Send empty body - backend expects @RequestParam not @RequestBody
+    return api.put(
+      `${API_ENDPOINTS.CATEGORIES.BY_ID(id)}?${params.toString()}`,
+      {}
+    );
   },
 
   /**

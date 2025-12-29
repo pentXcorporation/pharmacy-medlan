@@ -23,7 +23,23 @@ export const useCategories = () => {
   return useQuery({
     queryKey: categoryKeys.lists(),
     queryFn: () => categoryService.getAll(),
-    select: (response) => response.data,
+    select: (response) => {
+      // Axios response: { data: { success, message, data: [...], timestamp } }
+      const apiResponse = response.data;
+      
+      // Extract the actual data from ApiResponse wrapper
+      const categories = apiResponse?.data;
+      
+      // Ensure we have an array
+      const categoryList = Array.isArray(categories) ? categories : [];
+      
+      // Return in paginated format for DataTable compatibility
+      return {
+        content: categoryList,
+        totalElements: categoryList.length,
+        totalPages: 1,
+      };
+    },
   });
 };
 
@@ -35,17 +51,12 @@ export const useActiveCategories = () => {
     queryKey: categoryKeys.active(),
     queryFn: () => categoryService.getActive(),
     select: (response) => {
-      // Handle both array and paginated response formats
-      const data = response.data;
-      if (Array.isArray(data)) {
-        return data;
-      }
-      // If paginated, return the content array
-      if (data && Array.isArray(data.content)) {
-        return data.content;
-      }
-      // Fallback to empty array
-      return [];
+      // Axios response: { data: { success, message, data: [...], timestamp } }
+      const apiResponse = response.data;
+      const categories = apiResponse?.data;
+      
+      // Return array of categories
+      return Array.isArray(categories) ? categories : [];
     },
   });
 };
@@ -75,7 +86,13 @@ export const useCreateCategory = () => {
       toast.success("Category created successfully");
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to create category");
+      console.error("Create category error:", error);
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to create category";
+      toast.error(message);
     },
   });
 };
