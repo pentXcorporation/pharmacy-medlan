@@ -170,4 +170,5 @@ export const extractErrorMessage = (error) => {
   return "An unexpected error occurred";
 };
 
+export { apiClient };
 export default apiClient;

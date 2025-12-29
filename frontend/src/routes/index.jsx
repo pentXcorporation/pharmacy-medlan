@@ -1023,6 +1023,54 @@ const router = createBrowserRouter([
           </SuspenseWrapper>
         ),
       },
+      {
+        path: ROUTES.SETTINGS.GENERAL,
+        element: (
+          <SuspenseWrapper>
+            <SettingsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.SETTINGS.BRANCH,
+        element: (
+          <SuspenseWrapper>
+            <SettingsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.SETTINGS.TAX,
+        element: (
+          <SuspenseWrapper>
+            <SettingsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.SETTINGS.NOTIFICATIONS,
+        element: (
+          <SuspenseWrapper>
+            <SettingsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.SETTINGS.PROFILE,
+        element: (
+          <SuspenseWrapper>
+            <SettingsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: "/settings/preferences",
+        element: (
+          <SuspenseWrapper>
+            <SettingsPage />
+          </SuspenseWrapper>
+        ),
+      },
 
       // Catch-all redirect to dashboard
       {

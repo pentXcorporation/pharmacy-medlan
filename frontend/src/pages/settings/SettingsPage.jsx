@@ -3,7 +3,8 @@
  * Tabbed settings interface for profile, system, and notifications
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,10 +16,13 @@ import {
   Palette,
   Shield,
   Database,
+  Receipt,
+  MapPin,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Separator } from "@/components/ui/separator";
 import {
@@ -47,22 +51,28 @@ import {
 } from "@/components/ui/select";
 import { PageHeader, ButtonSpinner } from "@/components/common";
 import { useAuthStore } from "@/store";
+import {
+  authService,
+  userService,
+  systemConfigService,
+  branchService,
+} from "@/services";
 import { toast } from "sonner";
+import { ROLE_LABELS } from "@/constants";
 
-// Profile schema
+// Profile schema - matches UpdateUserRequest backend
 const profileSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
+  fullName: z.string().min(1, "Full name is required").max(200),
   email: z.string().email("Invalid email"),
-  phone: z.string().optional(),
+  phoneNumber: z.string().optional().or(z.literal("")),
 });
 
-// Password schema
+// Password schema - matches ChangePasswordRequest backend
 const passwordSchema = z
   .object({
     currentPassword: z.string().min(1, "Current password is required"),
-    newPassword: z.string().min(8, "Password must be at least 8 characters"),
-    confirmPassword: z.string(),
+    newPassword: z.string().min(6, "Password must be at least 6 characters"),
+    confirmPassword: z.string().min(1, "Please confirm password"),
   })
   .refine((data) => data.newPassword === data.confirmPassword, {
     message: "Passwords don't match",
@@ -70,20 +80,155 @@ const passwordSchema = z
   });
 
 const SettingsPage = () => {
-  const { user } = useAuthStore();
-  const [activeTab, setActiveTab] = useState("profile");
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user, setUser } = useAuthStore();
   const [isUpdating, setIsUpdating] = useState(false);
+
+  // Preferences state
+  const [preferences, setPreferences] = useState(() => {
+    const saved = localStorage.getItem("app-preferences");
+    return saved
+      ? JSON.parse(saved)
+      : {
+          themeMode: "system",
+          colorTheme: "blue",
+          dateFormat: "DD/MM/YYYY",
+          currency: "LKR",
+          highContrast: false,
+          reduceMotion: false,
+          largeText: false,
+          screenReader: false,
+          keyboardNav: "standard",
+          tablePageSize: "10",
+          compactTables: false,
+        };
+  });
+
+  // Save preferences to localStorage and apply them
+  const updatePreference = (key, value) => {
+    const newPreferences = { ...preferences, [key]: value };
+    setPreferences(newPreferences);
+    localStorage.setItem("app-preferences", JSON.stringify(newPreferences));
+    applyPreferences(newPreferences);
+    toast.success("Preference updated");
+  };
+
+  // Apply preferences to document
+  const applyPreferences = (prefs) => {
+    const root = document.documentElement;
+
+    // Apply theme mode
+    if (prefs.themeMode === "light") {
+      root.classList.remove("dark");
+    } else if (prefs.themeMode === "dark") {
+      root.classList.add("dark");
+    } else {
+      // System preference
+      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+        root.classList.add("dark");
+      } else {
+        root.classList.remove("dark");
+      }
+    }
+
+    // Apply color theme
+    root.setAttribute("data-theme", prefs.colorTheme);
+
+    // Apply accessibility settings
+    root.classList.toggle("high-contrast", prefs.highContrast);
+    root.classList.toggle("reduce-motion", prefs.reduceMotion);
+    root.classList.toggle("large-text", prefs.largeText);
+    root.classList.toggle("screen-reader", prefs.screenReader);
+    root.setAttribute("data-keyboard-nav", prefs.keyboardNav);
+    root.classList.toggle("compact-tables", prefs.compactTables);
+  };
+
+  // Apply preferences on mount
+  useEffect(() => {
+    applyPreferences(preferences);
+  }, []);
+
+  // Determine active tab from URL
+  const getTabFromPath = (pathname) => {
+    if (pathname.includes("/profile")) return "profile";
+    if (pathname.includes("/general")) return "profile";
+    if (pathname.includes("/branch")) return "branch";
+    if (pathname.includes("/tax")) return "tax";
+    if (pathname.includes("/notifications")) return "notifications";
+    if (pathname.includes("/preferences")) return "preferences";
+    return "profile";
+  };
+
+  const [activeTab, setActiveTab] = useState(getTabFromPath(location.pathname));
+
+  // Branch and Tax settings state
+  const [branches, setBranches] = useState([]);
+  const [selectedBranch, setSelectedBranch] = useState("");
+  const [branchSettings, setBranchSettings] = useState(() => {
+    const saved = localStorage.getItem("branch-settings");
+    return saved
+      ? JSON.parse(saved)
+      : {
+          defaultBranch: "",
+          allowTransfers: true,
+          autoSync: true,
+        };
+  });
+  const [taxSettings, setTaxSettings] = useState(() => {
+    const saved = localStorage.getItem("tax-settings");
+    return saved
+      ? JSON.parse(saved)
+      : {
+          enableTax: true,
+          defaultTaxRate: "0",
+          taxInclusive: false,
+          multipleTaxRates: false,
+        };
+  });
+  const [isLoadingSettings, setIsLoadingSettings] = useState(false);
+
+  // Update tab when URL changes
+  useEffect(() => {
+    setActiveTab(getTabFromPath(location.pathname));
+  }, [location.pathname]);
+
+  // Load branches
+  useEffect(() => {
+    const loadBranches = async () => {
+      try {
+        const response = await branchService.getActive();
+        // Handle both array and paginated response
+        const branchData = response.data?.content || response.data || [];
+        setBranches(Array.isArray(branchData) ? branchData : []);
+      } catch (error) {
+        console.error("Failed to load branches:", error);
+        setBranches([]);
+      }
+    };
+    loadBranches();
+  }, []);
 
   // Profile form
   const profileForm = useForm({
     resolver: zodResolver(profileSchema),
     defaultValues: {
-      firstName: user?.firstName || "",
-      lastName: user?.lastName || "",
+      fullName: user?.fullName || "",
       email: user?.email || "",
-      phone: user?.phone || "",
+      phoneNumber: user?.phoneNumber || "",
     },
   });
+
+  // Update form when user changes
+  useEffect(() => {
+    if (user) {
+      profileForm.reset({
+        fullName: user.fullName || "",
+        email: user.email || "",
+        phoneNumber: user.phoneNumber || "",
+      });
+    }
+  }, [user, profileForm]);
 
   // Password form
   const passwordForm = useForm({
@@ -98,11 +243,20 @@ const SettingsPage = () => {
   const handleProfileUpdate = async (data) => {
     setIsUpdating(true);
     try {
-      // TODO: Implement profile update API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      const response = await userService.update(user.id, {
+        fullName: data.fullName,
+        email: data.email,
+        phoneNumber: data.phoneNumber || null,
+        role: user.role, // Keep existing role
+        isActive: user.isActive, // Keep existing status
+      });
+
+      // Update user in store
+      setUser(response.data.data);
       toast.success("Profile updated successfully");
     } catch (error) {
-      toast.error("Failed to update profile");
+      console.error("Profile update error:", error);
+      toast.error(error.response?.data?.message || "Failed to update profile");
     } finally {
       setIsUpdating(false);
     }
@@ -111,14 +265,56 @@ const SettingsPage = () => {
   const handlePasswordChange = async (data) => {
     setIsUpdating(true);
     try {
-      // TODO: Implement password change API call
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+      await authService.changePassword({
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword,
+        confirmPassword: data.confirmPassword,
+      });
       toast.success("Password changed successfully");
       passwordForm.reset();
     } catch (error) {
-      toast.error("Failed to change password");
+      console.error("Password change error:", error);
+      toast.error(error.response?.data?.message || "Failed to change password");
     } finally {
       setIsUpdating(false);
+    }
+  };
+
+  // Branch settings handlers
+  const handleBranchSettingChange = (key, value) => {
+    setBranchSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSaveBranchSettings = async () => {
+    setIsLoadingSettings(true);
+    try {
+      // Save to localStorage (backend endpoint not implemented yet)
+      localStorage.setItem("branch-settings", JSON.stringify(branchSettings));
+      toast.success("Branch settings saved successfully");
+    } catch (error) {
+      console.error("Failed to save branch settings:", error);
+      toast.error("Failed to save branch settings");
+    } finally {
+      setIsLoadingSettings(false);
+    }
+  };
+
+  // Tax settings handlers
+  const handleTaxSettingChange = (key, value) => {
+    setTaxSettings((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSaveTaxSettings = async () => {
+    setIsLoadingSettings(true);
+    try {
+      // Save to localStorage (backend endpoint not implemented yet)
+      localStorage.setItem("tax-settings", JSON.stringify(taxSettings));
+      toast.success("Tax settings saved successfully");
+    } catch (error) {
+      console.error("Failed to save tax settings:", error);
+      toast.error("Failed to save tax settings");
+    } finally {
+      setIsLoadingSettings(false);
     }
   };
 
@@ -132,10 +328,24 @@ const SettingsPage = () => {
 
       <Tabs
         value={activeTab}
-        onValueChange={setActiveTab}
+        onValueChange={(value) => {
+          setActiveTab(value);
+          // Update URL when tab changes
+          const pathMap = {
+            profile: "/settings",
+            security: "/settings",
+            branch: "/settings/branch",
+            tax: "/settings/tax",
+            notifications: "/settings/notifications",
+            preferences: "/settings/preferences",
+          };
+          if (pathMap[value] && location.pathname !== pathMap[value]) {
+            navigate(pathMap[value], { replace: true });
+          }
+        }}
         className="space-y-6"
       >
-        <TabsList className="grid w-full grid-cols-4 lg:w-[500px]">
+        <TabsList className="grid w-full grid-cols-6 lg:w-[700px]">
           <TabsTrigger value="profile" className="gap-2">
             <User className="h-4 w-4" />
             Profile
@@ -143,6 +353,14 @@ const SettingsPage = () => {
           <TabsTrigger value="security" className="gap-2">
             <Shield className="h-4 w-4" />
             Security
+          </TabsTrigger>
+          <TabsTrigger value="branch" className="gap-2">
+            <MapPin className="h-4 w-4" />
+            Branch
+          </TabsTrigger>
+          <TabsTrigger value="tax" className="gap-2">
+            <Receipt className="h-4 w-4" />
+            Tax
           </TabsTrigger>
           <TabsTrigger value="notifications" className="gap-2">
             <Bell className="h-4 w-4" />
@@ -169,42 +387,14 @@ const SettingsPage = () => {
                   onSubmit={profileForm.handleSubmit(handleProfileUpdate)}
                   className="space-y-4"
                 >
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <FormField
-                      control={profileForm.control}
-                      name="firstName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>First Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={profileForm.control}
-                      name="lastName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Last Name</FormLabel>
-                          <FormControl>
-                            <Input {...field} />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
                   <FormField
                     control={profileForm.control}
-                    name="email"
+                    name="fullName"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>Full Name</FormLabel>
                         <FormControl>
-                          <Input type="email" {...field} />
+                          <Input placeholder="John Doe" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -212,12 +402,29 @@ const SettingsPage = () => {
                   />
                   <FormField
                     control={profileForm.control}
-                    name="phone"
+                    name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Phone</FormLabel>
+                        <FormLabel>Email</FormLabel>
                         <FormControl>
-                          <Input {...field} />
+                          <Input
+                            type="email"
+                            placeholder="john@example.com"
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={profileForm.control}
+                    name="phoneNumber"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Phone Number</FormLabel>
+                        <FormControl>
+                          <Input placeholder="+94 77 123 4567" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -246,17 +453,38 @@ const SettingsPage = () => {
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Role</p>
-                  <p className="font-medium">{user?.role || "-"}</p>
+                  <p className="font-medium">
+                    {ROLE_LABELS[user?.role] || user?.role || "-"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Branch</p>
                   <p className="font-medium">
                     {user?.branch?.branchName || "All Branches"}
                   </p>
+                  {user?.branch?.branchCode && (
+                    <p className="text-xs text-muted-foreground">
+                      Code: {user.branch.branchCode}
+                    </p>
+                  )}
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Employee Code</p>
+                  <p className="font-medium">{user?.employeeCode || "-"}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Status</p>
+                  <p className="font-medium">
+                    {user?.isActive ? "Active" : "Inactive"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Member Since</p>
-                  <p className="font-medium">{user?.createdAt || "-"}</p>
+                  <p className="font-medium">
+                    {user?.createdAt
+                      ? new Date(user.createdAt).toLocaleDateString()
+                      : "-"}
+                  </p>
                 </div>
               </div>
             </CardContent>
@@ -414,7 +642,278 @@ const SettingsPage = () => {
             </CardContent>
           </Card>
         </TabsContent>
+        {/* Branch Settings Tab */}
+        <TabsContent value="branch" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Branch Configuration</CardTitle>
+              <CardDescription>
+                Configure branch settings and preferences
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <Label>Default Branch</Label>
+                <Select
+                  value={branchSettings.defaultBranch}
+                  onValueChange={(value) =>
+                    handleBranchSettingChange("defaultBranch", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select default branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(branches) && branches.length > 0 ? (
+                      branches.map((branch) => (
+                        <SelectItem key={branch.id} value={String(branch.id)}>
+                          {branch.branchName} - {branch.branchCode}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No branches available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  The default branch for operations and reporting
+                </p>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Allow Branch Transfers</p>
+                  <p className="text-sm text-muted-foreground">
+                    Enable inventory transfers between branches
+                  </p>
+                </div>
+                <Switch
+                  checked={branchSettings.allowTransfers}
+                  onCheckedChange={(checked) =>
+                    handleBranchSettingChange("allowTransfers", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Auto Sync</p>
+                  <p className="text-sm text-muted-foreground">
+                    Automatically sync data across branches
+                  </p>
+                </div>
+                <Switch
+                  checked={branchSettings.autoSync}
+                  onCheckedChange={(checked) =>
+                    handleBranchSettingChange("autoSync", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <Button
+                onClick={handleSaveBranchSettings}
+                disabled={isLoadingSettings}
+              >
+                {isLoadingSettings && <ButtonSpinner />}
+                Save Branch Settings
+              </Button>
+            </CardContent>
+          </Card>
 
+          <Card>
+            <CardHeader>
+              <CardTitle>Branch Selection</CardTitle>
+              <CardDescription>
+                View and manage branch information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Select Branch to View</Label>
+                <Select
+                  value={selectedBranch}
+                  onValueChange={setSelectedBranch}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a branch" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.isArray(branches) && branches.length > 0 ? (
+                      branches.map((branch) => (
+                        <SelectItem key={branch.id} value={String(branch.id)}>
+                          {branch.branchName}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No branches available
+                      </SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedBranch && (
+                <div className="space-y-2 pt-4">
+                  {branches
+                    .filter((b) => String(b.id) === selectedBranch)
+                    .map((branch) => (
+                      <div key={branch.id} className="space-y-3">
+                        <div className="grid grid-cols-2 gap-4">
+                          <div>
+                            <Label className="text-muted-foreground">
+                              Branch Code
+                            </Label>
+                            <p className="font-medium">{branch.branchCode}</p>
+                          </div>
+                          <div>
+                            <Label className="text-muted-foreground">
+                              Contact
+                            </Label>
+                            <p className="font-medium">
+                              {branch.contactNumber || "N/A"}
+                            </p>
+                          </div>
+                          <div className="col-span-2">
+                            <Label className="text-muted-foreground">
+                              Address
+                            </Label>
+                            <p className="font-medium">
+                              {branch.address || "N/A"}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Tax Settings Tab */}
+        <TabsContent value="tax" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle>Tax Configuration</CardTitle>
+              <CardDescription>
+                Configure tax rates and tax-related settings
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Enable Tax</p>
+                  <p className="text-sm text-muted-foreground">
+                    Apply tax to sales and purchases
+                  </p>
+                </div>
+                <Switch
+                  checked={taxSettings.enableTax}
+                  onCheckedChange={(checked) =>
+                    handleTaxSettingChange("enableTax", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <Label>Default Tax Rate (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  step="0.01"
+                  value={taxSettings.defaultTaxRate}
+                  onChange={(e) =>
+                    handleTaxSettingChange("defaultTaxRate", e.target.value)
+                  }
+                  placeholder="0.00"
+                />
+                <p className="text-xs text-muted-foreground">
+                  The default tax rate applied to transactions
+                </p>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Tax Inclusive Pricing</p>
+                  <p className="text-sm text-muted-foreground">
+                    Product prices include tax
+                  </p>
+                </div>
+                <Switch
+                  checked={taxSettings.taxInclusive}
+                  onCheckedChange={(checked) =>
+                    handleTaxSettingChange("taxInclusive", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Multiple Tax Rates</p>
+                  <p className="text-sm text-muted-foreground">
+                    Allow different tax rates for different products
+                  </p>
+                </div>
+                <Switch
+                  checked={taxSettings.multipleTaxRates}
+                  onCheckedChange={(checked) =>
+                    handleTaxSettingChange("multipleTaxRates", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <Button
+                onClick={handleSaveTaxSettings}
+                disabled={isLoadingSettings}
+              >
+                {isLoadingSettings && <ButtonSpinner />}
+                Save Tax Settings
+              </Button>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Tax Information</CardTitle>
+              <CardDescription>
+                Additional tax configuration details
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="rounded-lg border p-4 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Current Tax Rate</span>
+                  <span className="text-sm text-muted-foreground">
+                    {taxSettings.defaultTaxRate}%
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Tax Status</span>
+                  <span
+                    className={`text-sm ${
+                      taxSettings.enableTax
+                        ? "text-green-600"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    {taxSettings.enableTax ? "Enabled" : "Disabled"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-medium">Pricing Model</span>
+                  <span className="text-sm text-muted-foreground">
+                    {taxSettings.taxInclusive
+                      ? "Tax Inclusive"
+                      : "Tax Exclusive"}
+                  </span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
         {/* Preferences Tab */}
         <TabsContent value="preferences" className="space-y-6">
           <Card>
@@ -427,8 +926,13 @@ const SettingsPage = () => {
             <CardContent className="space-y-6">
               <div className="grid gap-4 max-w-md">
                 <div className="space-y-2">
-                  <FormLabel>Theme</FormLabel>
-                  <Select defaultValue="system">
+                  <Label>Theme Mode</Label>
+                  <Select
+                    value={preferences.themeMode}
+                    onValueChange={(value) =>
+                      updatePreference("themeMode", value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -440,21 +944,37 @@ const SettingsPage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <FormLabel>Language</FormLabel>
-                  <Select defaultValue="en">
+                  <Label>Color Theme</Label>
+                  <Select
+                    value={preferences.colorTheme}
+                    onValueChange={(value) =>
+                      updatePreference("colorTheme", value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="en">English</SelectItem>
-                      <SelectItem value="si">Sinhala</SelectItem>
-                      <SelectItem value="ta">Tamil</SelectItem>
+                      <SelectItem value="blue">Blue (Default)</SelectItem>
+                      <SelectItem value="green">Green</SelectItem>
+                      <SelectItem value="purple">Purple</SelectItem>
+                      <SelectItem value="orange">Orange</SelectItem>
+                      <SelectItem value="red">Red</SelectItem>
+                      <SelectItem value="slate">Slate</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">
+                    Choose your preferred accent color
+                  </p>
                 </div>
                 <div className="space-y-2">
-                  <FormLabel>Date Format</FormLabel>
-                  <Select defaultValue="DD/MM/YYYY">
+                  <Label>Date Format</Label>
+                  <Select
+                    value={preferences.dateFormat}
+                    onValueChange={(value) =>
+                      updatePreference("dateFormat", value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -466,8 +986,13 @@ const SettingsPage = () => {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <FormLabel>Currency</FormLabel>
-                  <Select defaultValue="LKR">
+                  <Label>Currency</Label>
+                  <Select
+                    value={preferences.currency}
+                    onValueChange={(value) =>
+                      updatePreference("currency", value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -484,6 +1009,98 @@ const SettingsPage = () => {
 
           <Card>
             <CardHeader>
+              <CardTitle>Accessibility</CardTitle>
+              <CardDescription>
+                Adjust settings to improve accessibility
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">High Contrast Mode</p>
+                  <p className="text-sm text-muted-foreground">
+                    Increase contrast for better visibility
+                  </p>
+                </div>
+                <Switch
+                  checked={preferences.highContrast}
+                  onCheckedChange={(checked) =>
+                    updatePreference("highContrast", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Reduce Motion</p>
+                  <p className="text-sm text-muted-foreground">
+                    Minimize animations and transitions
+                  </p>
+                </div>
+                <Switch
+                  checked={preferences.reduceMotion}
+                  onCheckedChange={(checked) =>
+                    updatePreference("reduceMotion", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Large Text</p>
+                  <p className="text-sm text-muted-foreground">
+                    Increase font size throughout the app
+                  </p>
+                </div>
+                <Switch
+                  checked={preferences.largeText}
+                  onCheckedChange={(checked) =>
+                    updatePreference("largeText", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <p className="font-medium">Screen Reader Support</p>
+                  <p className="text-sm text-muted-foreground">
+                    Enable enhanced screen reader compatibility
+                  </p>
+                </div>
+                <Switch
+                  checked={preferences.screenReader}
+                  onCheckedChange={(checked) =>
+                    updatePreference("screenReader", checked)
+                  }
+                />
+              </div>
+              <Separator />
+              <div className="space-y-2">
+                <Label>Keyboard Navigation</Label>
+                <Select
+                  value={preferences.keyboardNav}
+                  onValueChange={(value) =>
+                    updatePreference("keyboardNav", value)
+                  }
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="standard">Standard</SelectItem>
+                    <SelectItem value="enhanced">Enhanced</SelectItem>
+                    <SelectItem value="vim">Vim-style</SelectItem>
+                  </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">
+                  Choose keyboard navigation style
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
               <CardTitle>Table Preferences</CardTitle>
               <CardDescription>
                 Default settings for data tables
@@ -492,8 +1109,13 @@ const SettingsPage = () => {
             <CardContent className="space-y-4">
               <div className="grid gap-4 max-w-md">
                 <div className="space-y-2">
-                  <FormLabel>Default Page Size</FormLabel>
-                  <Select defaultValue="10">
+                  <Label>Default Page Size</Label>
+                  <Select
+                    value={preferences.tablePageSize}
+                    onValueChange={(value) =>
+                      updatePreference("tablePageSize", value)
+                    }
+                  >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
@@ -513,7 +1135,12 @@ const SettingsPage = () => {
                     Use smaller row height in tables
                   </p>
                 </div>
-                <Switch />
+                <Switch
+                  checked={preferences.compactTables}
+                  onCheckedChange={(checked) =>
+                    updatePreference("compactTables", checked)
+                  }
+                />
               </div>
             </CardContent>
           </Card>
