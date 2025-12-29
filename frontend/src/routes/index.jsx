@@ -95,6 +95,10 @@ const InventoryReportPage = lazy(() =>
 const FinancialReportPage = lazy(() =>
   import("@/pages/reports/FinancialReportPage")
 );
+const EmployeeReportPage = lazy(() =>
+  import("@/pages/reports/EmployeeReportPage")
+);
+const AuditPage = lazy(() => import("@/pages/reports/AuditPage"));
 
 // Settings Pages
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
@@ -115,6 +119,12 @@ const InvoicesPage = lazy(() => import("@/pages/finance/InvoicesPage"));
 const ChequesPage = lazy(() => import("@/pages/finance/ChequesPage"));
 const BanksPage = lazy(() => import("@/pages/finance/BanksPage"));
 const CashRegisterPage = lazy(() => import("@/pages/finance/CashRegisterPage"));
+
+// Payroll Pages
+const PayrollPage = lazy(() => import("@/pages/payroll/PayrollPage"));
+const SalariesPage = lazy(() => import("@/pages/payroll/SalariesPage"));
+const AttendancePage = lazy(() => import("@/pages/payroll/AttendancePage"));
+const AdvancesPage = lazy(() => import("@/pages/payroll/AdvancesPage"));
 
 // Employees Pages
 const EmployeesPage = lazy(() => import("@/pages/employees/EmployeesPage"));
@@ -661,6 +671,56 @@ const router = createBrowserRouter([
         ),
       },
 
+      // Payroll Routes
+      {
+        path: ROUTES.PAYROLL.ROOT,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <PayrollPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.PAYROLL.SALARIES,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <SalariesPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.PAYROLL.ATTENDANCE,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <AttendancePage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.PAYROLL.ADVANCES,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <AdvancesPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+
       // Reports Routes
       {
         path: ROUTES.REPORTS.ROOT,
@@ -707,6 +767,28 @@ const router = createBrowserRouter([
           >
             <SuspenseWrapper>
               <FinancialReportPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.REPORTS.EMPLOYEES,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <EmployeeReportPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.REPORTS.AUDIT,
+        element: (
+          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+            <SuspenseWrapper>
+              <AuditPage />
             </SuspenseWrapper>
           </RoleGuard>
         ),
