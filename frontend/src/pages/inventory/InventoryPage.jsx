@@ -76,17 +76,22 @@ const InventoryPage = () => {
         title="Inventory Management"
         description="Monitor stock levels, expiry dates, and manage stock transfers"
         actions={
-          <Button onClick={() => navigate(ROUTES.INVENTORY.TRANSFERS.NEW)}>
+          <Button
+            onClick={() => navigate(ROUTES.INVENTORY.TRANSFERS.NEW)}
+            className="w-full sm:w-auto"
+          >
             <ArrowLeftRight className="mr-2 h-4 w-4" />
-            New Stock Transfer
+            <span className="hidden sm:inline">New </span>Stock Transfer
           </Button>
         }
       />
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="low-stock">
+        <TabsList className="w-full justify-start overflow-x-auto">
+          <TabsTrigger value="overview" className="flex-shrink-0">
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="low-stock" className="flex-shrink-0">
             Low Stock
             {lowStockCount > 0 && (
               <span className="ml-2 bg-destructive text-destructive-foreground rounded-full px-2 py-0.5 text-xs">
@@ -94,7 +99,7 @@ const InventoryPage = () => {
               </span>
             )}
           </TabsTrigger>
-          <TabsTrigger value="expiring">
+          <TabsTrigger value="expiring" className="flex-shrink-0">
             Expiring
             {expiringCount > 0 && (
               <span className="ml-2 bg-orange-500 text-white rounded-full px-2 py-0.5 text-xs">
@@ -107,7 +112,7 @@ const InventoryPage = () => {
 
         <TabsContent value="overview" className="space-y-6">
           {/* Stats Grid */}
-          <div className="grid gap-4 md:grid-cols-3">
+          <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3">
             {stats.map((stat, index) => (
               <StatCard
                 key={index}

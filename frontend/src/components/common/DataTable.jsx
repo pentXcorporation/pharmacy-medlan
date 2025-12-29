@@ -1,17 +1,9 @@
 /**
  * DataTable Component
- * Reusable data table with sorting, filtering, pagination using TanStack Table
+ * Reusable data table with sorting, filtering, pagination using shadcn components
  */
 
-import { useState } from "react";
-import {
-  flexRender,
-  getCoreRowModel,
-  getFilteredRowModel,
-  getPaginationRowModel,
-  getSortedRowModel,
-  useReactTable,
-} from "@tanstack/react-table";
+import { useState, useMemo } from "react";
 import {
   ArrowUpDown,
   ArrowUp,
@@ -40,24 +32,35 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+} from "@/components/ui/pagination";
 
 /**
  * Sortable header component
  */
-const SortableHeader = ({ column, children }) => {
-  const sorted = column.getIsSorted();
+const SortableHeader = ({
+  column,
+  sortKey,
+  sortDirection,
+  onSort,
+  children,
+}) => {
+  const isActive = column === sortKey;
 
   return (
     <Button
       variant="ghost"
       size="sm"
       className="-ml-3 h-8 data-[state=open]:bg-accent"
-      onClick={() => column.toggleSorting(sorted === "asc")}
+      onClick={() => onSort(column)}
     >
       <span>{children}</span>
-      {sorted === "asc" ? (
+      {isActive && sortDirection === "asc" ? (
         <ArrowUp className="ml-2 h-4 w-4" />
-      ) : sorted === "desc" ? (
+      ) : isActive && sortDirection === "desc" ? (
         <ArrowDown className="ml-2 h-4 w-4" />
       ) : (
         <ArrowUpDown className="ml-2 h-4 w-4 opacity-50" />
@@ -84,33 +87,38 @@ const TableSkeleton = ({ columns, rows = 5 }) => (
 );
 
 /**
- * Pagination controls
+ * Pagination controls using shadcn Pagination
  */
-const Pagination = ({ table, pagination, total }) => {
-  // Use external pagination if provided (server-side), otherwise use table state (client-side)
-  const pageCount = pagination?.pageCount ?? table.getPageCount();
-  const currentPage =
-    (pagination?.pageIndex ?? table.getState().pagination.pageIndex) + 1;
-  const pageSize = pagination?.pageSize ?? table.getState().pagination.pageSize;
-  const totalItems = total ?? table.getFilteredRowModel().rows.length;
+const DataTablePagination = ({
+  currentPage,
+  pageCount,
+  pageSize,
+  totalItems,
+  onPageChange,
+  onPageSizeChange,
+}) => {
+  const canGoPrevious = currentPage > 0;
+  const canGoNext = currentPage < pageCount - 1;
 
   return (
-    <div className="flex items-center justify-between px-2 py-4">
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between px-2 py-4">
+      {/* Results count - hidden on very small screens */}
+      <div className="hidden sm:flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
         <span>
-          Showing {Math.min((currentPage - 1) * pageSize + 1, totalItems)} to{" "}
-          {Math.min(currentPage * pageSize, totalItems)} of {totalItems} results
+          {Math.min(currentPage * pageSize + 1, totalItems)}-
+          {Math.min((currentPage + 1) * pageSize, totalItems)} of {totalItems}
         </span>
       </div>
 
-      <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <span>Rows per page:</span>
+      <div className="flex flex-wrap items-center justify-between sm:justify-end gap-2 sm:gap-4">
+        {/* Rows per page - hidden on mobile */}
+        <div className="hidden md:flex items-center gap-2 text-sm text-muted-foreground">
+          <span>Rows:</span>
           <Select
             value={`${pageSize}`}
-            onValueChange={(value) => table.setPageSize(Number(value))}
+            onValueChange={(value) => onPageSizeChange(Number(value))}
           >
-            <SelectTrigger className="h-8 w-[70px]">
+            <SelectTrigger className="h-8 w-[65px]">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -123,52 +131,72 @@ const Pagination = ({ table, pagination, total }) => {
           </Select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <span className="text-sm text-muted-foreground">
-            Page {currentPage} of {pageCount || 1}
-          </span>
-          <div className="flex items-center gap-1">
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => table.setPageIndex(0)}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <ChevronsLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => table.previousPage()}
-              disabled={!table.getCanPreviousPage()}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => table.nextPage()}
-              disabled={!table.getCanNextPage()}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              className="h-8 w-8"
-              onClick={() => table.setPageIndex(pageCount - 1)}
-              disabled={!table.getCanNextPage()}
-            >
-              <ChevronsRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        {/* Page indicator */}
+        <span className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
+          Page {currentPage + 1}/{pageCount || 1}
+        </span>
+
+        {/* Navigation buttons using shadcn Pagination */}
+        <Pagination className="mx-0 w-auto">
+          <PaginationContent className="gap-1">
+            <PaginationItem>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onPageChange(0)}
+                disabled={!canGoPrevious}
+              >
+                <ChevronsLeft className="h-4 w-4" />
+              </Button>
+            </PaginationItem>
+            <PaginationItem>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={!canGoPrevious}
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </Button>
+            </PaginationItem>
+            <PaginationItem>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={!canGoNext}
+              >
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </PaginationItem>
+            <PaginationItem>
+              <Button
+                variant="outline"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => onPageChange(pageCount - 1)}
+                disabled={!canGoNext}
+              >
+                <ChevronsRight className="h-4 w-4" />
+              </Button>
+            </PaginationItem>
+          </PaginationContent>
+        </Pagination>
       </div>
     </div>
   );
+};
+
+/**
+ * Get nested value from object using accessor key
+ */
+const getNestedValue = (obj, path) => {
+  if (!path) return undefined;
+  if (typeof path === "function") return path(obj);
+  return path.split(".").reduce((acc, key) => acc?.[key], obj);
 };
 
 /**
@@ -181,9 +209,9 @@ const DataTable = ({
   isFetching = false,
   searchPlaceholder = "Search...",
   searchColumn,
-  showSearch = false, // Disabled by default for server-side tables
+  showSearch = false,
   showPagination = true,
-  pageSize = 10,
+  pageSize: defaultPageSize = 10,
   onRowClick,
   emptyMessage = "No data available.",
   className,
@@ -197,40 +225,168 @@ const DataTable = ({
   manualPagination = !!onPaginationChange,
   manualSorting = !!onSortingChange,
 }) => {
+  // Internal state for client-side operations
   const [internalSorting, setInternalSorting] = useState([]);
   const [globalFilter, setGlobalFilter] = useState("");
+  const [internalPageIndex, setInternalPageIndex] = useState(0);
+  const [internalPageSize, setInternalPageSize] = useState(defaultPageSize);
+  const [rowSelection, setRowSelection] = useState({});
 
   // Use external state if provided, otherwise use internal state
   const sorting = externalSorting ?? internalSorting;
   const setSorting = onSortingChange ?? setInternalSorting;
 
-  const table = useReactTable({
-    data,
-    columns,
-    getCoreRowModel: getCoreRowModel(),
-    getPaginationRowModel: getPaginationRowModel(),
-    getSortedRowModel: getSortedRowModel(),
-    getFilteredRowModel: getFilteredRowModel(),
-    onSortingChange: setSorting,
-    onGlobalFilterChange: setGlobalFilter,
-    onPaginationChange: onPaginationChange,
-    manualPagination,
-    manualSorting,
-    pageCount: externalPagination?.pageCount ?? -1,
-    state: {
-      sorting,
-      globalFilter,
-      ...(externalPagination && {
-        pagination: {
-          pageIndex: externalPagination.pageIndex,
-          pageSize: externalPagination.pageSize,
-        },
-      }),
-    },
-    initialState: {
-      pagination: {
-        pageSize: externalPagination?.pageSize ?? pageSize,
+  const pageIndex = externalPagination?.pageIndex ?? internalPageIndex;
+  const pageSize = externalPagination?.pageSize ?? internalPageSize;
+
+  // Handle sorting
+  const handleSort = (columnId) => {
+    const currentSort = sorting.find((s) => s.id === columnId);
+    let newSorting;
+
+    if (!currentSort) {
+      newSorting = [{ id: columnId, desc: false }];
+    } else if (!currentSort.desc) {
+      newSorting = [{ id: columnId, desc: true }];
+    } else {
+      newSorting = [];
+    }
+
+    setSorting(newSorting);
+  };
+
+  // Handle page change
+  const handlePageChange = (newPageIndex) => {
+    if (onPaginationChange) {
+      onPaginationChange({ pageIndex: newPageIndex, pageSize });
+    } else {
+      setInternalPageIndex(newPageIndex);
+    }
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (newPageSize) => {
+    if (onPaginationChange) {
+      onPaginationChange({ pageIndex: 0, pageSize: newPageSize });
+    } else {
+      setInternalPageSize(newPageSize);
+      setInternalPageIndex(0);
+    }
+  };
+
+  // Process data (filter, sort, paginate) for client-side mode
+  const processedData = useMemo(() => {
+    // Ensure data is an array
+    const safeData = Array.isArray(data) ? data : [];
+    let result = [...safeData];
+
+    // Client-side filtering
+    if (!manualPagination && globalFilter) {
+      result = result.filter((row) =>
+        columns.some((col) => {
+          const value = getNestedValue(row, col.accessorKey || col.id);
+          return String(value ?? "")
+            .toLowerCase()
+            .includes(globalFilter.toLowerCase());
+        })
+      );
+    }
+
+    // Client-side sorting
+    if (!manualSorting && sorting.length > 0) {
+      const { id, desc } = sorting[0];
+      result.sort((a, b) => {
+        const col = columns.find((c) => (c.accessorKey || c.id) === id);
+        const aVal = col?.accessorFn
+          ? col.accessorFn(a)
+          : getNestedValue(a, col?.accessorKey);
+        const bVal = col?.accessorFn
+          ? col.accessorFn(b)
+          : getNestedValue(b, col?.accessorKey);
+
+        if (aVal == null) return 1;
+        if (bVal == null) return -1;
+        if (aVal < bVal) return desc ? 1 : -1;
+        if (aVal > bVal) return desc ? -1 : 1;
+        return 0;
+      });
+    }
+
+    return result;
+  }, [data, globalFilter, sorting, columns, manualPagination, manualSorting]);
+
+  // Paginate data for client-side mode
+  const paginatedData = useMemo(() => {
+    if (manualPagination) return Array.isArray(data) ? data : [];
+    const start = pageIndex * pageSize;
+    return processedData.slice(start, start + pageSize);
+  }, [processedData, data, pageIndex, pageSize, manualPagination]);
+
+  // Calculate pagination info
+  const totalItems = externalPagination?.total ?? processedData.length;
+  const pageCount =
+    externalPagination?.pageCount ?? Math.ceil(totalItems / pageSize);
+
+  // Get current sort info
+  const sortKey = sorting[0]?.id;
+  const sortDirection = sorting[0]?.desc ? "desc" : "asc";
+
+  // Mock table object for TanStack Table API compatibility
+  const mockTable = useMemo(
+    () => ({
+      getIsAllPageRowsSelected: () => {
+        if (paginatedData.length === 0) return false;
+        return paginatedData.every((row) => rowSelection[row.id]);
       },
+      getIsSomePageRowsSelected: () => {
+        if (paginatedData.length === 0) return false;
+        const selectedCount = paginatedData.filter(
+          (row) => rowSelection[row.id]
+        ).length;
+        return selectedCount > 0 && selectedCount < paginatedData.length;
+      },
+      toggleAllPageRowsSelected: (value) => {
+        if (value) {
+          const newSelection = { ...rowSelection };
+          paginatedData.forEach((row) => {
+            if (row.id) newSelection[row.id] = true;
+          });
+          setRowSelection(newSelection);
+        } else {
+          const newSelection = { ...rowSelection };
+          paginatedData.forEach((row) => {
+            if (row.id) delete newSelection[row.id];
+          });
+          setRowSelection(newSelection);
+        }
+      },
+      getSelectedRowModel: () => ({
+        rows: paginatedData
+          .filter((row) => rowSelection[row.id])
+          .map((row) => ({
+            original: row,
+            id: row.id,
+          })),
+      }),
+    }),
+    [paginatedData, rowSelection]
+  );
+
+  // Mock row object creator for TanStack Table API compatibility
+  const createMockRow = (row) => ({
+    original: row,
+    getValue: (key) => getNestedValue(row, key),
+    getIsSelected: () => !!rowSelection[row.id],
+    toggleSelected: (value) => {
+      setRowSelection((prev) => {
+        const newSelection = { ...prev };
+        if (value ?? !prev[row.id]) {
+          newSelection[row.id] = true;
+        } else {
+          delete newSelection[row.id];
+        }
+        return newSelection;
+      });
     },
   });
 
@@ -241,9 +397,9 @@ const DataTable = ({
         <div className="flex items-center gap-4">
           <Input
             placeholder={searchPlaceholder}
-            value={globalFilter ?? ""}
+            value={globalFilter}
             onChange={(e) => setGlobalFilter(e.target.value)}
-            className="max-w-sm"
+            className="w-full sm:max-w-sm"
           />
         </div>
       )}
@@ -252,65 +408,81 @@ const DataTable = ({
       <div className="w-full overflow-auto">
         <Table>
           <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
+            <TableRow>
+              {columns.map((column) => {
+                const columnId = column.accessorKey || column.id;
+                const canSort = column.enableSorting !== false;
+
+                return (
                   <TableHead
-                    key={header.id}
-                    className="whitespace-nowrap"
+                    key={columnId}
+                    className={cn("whitespace-nowrap", column.meta?.className)}
                     style={{
-                      width: header.column.columnDef.size
-                        ? `${header.column.columnDef.size}px`
-                        : undefined,
-                      maxWidth: header.column.columnDef.size
-                        ? `${header.column.columnDef.size}px`
-                        : undefined,
+                      width: column.size ? `${column.size}px` : undefined,
+                      maxWidth: column.size ? `${column.size}px` : undefined,
                     }}
                   >
-                    {header.isPlaceholder ? null : header.column.getCanSort() ? (
-                      <SortableHeader column={header.column}>
-                        {flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
+                    {canSort && typeof column.header === "string" ? (
+                      <SortableHeader
+                        column={columnId}
+                        sortKey={sortKey}
+                        sortDirection={sortDirection}
+                        onSort={handleSort}
+                      >
+                        {column.header}
                       </SortableHeader>
+                    ) : typeof column.header === "function" ? (
+                      column.header({ table: mockTable, column })
                     ) : (
-                      flexRender(
-                        header.column.columnDef.header,
-                        header.getContext()
-                      )
+                      column.header
                     )}
                   </TableHead>
-                ))}
-              </TableRow>
-            ))}
+                );
+              })}
+            </TableRow>
           </TableHeader>
 
           {isLoading ? (
             <TableSkeleton columns={columns.length} />
           ) : (
             <TableBody>
-              {table.getRowModel().rows?.length ? (
-                table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    onClick={() => onRowClick?.(row.original)}
-                    className={cn(
-                      onRowClick && "cursor-pointer hover:bg-accent/50",
-                      isFetching && "opacity-50"
-                    )}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell key={cell.id}>
-                        {flexRender(
-                          cell.column.columnDef.cell,
-                          cell.getContext()
-                        )}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
+              {paginatedData.length > 0 ? (
+                paginatedData.map((row, rowIndex) => {
+                  const mockRow = createMockRow(row);
+                  return (
+                    <TableRow
+                      key={row.id ?? rowIndex}
+                      onClick={() => onRowClick?.(row)}
+                      className={cn(
+                        onRowClick && "cursor-pointer hover:bg-accent/50",
+                        isFetching && "opacity-50",
+                        rowSelection[row.id] && "bg-muted/50"
+                      )}
+                    >
+                      {columns.map((column) => {
+                        const columnId = column.accessorKey || column.id;
+                        const value = column.accessorFn
+                          ? column.accessorFn(row)
+                          : getNestedValue(row, column.accessorKey);
+
+                        return (
+                          <TableCell
+                            key={columnId}
+                            className={column.meta?.className}
+                          >
+                            {column.cell
+                              ? column.cell({
+                                  row: mockRow,
+                                  getValue: () => value,
+                                  table: mockTable,
+                                })
+                              : value ?? "-"}
+                          </TableCell>
+                        );
+                      })}
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
                   <TableCell
@@ -328,10 +500,13 @@ const DataTable = ({
 
       {/* Pagination */}
       {showPagination && (
-        <Pagination
-          table={table}
-          pagination={externalPagination}
-          total={externalPagination?.total}
+        <DataTablePagination
+          currentPage={pageIndex}
+          pageCount={pageCount}
+          pageSize={pageSize}
+          totalItems={totalItems}
+          onPageChange={handlePageChange}
+          onPageSizeChange={handlePageSizeChange}
         />
       )}
     </div>

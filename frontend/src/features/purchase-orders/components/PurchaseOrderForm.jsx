@@ -3,11 +3,11 @@
  * Form for creating and editing purchase orders
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Plus, Trash2, Search } from "lucide-react";
+import { Plus, Trash2, Search, Package } from "lucide-react";
 import {
   Form,
   FormControl,
@@ -72,6 +72,14 @@ const PurchaseOrderForm = ({
 }) => {
   const isEditing = Boolean(purchaseOrder);
   const [productSearch, setProductSearch] = useState("");
+
+  // Normalize products input to a flat array to prevent filter errors
+  const productList = useMemo(() => {
+    if (Array.isArray(products)) return products;
+    if (products?.content && Array.isArray(products.content))
+      return products.content;
+    return [];
+  }, [products]);
 
   const form = useForm({
     resolver: zodResolver(purchaseOrderSchema),
@@ -160,7 +168,7 @@ const PurchaseOrderForm = ({
   };
 
   // Filter products based on search
-  const filteredProducts = products
+  const filteredProducts = productList
     .filter(
       (p) =>
         p.name?.toLowerCase().includes(productSearch.toLowerCase()) ||

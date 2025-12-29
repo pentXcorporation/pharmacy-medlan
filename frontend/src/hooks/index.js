@@ -37,3 +37,6 @@ export { usePagination, useSorting, useTableState } from "./usePagination";
 
 // WebSocket
 export { useWebSocket, useSubscription, WS_STATE } from "./useWebSocket";
+
+// Mobile Detection
+export { useIsMobile } from "./use-mobile";

@@ -14,6 +14,7 @@ export const getLowStockColumns = () => [
   {
     accessorKey: "productCode",
     header: "Code",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => (
       <span className="font-mono text-sm">{row.getValue("productCode")}</span>
     ),
@@ -22,10 +23,12 @@ export const getLowStockColumns = () => [
     accessorKey: "productName",
     header: "Product",
     cell: ({ row }) => (
-      <div>
-        <div className="font-medium">{row.getValue("productName")}</div>
+      <div className="max-w-[120px] sm:max-w-none">
+        <div className="font-medium text-sm truncate">
+          {row.getValue("productName")}
+        </div>
         {row.original.genericName && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs text-muted-foreground truncate hidden sm:block">
             {row.original.genericName}
           </div>
         )}
@@ -34,7 +37,7 @@ export const getLowStockColumns = () => [
   },
   {
     accessorKey: "currentStock",
-    header: "Current Stock",
+    header: "Stock",
     cell: ({ row }) => {
       const current = row.getValue("currentStock") || 0;
       const reorder = row.original.reorderLevel || 0;
@@ -42,8 +45,8 @@ export const getLowStockColumns = () => [
         reorder > 0 ? Math.min((current / reorder) * 100, 100) : 100;
 
       return (
-        <div className="space-y-1 min-w-[120px]">
-          <div className="flex justify-between text-sm">
+        <div className="space-y-1 min-w-[80px] sm:min-w-[120px]">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span className={current === 0 ? "text-red-600 font-medium" : ""}>
               {current}
             </span>
@@ -67,15 +70,19 @@ export const getLowStockColumns = () => [
   {
     accessorKey: "branchName",
     header: "Branch",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue("branchName") || "-"}</Badge>
+      <Badge variant="outline" className="text-xs">
+        {row.getValue("branchName") || "-"}
+      </Badge>
     ),
   },
   {
     accessorKey: "category",
     header: "Category",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => (
-      <div className="text-muted-foreground">
+      <div className="text-muted-foreground text-sm">
         {row.original.category?.categoryName || "-"}
       </div>
     ),
@@ -83,7 +90,12 @@ export const getLowStockColumns = () => [
   {
     accessorKey: "sellingPrice",
     header: "Price",
-    cell: ({ row }) => formatCurrency(row.getValue("sellingPrice")),
+    meta: { className: "hidden sm:table-cell" },
+    cell: ({ row }) => (
+      <span className="text-sm">
+        {formatCurrency(row.getValue("sellingPrice"))}
+      </span>
+    ),
   },
   {
     id: "status",
@@ -92,9 +104,17 @@ export const getLowStockColumns = () => [
       const current = row.original.currentStock || 0;
 
       if (current === 0) {
-        return <Badge variant="destructive">Out of Stock</Badge>;
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Out
+          </Badge>
+        );
       }
-      return <Badge variant="warning">Low Stock</Badge>;
+      return (
+        <Badge variant="warning" className="text-xs">
+          Low
+        </Badge>
+      );
     },
   },
 ];

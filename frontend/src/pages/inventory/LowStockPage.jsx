@@ -4,10 +4,12 @@
  */
 
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { Download, ShoppingCart } from "lucide-react";
 import { useLowStockProducts, getLowStockColumns } from "@/features/inventory";
 import { DataTable } from "@/components/common";
 import { Button } from "@/components/ui/button";
+import { ROUTES } from "@/config";
 import {
   Card,
   CardContent,
@@ -20,6 +22,8 @@ import {
  * LowStockPage component
  */
 const LowStockPage = () => {
+  const navigate = useNavigate();
+
   // Pagination state
   const [pagination, setPagination] = useState({
     pageIndex: 0,
@@ -53,28 +57,34 @@ const LowStockPage = () => {
     data?.content?.filter((p) => p.currentStock === 0).length || 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 sm:p-6">
           <div>
-            <CardTitle>Low Stock Products</CardTitle>
-            <CardDescription>
-              Products below their reorder level • {outOfStockCount} out of
-              stock
+            <CardTitle className="text-lg sm:text-xl">
+              Low Stock Products
+            </CardTitle>
+            <CardDescription className="text-xs sm:text-sm">
+              Products below reorder level • {outOfStockCount} out of stock
             </CardDescription>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
               <Download className="mr-2 h-4 w-4" />
-              Export
+              <span className="hidden sm:inline">Export</span>
             </Button>
-            <Button size="sm">
+            <Button
+              size="sm"
+              className="flex-1 sm:flex-none"
+              onClick={() => navigate(ROUTES.PURCHASE_ORDERS.NEW)}
+            >
               <ShoppingCart className="mr-2 h-4 w-4" />
-              Create Purchase Order
+              <span className="hidden sm:inline">Create PO</span>
+              <span className="sm:hidden">New PO</span>
             </Button>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-2 sm:p-6">
           <DataTable
             columns={columns}
             data={data?.content || []}

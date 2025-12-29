@@ -3,11 +3,18 @@
  * Consistent page header with title, description, and actions
  */
 
-import { ChevronRight, ArrowLeft } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { Separator } from "@/components/ui/separator";
+import {
+  Breadcrumb,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbList,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+} from "@/components/ui/breadcrumb";
 
 /**
  * Breadcrumb item type
@@ -17,29 +24,30 @@ import { Separator } from "@/components/ui/separator";
  */
 
 /**
- * Breadcrumbs component
+ * Breadcrumbs component using shadcn breadcrumb
  */
 const Breadcrumbs = ({ items = [] }) => {
   if (items.length === 0) return null;
 
   return (
-    <nav className="flex items-center gap-1 text-sm text-muted-foreground mb-2">
-      {items.map((item, index) => (
-        <div key={item.href || index} className="flex items-center gap-1">
-          {index > 0 && <ChevronRight className="h-4 w-4" />}
-          {item.href ? (
-            <Link
-              to={item.href}
-              className="hover:text-foreground transition-colors"
-            >
-              {item.label}
-            </Link>
-          ) : (
-            <span className="text-foreground">{item.label}</span>
-          )}
-        </div>
-      ))}
-    </nav>
+    <Breadcrumb className="mb-2">
+      <BreadcrumbList>
+        {items.map((item, index) => (
+          <BreadcrumbItem key={item.href || index}>
+            {item.href ? (
+              <>
+                <BreadcrumbLink asChild>
+                  <Link to={item.href}>{item.label}</Link>
+                </BreadcrumbLink>
+                {index < items.length - 1 && <BreadcrumbSeparator />}
+              </>
+            ) : (
+              <BreadcrumbPage>{item.label}</BreadcrumbPage>
+            )}
+          </BreadcrumbItem>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
   );
 };
 
@@ -67,38 +75,44 @@ const PageHeader = ({
   };
 
   return (
-    <div className={cn("mb-6", className)}>
+    <div className={cn("mb-4 sm:mb-6", className)}>
       {/* Breadcrumbs */}
       {breadcrumbs.length > 0 && <Breadcrumbs items={breadcrumbs} />}
 
       {/* Header Row */}
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center gap-3 sm:gap-4 min-w-0">
           {/* Back Button */}
           {showBack && (
             <Button
               variant="ghost"
               size="icon"
               onClick={handleBack}
-              className="shrink-0"
+              className="shrink-0 h-8 w-8 sm:h-9 sm:w-9"
             >
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5" />
               <span className="sr-only">Go back</span>
             </Button>
           )}
 
           {/* Title & Description */}
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">{title}</h1>
+          <div className="min-w-0">
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold tracking-tight truncate">
+              {title}
+            </h1>
             {description && (
-              <p className="text-muted-foreground mt-1">{description}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 sm:mt-1 line-clamp-2">
+                {description}
+              </p>
             )}
           </div>
         </div>
 
         {/* Actions */}
         {actions && (
-          <div className="flex items-center gap-2 shrink-0">{actions}</div>
+          <div className="flex flex-wrap items-center gap-2 shrink-0">
+            {actions}
+          </div>
         )}
       </div>
 

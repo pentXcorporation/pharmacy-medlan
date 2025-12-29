@@ -58,11 +58,11 @@ const POSProductSearch = ({ products = [], isLoading }) => {
   return (
     <div className="relative" onClick={(e) => e.stopPropagation()}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 text-muted-foreground" />
         <Input
           ref={inputRef}
           type="text"
-          placeholder="Search product by name, SKU, or scan barcode..."
+          placeholder="Search product..."
           value={search}
           onChange={(e) => {
             setSearch(e.target.value);
@@ -70,38 +70,40 @@ const POSProductSearch = ({ products = [], isLoading }) => {
           }}
           onFocus={() => setShowResults(true)}
           onKeyDown={handleKeyDown}
-          className="pl-10 pr-20 h-12 text-lg"
+          className="pl-9 sm:pl-10 pr-12 sm:pr-20 h-10 sm:h-12 text-sm sm:text-lg"
           autoFocus
         />
         <Button
           type="button"
           variant="ghost"
           size="icon"
-          className="absolute right-2 top-1/2 -translate-y-1/2"
+          className="absolute right-1 sm:right-2 top-1/2 -translate-y-1/2 h-8 w-8"
           title="Scan barcode"
         >
-          <Barcode className="h-5 w-5" />
+          <Barcode className="h-4 w-4 sm:h-5 sm:w-5" />
         </Button>
       </div>
 
       {/* Search Results */}
       {showResults && filteredProducts.length > 0 && (
-        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg max-h-[400px] overflow-y-auto">
+        <div className="absolute z-50 mt-1 w-full rounded-md border bg-popover shadow-lg max-h-[300px] sm:max-h-[400px] overflow-y-auto">
           {filteredProducts.map((product) => (
             <button
               key={product.id}
               type="button"
-              className="w-full px-4 py-3 text-left hover:bg-muted flex items-center justify-between border-b last:border-0"
+              className="w-full px-3 sm:px-4 py-2 sm:py-3 text-left hover:bg-muted flex items-center justify-between border-b last:border-0 gap-2"
               onClick={() => handleSelect(product)}
             >
-              <div>
-                <p className="font-medium">{product.name}</p>
-                <p className="text-sm text-muted-foreground">
+              <div className="min-w-0 flex-1">
+                <p className="font-medium text-sm sm:text-base truncate">
+                  {product.name}
+                </p>
+                <p className="text-xs sm:text-sm text-muted-foreground truncate">
                   {product.sku} {product.barcode && `• ${product.barcode}`}
                 </p>
               </div>
-              <div className="text-right">
-                <p className="font-bold">
+              <div className="text-right shrink-0">
+                <p className="font-bold text-sm sm:text-base">
                   {formatCurrency(product.sellingPrice)}
                 </p>
                 <Badge
@@ -112,9 +114,9 @@ const POSProductSearch = ({ products = [], isLoading }) => {
                       ? "warning"
                       : "destructive"
                   }
-                  className="mt-1"
+                  className="mt-1 text-xs"
                 >
-                  Stock: {product.stockQuantity}
+                  {product.stockQuantity}
                 </Badge>
               </div>
             </button>

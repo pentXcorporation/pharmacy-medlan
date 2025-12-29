@@ -142,16 +142,19 @@ const CustomersPage = () => {
         title="Customers"
         description="Manage your customer database"
         actions={
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
               <Upload className="mr-2 h-4 w-4" />
-              Import
+              <span className="hidden sm:inline">Import</span>
             </Button>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
               <Download className="mr-2 h-4 w-4" />
-              Export
+              <span className="hidden sm:inline">Export</span>
             </Button>
-            <Button onClick={() => navigate(ROUTES.CUSTOMERS.NEW)}>
+            <Button
+              onClick={() => navigate(ROUTES.CUSTOMERS.NEW)}
+              className="flex-1 sm:flex-none"
+            >
               <Plus className="mr-2 h-4 w-4" />
               Add Customer
             </Button>
@@ -160,15 +163,15 @@ const CustomersPage = () => {
       />
 
       {/* Filters */}
-      <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row gap-4">
         <Input
           placeholder="Search customers..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-sm"
+          className="w-full sm:w-80"
         />
         <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[150px]">
+          <SelectTrigger className="w-full sm:w-[180px]">
             <SelectValue placeholder="Status" />
           </SelectTrigger>
           <SelectContent>

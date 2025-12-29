@@ -14,6 +14,7 @@ export const getExpiringColumns = () => [
   {
     accessorKey: "productCode",
     header: "Code",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => (
       <span className="font-mono text-sm">{row.getValue("productCode")}</span>
     ),
@@ -22,10 +23,12 @@ export const getExpiringColumns = () => [
     accessorKey: "productName",
     header: "Product",
     cell: ({ row }) => (
-      <div>
-        <div className="font-medium">{row.getValue("productName")}</div>
+      <div className="max-w-[120px] sm:max-w-none">
+        <div className="font-medium text-sm truncate">
+          {row.getValue("productName")}
+        </div>
         {row.original.batchNumber && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs text-muted-foreground truncate hidden sm:block">
             Batch: {row.original.batchNumber}
           </div>
         )}
@@ -34,7 +37,7 @@ export const getExpiringColumns = () => [
   },
   {
     accessorKey: "expiryDate",
-    header: "Expiry Date",
+    header: "Expiry",
     cell: ({ row }) => {
       const expiryDate = row.getValue("expiryDate");
       if (!expiryDate) return "-";
@@ -44,26 +47,26 @@ export const getExpiringColumns = () => [
       const isExpired = isPast(expiry);
 
       return (
-        <div className="space-y-1">
-          <div className={isExpired ? "text-red-600 font-medium" : ""}>
+        <div className="space-y-0.5 sm:space-y-1">
+          <div
+            className={`text-xs sm:text-sm ${
+              isExpired ? "text-red-600 font-medium" : ""
+            }`}
+          >
             {formatDate(expiryDate)}
           </div>
-          <div className="text-sm">
+          <div className="text-xs hidden sm:block">
             {isExpired ? (
               <span className="text-red-600">
-                Expired {Math.abs(daysUntilExpiry)} days ago
+                Expired {Math.abs(daysUntilExpiry)}d ago
               </span>
             ) : daysUntilExpiry <= 30 ? (
-              <span className="text-orange-600">
-                {daysUntilExpiry} days left
-              </span>
+              <span className="text-orange-600">{daysUntilExpiry}d left</span>
             ) : daysUntilExpiry <= 90 ? (
-              <span className="text-yellow-600">
-                {daysUntilExpiry} days left
-              </span>
+              <span className="text-yellow-600">{daysUntilExpiry}d left</span>
             ) : (
               <span className="text-muted-foreground">
-                {daysUntilExpiry} days left
+                {daysUntilExpiry}d left
               </span>
             )}
           </div>
@@ -73,23 +76,30 @@ export const getExpiringColumns = () => [
   },
   {
     accessorKey: "quantity",
-    header: "Quantity",
-    cell: ({ row }) => row.getValue("quantity") || 0,
+    header: "Qty",
+    meta: { className: "hidden sm:table-cell" },
+    cell: ({ row }) => (
+      <span className="text-sm">{row.getValue("quantity") || 0}</span>
+    ),
   },
   {
     accessorKey: "branchName",
     header: "Branch",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => (
-      <Badge variant="outline">{row.getValue("branchName") || "-"}</Badge>
+      <Badge variant="outline" className="text-xs">
+        {row.getValue("branchName") || "-"}
+      </Badge>
     ),
   },
   {
     accessorKey: "sellingPrice",
     header: "Value",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => {
       const qty = row.original.quantity || 0;
       const price = row.original.sellingPrice || 0;
-      return formatCurrency(qty * price);
+      return <span className="text-sm">{formatCurrency(qty * price)}</span>;
     },
   },
   {
@@ -104,15 +114,31 @@ export const getExpiringColumns = () => [
       const isExpired = isPast(expiry);
 
       if (isExpired) {
-        return <Badge variant="destructive">Expired</Badge>;
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Expired
+          </Badge>
+        );
       }
       if (daysUntilExpiry <= 30) {
-        return <Badge variant="destructive">Critical</Badge>;
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Critical
+          </Badge>
+        );
       }
       if (daysUntilExpiry <= 90) {
-        return <Badge variant="warning">Expiring Soon</Badge>;
+        return (
+          <Badge variant="warning" className="text-xs">
+            Soon
+          </Badge>
+        );
       }
-      return <Badge variant="secondary">OK</Badge>;
+      return (
+        <Badge variant="secondary" className="text-xs">
+          OK
+        </Badge>
+      );
     },
   },
 ];

@@ -60,6 +60,7 @@ export const getCustomerColumns = ({
   {
     accessorKey: "customerCode",
     header: "Code",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => (
       <span className="font-mono text-sm">{row.getValue("customerCode")}</span>
     ),
@@ -70,11 +71,11 @@ export const getCustomerColumns = ({
     accessorFn: (row) => `${row.firstName} ${row.lastName}`,
     cell: ({ row }) => (
       <div>
-        <div className="font-medium">
+        <div className="font-medium text-sm">
           {row.original.firstName} {row.original.lastName}
         </div>
         {row.original.email && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-none">
             {row.original.email}
           </div>
         )}
@@ -84,21 +85,25 @@ export const getCustomerColumns = ({
   {
     accessorKey: "phone",
     header: "Phone",
+    meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => row.getValue("phone") || "-",
   },
   {
     accessorKey: "city",
     header: "City",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => row.getValue("city") || "-",
   },
   {
     accessorKey: "creditLimit",
     header: "Credit Limit",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => formatCurrency(row.getValue("creditLimit") || 0),
   },
   {
     accessorKey: "outstandingBalance",
     header: "Outstanding",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => {
       const balance = row.getValue("outstandingBalance") || 0;
       return (

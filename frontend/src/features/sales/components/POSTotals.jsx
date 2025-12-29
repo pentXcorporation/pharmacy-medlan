@@ -86,33 +86,33 @@ const POSTotals = ({ onCheckout, isProcessing }) => {
 
   return (
     <Card>
-      <CardContent className="p-4 space-y-4">
+      <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
         {/* Totals */}
         <div className="space-y-2">
-          <div className="flex justify-between text-sm">
+          <div className="flex justify-between text-xs sm:text-sm">
             <span>Subtotal ({items.length} items)</span>
             <span>{formatCurrency(subtotal)}</span>
           </div>
           {itemDiscountTotal > 0 && (
-            <div className="flex justify-between text-sm text-muted-foreground">
+            <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
               <span>Item Discounts</span>
               <span>-{formatCurrency(itemDiscountTotal)}</span>
             </div>
           )}
           {cartDiscount > 0 && (
-            <div className="flex justify-between text-sm text-muted-foreground">
+            <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
               <span>Cart Discount</span>
               <span>-{formatCurrency(cartDiscount)}</span>
             </div>
           )}
           {taxTotal > 0 && (
-            <div className="flex justify-between text-sm text-muted-foreground">
+            <div className="flex justify-between text-xs sm:text-sm text-muted-foreground">
               <span>Tax</span>
               <span>+{formatCurrency(taxTotal)}</span>
             </div>
           )}
           <Separator />
-          <div className="flex justify-between text-xl font-bold">
+          <div className="flex justify-between text-lg sm:text-xl font-bold">
             <span>Total</span>
             <span>{formatCurrency(grandTotal)}</span>
           </div>
@@ -235,7 +235,7 @@ const POSTotals = ({ onCheckout, isProcessing }) => {
         </div>
 
         <Button
-          className="w-full h-14 text-lg"
+          className="w-full h-12 sm:h-14 text-base sm:text-lg"
           onClick={handleCheckout}
           disabled={
             items.length === 0 ||

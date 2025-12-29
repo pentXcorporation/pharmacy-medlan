@@ -62,6 +62,7 @@ export const getSupplierColumns = ({
   {
     accessorKey: "supplierCode",
     header: "Code",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => (
       <span className="font-mono text-sm">{row.getValue("supplierCode")}</span>
     ),
@@ -70,10 +71,12 @@ export const getSupplierColumns = ({
     accessorKey: "supplierName",
     header: "Supplier Name",
     cell: ({ row }) => (
-      <div>
-        <div className="font-medium">{row.getValue("supplierName")}</div>
+      <div className="max-w-[120px] sm:max-w-none">
+        <div className="font-medium text-sm truncate">
+          {row.getValue("supplierName")}
+        </div>
         {row.original.contactPerson && (
-          <div className="text-sm text-muted-foreground">
+          <div className="text-xs text-muted-foreground truncate hidden sm:block">
             Contact: {row.original.contactPerson}
           </div>
         )}
@@ -83,21 +86,25 @@ export const getSupplierColumns = ({
   {
     accessorKey: "phone",
     header: "Phone",
+    meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => row.getValue("phone") || row.original.mobile || "-",
   },
   {
     accessorKey: "email",
     header: "Email",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => row.getValue("email") || "-",
   },
   {
     accessorKey: "city",
     header: "City",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => row.getValue("city") || "-",
   },
   {
     accessorKey: "paymentTerms",
     header: "Payment Terms",
+    meta: { className: "hidden xl:table-cell" },
     cell: ({ row }) => {
       const days = row.getValue("paymentTerms");
       return days ? `${days} days` : "-";
@@ -106,10 +113,15 @@ export const getSupplierColumns = ({
   {
     accessorKey: "outstandingBalance",
     header: "Outstanding",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => {
       const balance = row.getValue("outstandingBalance") || 0;
       return (
-        <span className={balance > 0 ? "text-red-600 font-medium" : ""}>
+        <span
+          className={
+            balance > 0 ? "text-red-600 font-medium text-sm" : "text-sm"
+          }
+        >
           {formatCurrency(balance)}
         </span>
       );

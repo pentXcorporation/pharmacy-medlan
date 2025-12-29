@@ -81,28 +81,34 @@ const SalesHistoryPage = () => {
       accessorKey: "invoiceNumber",
       header: "Invoice #",
       cell: ({ row }) => (
-        <span className="font-medium">{row.getValue("invoiceNumber")}</span>
+        <span className="font-medium text-xs sm:text-sm">
+          {row.getValue("invoiceNumber")}
+        </span>
       ),
     },
     {
       accessorKey: "createdAt",
       header: "Date",
+      meta: { className: "hidden md:table-cell" },
       cell: ({ row }) => formatDateTime(row.getValue("createdAt")),
     },
     {
       accessorKey: "customerName",
       header: "Customer",
+      meta: { className: "hidden sm:table-cell" },
       cell: ({ row }) => row.getValue("customerName") || "Walk-in",
     },
     {
       accessorKey: "itemCount",
       header: "Items",
+      meta: { className: "hidden lg:table-cell" },
       cell: ({ row }) =>
         row.original.items?.length || row.getValue("itemCount") || 0,
     },
     {
       accessorKey: "paymentMethod",
       header: "Payment",
+      meta: { className: "hidden sm:table-cell" },
       cell: ({ row }) => (
         <Badge variant="outline">{row.getValue("paymentMethod")}</Badge>
       ),
@@ -111,7 +117,7 @@ const SalesHistoryPage = () => {
       accessorKey: "totalAmount",
       header: "Total",
       cell: ({ row }) => (
-        <span className="font-bold">
+        <span className="font-bold text-xs sm:text-sm">
           {formatCurrency(row.getValue("totalAmount"))}
         </span>
       ),
@@ -122,7 +128,11 @@ const SalesHistoryPage = () => {
       cell: ({ row }) => {
         const status = row.getValue("status") || "COMPLETED";
         const config = statusConfig[status] || statusConfig.COMPLETED;
-        return <Badge variant={config.variant}>{config.label}</Badge>;
+        return (
+          <Badge variant={config.variant} className="text-xs">
+            {config.label}
+          </Badge>
+        );
       },
     },
     {
@@ -133,39 +143,47 @@ const SalesHistoryPage = () => {
         const isVoided = sale.status === "VOIDED";
 
         return (
-          <div className="flex gap-1">
+          <div className="flex gap-0.5 sm:gap-1">
             <Button
               variant="ghost"
               size="icon"
+              className="h-7 w-7 sm:h-8 sm:w-8"
               onClick={() => navigate(`${ROUTES.SALES.ROOT}/${sale.id}`)}
               title="View Details"
             >
-              <Eye className="h-4 w-4" />
+              <Eye className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
             {!isVoided && (
               <>
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-7 w-7 sm:h-8 sm:w-8 hidden sm:inline-flex"
                   onClick={() =>
                     navigate(`${ROUTES.SALE_RETURNS.CREATE}?saleId=${sale.id}`)
                   }
                   title="Process Return"
                 >
-                  <Undo2 className="h-4 w-4" />
+                  <Undo2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
+                  className="h-7 w-7 sm:h-8 sm:w-8 hidden sm:inline-flex"
                   onClick={() => setVoidDialog({ open: true, sale })}
                   title="Void Sale"
                 >
-                  <Ban className="h-4 w-4 text-destructive" />
+                  <Ban className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-destructive" />
                 </Button>
               </>
             )}
-            <Button variant="ghost" size="icon" title="Download Invoice">
-              <Download className="h-4 w-4" />
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-7 w-7 sm:h-8 sm:w-8 hidden md:inline-flex"
+              title="Download Invoice"
+            >
+              <Download className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
             </Button>
           </div>
         );
@@ -174,26 +192,30 @@ const SalesHistoryPage = () => {
   ];
 
   return (
-    <div className="container mx-auto py-6 space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <PageHeader
         title="Sales History"
         description="View and manage all sales transactions"
       >
-        <Button onClick={() => navigate(ROUTES.SALES.POS)}>
+        <Button
+          onClick={() => navigate(ROUTES.POS.ROOT)}
+          size="sm"
+          className="w-full sm:w-auto"
+        >
           <FileText className="h-4 w-4 mr-2" />
           New Sale
         </Button>
       </PageHeader>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4">
+      <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
         <Input
-          placeholder="Search by invoice number..."
+          placeholder="Search by invoice..."
           value={filters.search}
           onChange={(e) =>
             setFilters({ ...filters, search: e.target.value, page: 0 })
           }
-          className="sm:w-80"
+          className="w-full sm:w-64 md:w-80"
         />
         <Select
           value={filters.status}

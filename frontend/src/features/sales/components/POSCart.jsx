@@ -27,8 +27,8 @@ const POSCart = () => {
   }
 
   return (
-    <ScrollArea className="h-[calc(100vh-450px)]">
-      <div className="space-y-2 pr-4">
+    <ScrollArea className="flex-1 min-h-0">
+      <div className="space-y-2 pr-2 sm:pr-4">
         {items.map((item, index) => {
           const itemTotal = item.unitPrice * item.quantity;
           const discountAmount = (itemTotal * item.discount) / 100;
@@ -37,24 +37,28 @@ const POSCart = () => {
           return (
             <div
               key={`${item.productId}-${item.batchId || index}`}
-              className="flex gap-3 p-3 rounded-lg border bg-card"
+              className="flex gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg border bg-card"
             >
               {/* Product Info */}
               <div className="flex-1 min-w-0">
-                <p className="font-medium truncate">{item.productName}</p>
-                <p className="text-sm text-muted-foreground">{item.sku}</p>
-                <p className="text-sm font-medium mt-1">
+                <p className="font-medium text-sm truncate">
+                  {item.productName}
+                </p>
+                <p className="text-xs text-muted-foreground truncate">
+                  {item.sku}
+                </p>
+                <p className="text-xs sm:text-sm font-medium mt-1">
                   {formatCurrency(item.unitPrice)} each
                 </p>
               </div>
 
               {/* Quantity Controls */}
-              <div className="flex flex-col items-end gap-2">
-                <div className="flex items-center gap-1">
+              <div className="flex flex-col items-end gap-1 sm:gap-2">
+                <div className="flex items-center gap-0.5 sm:gap-1">
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-7 w-7 sm:h-8 sm:w-8"
                     onClick={() => updateItemQuantity(index, item.quantity - 1)}
                   >
                     <Minus className="h-3 w-3" />
@@ -65,14 +69,14 @@ const POSCart = () => {
                     onChange={(e) =>
                       updateItemQuantity(index, parseInt(e.target.value) || 0)
                     }
-                    className="w-16 h-8 text-center"
+                    className="w-12 sm:w-16 h-7 sm:h-8 text-center text-sm"
                     min={0}
                     max={item.maxQuantity}
                   />
                   <Button
                     variant="outline"
                     size="icon"
-                    className="h-8 w-8"
+                    className="h-7 w-7 sm:h-8 sm:w-8"
                     onClick={() => updateItemQuantity(index, item.quantity + 1)}
                     disabled={item.quantity >= item.maxQuantity}
                   >
@@ -80,8 +84,8 @@ const POSCart = () => {
                   </Button>
                 </div>
 
-                {/* Item Discount */}
-                <div className="flex items-center gap-1">
+                {/* Item Discount - hidden on mobile */}
+                <div className="hidden sm:flex items-center gap-1">
                   <Percent className="h-3 w-3 text-muted-foreground" />
                   <Input
                     type="number"
@@ -102,7 +106,9 @@ const POSCart = () => {
                       {formatCurrency(itemTotal)}
                     </p>
                   )}
-                  <p className="font-bold">{formatCurrency(finalTotal)}</p>
+                  <p className="font-bold text-sm">
+                    {formatCurrency(finalTotal)}
+                  </p>
                 </div>
               </div>
 
@@ -110,7 +116,7 @@ const POSCart = () => {
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-destructive hover:text-destructive"
+                className="h-7 w-7 sm:h-8 sm:w-8 text-destructive hover:text-destructive"
                 onClick={() => removeItem(index)}
               >
                 <Trash2 className="h-4 w-4" />

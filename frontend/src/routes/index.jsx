@@ -44,11 +44,16 @@ const StockAdjustmentFormPage = lazy(() =>
 const BatchTrackingPage = lazy(() =>
   import("@/pages/inventory/BatchTrackingPage")
 );
+const LowStockPage = lazy(() => import("@/pages/inventory/LowStockPage"));
+const ExpiringPage = lazy(() => import("@/pages/inventory/ExpiringPage"));
 
 // Customers Pages
 const CustomersPage = lazy(() => import("@/pages/customers/CustomersPage"));
 const CustomerFormPage = lazy(() =>
   import("@/pages/customers/CustomerFormPage")
+);
+const CreditAccountsPage = lazy(() =>
+  import("@/pages/customers/CreditAccountsPage")
 );
 
 // Suppliers Pages
@@ -105,6 +110,10 @@ const SaleReturnFormPage = lazy(() =>
 
 // Finance Pages
 const FinancePage = lazy(() => import("@/pages/finance/FinancePage"));
+const TransactionsPage = lazy(() => import("@/pages/finance/TransactionsPage"));
+const InvoicesPage = lazy(() => import("@/pages/finance/InvoicesPage"));
+const ChequesPage = lazy(() => import("@/pages/finance/ChequesPage"));
+const BanksPage = lazy(() => import("@/pages/finance/BanksPage"));
 
 // Employees Pages
 const EmployeesPage = lazy(() => import("@/pages/employees/EmployeesPage"));
@@ -384,6 +393,22 @@ const router = createBrowserRouter([
           </SuspenseWrapper>
         ),
       },
+      {
+        path: ROUTES.PRODUCTS.LOW_STOCK,
+        element: (
+          <SuspenseWrapper>
+            <LowStockPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.PRODUCTS.EXPIRING,
+        element: (
+          <SuspenseWrapper>
+            <ExpiringPage />
+          </SuspenseWrapper>
+        ),
+      },
 
       // Categories Routes
       {
@@ -433,6 +458,22 @@ const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <StockAdjustmentsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.INVENTORY.LOW_STOCK,
+        element: (
+          <SuspenseWrapper>
+            <LowStockPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.INVENTORY.EXPIRY,
+        element: (
+          <SuspenseWrapper>
+            <ExpiringPage />
           </SuspenseWrapper>
         ),
       },
@@ -512,6 +553,18 @@ const router = createBrowserRouter([
           </RoleGuard>
         ),
       },
+      {
+        path: ROUTES.CUSTOMERS.CREDITS,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <CreditAccountsPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
 
       // Finance Routes
       {
@@ -523,6 +576,84 @@ const router = createBrowserRouter([
             <SuspenseWrapper>
               <FinancePage />
             </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.FINANCE.TRANSACTIONS,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+          >
+            <SuspenseWrapper>
+              <TransactionsPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.FINANCE.INVOICES,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+          >
+            <SuspenseWrapper>
+              <InvoicesPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.FINANCE.CHEQUES,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+          >
+            <SuspenseWrapper>
+              <ChequesPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.FINANCE.BANKS,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+          >
+            <SuspenseWrapper>
+              <BanksPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.FINANCE.CASH_REGISTER,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+          >
+            <PlaceholderPage title="Cash Register" />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.FINANCE.CASH_BOOK,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+          >
+            <PlaceholderPage title="Cash Book" />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.FINANCE.SUMMARY,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+          >
+            <PlaceholderPage title="Financial Summary" />
           </RoleGuard>
         ),
       },

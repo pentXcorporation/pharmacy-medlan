@@ -9,6 +9,7 @@ import { useUiStore } from "@/store";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { SidebarTrigger } from "@/components/ui/sidebar";
 import BranchSelector from "./BranchSelector";
 import UserMenu from "./UserMenu";
 import NotificationDropdown from "./NotificationDropdown";
@@ -17,7 +18,7 @@ import NotificationDropdown from "./NotificationDropdown";
  * Main Header component
  */
 const Header = ({ className }) => {
-  const { sidebarCollapsed, toggleSidebar, theme, setTheme } = useUiStore();
+  const { theme, setTheme } = useUiStore();
 
   const toggleTheme = () => {
     setTheme(theme === "light" ? "dark" : "light");
@@ -31,15 +32,7 @@ const Header = ({ className }) => {
       )}
     >
       {/* Sidebar Toggle */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={toggleSidebar}
-        className="shrink-0"
-      >
-        <Menu className="h-5 w-5" />
-        <span className="sr-only">Toggle sidebar</span>
-      </Button>
+      <SidebarTrigger className="shrink-0" />
 
       {/* Search Bar */}
       <div className="relative hidden md:flex flex-1 max-w-md">

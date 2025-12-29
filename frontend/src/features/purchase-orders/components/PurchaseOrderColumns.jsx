@@ -78,7 +78,7 @@ export const getPurchaseOrderColumns = ({
     accessorKey: "poNumber",
     header: "PO Number",
     cell: ({ row }) => (
-      <span className="font-mono text-sm font-medium">
+      <span className="font-mono text-xs sm:text-sm font-medium">
         {row.getValue("poNumber")}
       </span>
     ),
@@ -88,22 +88,29 @@ export const getPurchaseOrderColumns = ({
     header: "Supplier",
     cell: ({ row }) => {
       const supplier = row.original.supplier;
-      return supplier?.name || "-";
+      return (
+        <span className="truncate max-w-[100px] sm:max-w-none block">
+          {supplier?.name || "-"}
+        </span>
+      );
     },
   },
   {
     accessorKey: "orderDate",
     header: "Order Date",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => formatDate(row.getValue("orderDate")),
   },
   {
     accessorKey: "expectedDate",
     header: "Expected",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => formatDate(row.getValue("expectedDate")) || "-",
   },
   {
     accessorKey: "itemCount",
     header: "Items",
+    meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => {
       const items = row.original.items || [];
       return items.length;
@@ -112,7 +119,11 @@ export const getPurchaseOrderColumns = ({
   {
     accessorKey: "totalAmount",
     header: "Total",
-    cell: ({ row }) => formatCurrency(row.getValue("totalAmount")),
+    cell: ({ row }) => (
+      <span className="font-medium text-sm">
+        {formatCurrency(row.getValue("totalAmount"))}
+      </span>
+    ),
   },
   {
     accessorKey: "status",
@@ -123,7 +134,11 @@ export const getPurchaseOrderColumns = ({
         label: status,
         variant: "secondary",
       };
-      return <Badge variant={config.variant}>{config.label}</Badge>;
+      return (
+        <Badge variant={config.variant} className="text-xs">
+          {config.label}
+        </Badge>
+      );
     },
   },
   {

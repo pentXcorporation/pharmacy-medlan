@@ -50,6 +50,7 @@ export const getProductColumns = ({
   {
     accessorKey: "productCode",
     header: "Code",
+    meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => (
       <span className="font-mono text-sm">{row.getValue("productCode")}</span>
     ),
@@ -60,10 +61,12 @@ export const getProductColumns = ({
     accessorKey: "productName",
     header: "Product Name",
     cell: ({ row }) => (
-      <div className="flex flex-col">
-        <span className="font-medium">{row.getValue("productName")}</span>
+      <div className="flex flex-col max-w-[150px] sm:max-w-none">
+        <span className="font-medium text-sm truncate">
+          {row.getValue("productName")}
+        </span>
         {row.original.genericName && (
-          <span className="text-xs text-muted-foreground">
+          <span className="text-xs text-muted-foreground truncate">
             {row.original.genericName}
           </span>
         )}
@@ -76,8 +79,9 @@ export const getProductColumns = ({
     accessorKey: "categoryName",
     id: "categoryName",
     header: "Category",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => (
-      <Badge variant="outline">
+      <Badge variant="outline" className="text-xs">
         {row.original.category?.categoryName || "-"}
       </Badge>
     ),
@@ -87,6 +91,7 @@ export const getProductColumns = ({
   {
     accessorKey: "dosageForm",
     header: "Form",
+    meta: { className: "hidden lg:table-cell" },
     cell: ({ row }) => (
       <span className="text-sm">
         {DOSAGE_FORM_LABELS[row.getValue("dosageForm")] ||
@@ -100,6 +105,7 @@ export const getProductColumns = ({
   {
     accessorKey: "strength",
     header: "Strength",
+    meta: { className: "hidden xl:table-cell" },
     cell: ({ row }) => row.getValue("strength") || "-",
     size: 100,
     enableSorting: true,
@@ -107,6 +113,7 @@ export const getProductColumns = ({
   {
     accessorKey: "drugSchedule",
     header: "Schedule",
+    meta: { className: "hidden xl:table-cell" },
     cell: ({ row }) => {
       const schedule = row.getValue("drugSchedule");
       if (!schedule) return "-";
@@ -117,7 +124,7 @@ export const getProductColumns = ({
           ? "warning"
           : "secondary";
       return (
-        <Badge variant={variant}>
+        <Badge variant={variant} className="text-xs">
           {DRUG_SCHEDULE_LABELS[schedule] || schedule}
         </Badge>
       );
@@ -129,7 +136,7 @@ export const getProductColumns = ({
     accessorKey: "sellingPrice",
     header: "Price",
     cell: ({ row }) => (
-      <span className="font-medium">
+      <span className="font-medium text-sm">
         {formatCurrency(row.getValue("sellingPrice"))}
       </span>
     ),
@@ -139,15 +146,20 @@ export const getProductColumns = ({
   {
     accessorKey: "isActive",
     header: "Status",
+    meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => {
       const isActive = row.getValue("isActive");
       const isDiscontinued = row.original.isDiscontinued;
 
       if (isDiscontinued) {
-        return <Badge variant="destructive">Discontinued</Badge>;
+        return (
+          <Badge variant="destructive" className="text-xs">
+            Discontinued
+          </Badge>
+        );
       }
       return (
-        <Badge variant={isActive ? "default" : "secondary"}>
+        <Badge variant={isActive ? "default" : "secondary"} className="text-xs">
           {isActive ? "Active" : "Inactive"}
         </Badge>
       );

@@ -130,19 +130,26 @@ const ProductsPage = () => {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">Products</h1>
-          <p className="text-muted-foreground">Manage your product catalog</p>
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            Products
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Manage your product catalog
+          </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm">
+        <div className="flex flex-wrap gap-2">
+          <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
             <Upload className="mr-2 h-4 w-4" />
-            Import
+            <span className="hidden sm:inline">Import</span>
           </Button>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" className="flex-1 sm:flex-none">
             <Download className="mr-2 h-4 w-4" />
-            Export
+            <span className="hidden sm:inline">Export</span>
           </Button>
-          <Button onClick={() => navigate(ROUTES.PRODUCTS.NEW)}>
+          <Button
+            onClick={() => navigate(ROUTES.PRODUCTS.NEW)}
+            className="flex-1 sm:flex-none"
+          >
             <Plus className="mr-2 h-4 w-4" />
             Add Product
           </Button>
@@ -151,16 +158,16 @@ const ProductsPage = () => {
 
       {/* Filters Card */}
       <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">Filters</CardTitle>
+        <CardHeader className="pb-3 sm:pb-4">
+          <CardTitle className="text-sm sm:text-base">Filters</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-4">
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
             <Input
               placeholder="Search products..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="max-w-sm"
+              className="w-full sm:max-w-sm"
             />
           </div>
         </CardContent>
@@ -180,107 +187,124 @@ const ProductsPage = () => {
               Error loading products. Please try again.
             </div>
           ) : (
-            <div className="rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Code</TableHead>
-                    <TableHead>Product Name</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Form</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead className="w-10"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {isLoading ? (
-                    <LoadingSkeleton />
-                  ) : products.length === 0 ? (
+            <div className="rounded-md border overflow-x-auto -mx-4 sm:mx-0">
+              <div className="min-w-[600px] sm:min-w-0">
+                <Table>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell colSpan={7} className="h-24 text-center">
-                        <div className="text-muted-foreground">
-                          No products found. Click "Add Product" to create your
-                          first product.
-                        </div>
-                      </TableCell>
+                      <TableHead className="whitespace-nowrap">Code</TableHead>
+                      <TableHead className="whitespace-nowrap">
+                        Product Name
+                      </TableHead>
+                      <TableHead className="whitespace-nowrap hidden sm:table-cell">
+                        Category
+                      </TableHead>
+                      <TableHead className="whitespace-nowrap hidden md:table-cell">
+                        Form
+                      </TableHead>
+                      <TableHead className="whitespace-nowrap">Price</TableHead>
+                      <TableHead className="whitespace-nowrap hidden sm:table-cell">
+                        Status
+                      </TableHead>
+                      <TableHead className="w-10"></TableHead>
                     </TableRow>
-                  ) : (
-                    products.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell className="font-mono text-sm">
-                          {product.productCode}
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-col">
-                            <span className="font-medium">
-                              {product.productName}
-                            </span>
-                            {product.genericName && (
-                              <span className="text-xs text-muted-foreground">
-                                {product.genericName}
-                              </span>
-                            )}
+                  </TableHeader>
+                  <TableBody>
+                    {isLoading ? (
+                      <LoadingSkeleton />
+                    ) : products.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={7} className="h-24 text-center">
+                          <div className="text-muted-foreground">
+                            No products found. Click "Add Product" to create
+                            your first product.
                           </div>
                         </TableCell>
-                        <TableCell>
-                          <Badge variant="outline">
-                            {product.category?.categoryName || "-"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>{product.dosageForm || "-"}</TableCell>
-                        <TableCell className="font-medium">
-                          {formatCurrency(product.sellingPrice)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge
-                            variant={product.isActive ? "default" : "secondary"}
-                          >
-                            {product.isActive ? "Active" : "Inactive"}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleView(product)}
-                              >
-                                <Eye className="mr-2 h-4 w-4" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleEdit(product)}
-                              >
-                                <Edit className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => handleDelete(product)}
-                                className="text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
                       </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                    ) : (
+                      products.map((product) => (
+                        <TableRow key={product.id}>
+                          <TableCell className="font-mono text-xs sm:text-sm whitespace-nowrap">
+                            {product.productCode}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col min-w-0">
+                              <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-none">
+                                {product.productName}
+                              </span>
+                              {product.genericName && (
+                                <span className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-none">
+                                  {product.genericName}
+                                </span>
+                              )}
+                            </div>
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <Badge
+                              variant="outline"
+                              className="whitespace-nowrap"
+                            >
+                              {product.category?.categoryName || "-"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="hidden md:table-cell whitespace-nowrap">
+                            {product.dosageForm || "-"}
+                          </TableCell>
+                          <TableCell className="font-medium whitespace-nowrap">
+                            {formatCurrency(product.sellingPrice)}
+                          </TableCell>
+                          <TableCell className="hidden sm:table-cell">
+                            <Badge
+                              variant={
+                                product.isActive ? "default" : "secondary"
+                              }
+                            >
+                              {product.isActive ? "Active" : "Inactive"}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                >
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuLabel>Actions</DropdownMenuLabel>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleView(product)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" />
+                                  View Details
+                                </DropdownMenuItem>
+                                <DropdownMenuItem
+                                  onClick={() => handleEdit(product)}
+                                >
+                                  <Edit className="mr-2 h-4 w-4" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem
+                                  onClick={() => handleDelete(product)}
+                                  className="text-destructive focus:text-destructive"
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                    )}
+                  </TableBody>
+                </Table>
+              </div>
             </div>
           )}
         </CardContent>

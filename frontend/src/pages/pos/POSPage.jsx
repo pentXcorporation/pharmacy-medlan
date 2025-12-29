@@ -124,26 +124,31 @@ const POSPage = () => {
   };
 
   return (
-    <div className="h-screen flex flex-col">
+    <div className="h-[calc(100vh-4rem)] sm:h-screen flex flex-col">
       {/* Top Bar */}
-      <div className="border-b bg-background px-4 py-2 flex items-center justify-between">
-        <div className="flex items-center gap-4">
-          <h1 className="text-xl font-bold">Point of Sale</h1>
-          <Badge variant="outline" className="gap-1">
+      <div className="border-b bg-background px-2 sm:px-4 py-2 flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 sm:gap-4 min-w-0">
+          <h1 className="text-lg sm:text-xl font-bold truncate">POS</h1>
+          <Badge variant="outline" className="gap-1 hidden sm:flex">
             <User className="h-3 w-3" />
             {user?.firstName || user?.username}
           </Badge>
         </div>
-        <div className="flex items-center gap-4">
-          <Badge variant="outline" className="gap-1">
+        <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
+          <Badge variant="outline" className="gap-1 hidden md:flex">
             <Clock className="h-3 w-3" />
             {currentTime.toLocaleTimeString()}
           </Badge>
           <Sheet open={showHeldSalesSheet} onOpenChange={setShowHeldSalesSheet}>
             <SheetTrigger asChild>
-              <Button variant="outline" size="sm" className="gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                className="gap-1 sm:gap-2 px-2 sm:px-3"
+              >
                 <PauseCircle className="h-4 w-4" />
-                Held ({heldSales.length})
+                <span className="hidden sm:inline">Held</span> (
+                {heldSales.length})
               </Button>
             </SheetTrigger>
             <SheetContent>
@@ -199,14 +204,16 @@ const POSPage = () => {
           <Button
             variant="outline"
             size="sm"
+            className="px-2 sm:px-3"
             onClick={() => navigate(ROUTES.SALES.LIST)}
           >
-            <Receipt className="h-4 w-4 mr-2" />
-            Sales History
+            <Receipt className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">History</span>
           </Button>
           <Button
             variant="outline"
             size="sm"
+            className="px-2 sm:px-3 hidden md:flex"
             onClick={() => navigate(ROUTES.SALE_RETURNS.CREATE)}
           >
             <Receipt className="h-4 w-4 mr-2" />
@@ -216,26 +223,29 @@ const POSPage = () => {
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex overflow-hidden">
+      <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left Panel - Products & Cart */}
-        <div className="flex-1 flex flex-col p-4 overflow-hidden">
+        <div className="flex-1 flex flex-col p-2 sm:p-4 overflow-hidden">
           {/* Product Search */}
           <POSProductSearch products={products} isLoading={productsLoading} />
 
           {/* Customer Selection */}
-          <div className="mt-4 flex items-center gap-2">
+          <div className="mt-2 sm:mt-4 flex flex-wrap items-center gap-2">
             <Button
               variant="outline"
-              className="gap-2"
+              className="gap-2 text-sm"
+              size="sm"
               onClick={() => setShowCustomerDialog(true)}
             >
               <User className="h-4 w-4" />
-              {customer ? customer.name : "Walk-in Customer"}
+              <span className="truncate max-w-[100px] sm:max-w-none">
+                {customer ? customer.name : "Walk-in"}
+              </span>
             </Button>
             {customer && (
               <>
-                <Badge variant="secondary">
-                  Points: {customer.loyaltyPoints || 0}
+                <Badge variant="secondary" className="text-xs">
+                  {customer.loyaltyPoints || 0} pts
                 </Badge>
                 <Button variant="ghost" size="sm" onClick={clearCustomer}>
                   Clear
@@ -244,14 +254,14 @@ const POSPage = () => {
             )}
           </div>
 
-          <Separator className="my-4" />
+          <Separator className="my-2 sm:my-4" />
 
           {/* Cart */}
           <POSCart />
         </div>
 
         {/* Right Panel - Totals */}
-        <div className="w-80 border-l p-4 flex flex-col">
+        <div className="w-full lg:w-80 border-t lg:border-t-0 lg:border-l p-2 sm:p-4 flex flex-col shrink-0">
           <POSTotals
             onCheckout={handleCheckout}
             isProcessing={createSaleMutation.isPending}
