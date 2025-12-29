@@ -222,7 +222,7 @@ export const NAVIGATION = [
       },
       {
         title: "Stock Transfers",
-        href: ROUTES.INVENTORY.TRANSFERS,
+        href: ROUTES.INVENTORY.TRANSFERS.LIST,
         icon: ArrowLeftRight,
         roles: [
           ROLES.SUPER_ADMIN,
@@ -233,7 +233,7 @@ export const NAVIGATION = [
       },
       {
         title: "Stock Adjustments",
-        href: ROUTES.INVENTORY.ADJUSTMENTS,
+        href: ROUTES.INVENTORY.ADJUSTMENTS.LIST,
         roles: [
           ROLES.SUPER_ADMIN,
           ROLES.OWNER,

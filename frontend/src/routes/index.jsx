@@ -26,6 +26,24 @@ const CategoriesPage = lazy(() => import("@/pages/categories/CategoriesPage"));
 
 // Inventory Pages
 const InventoryPage = lazy(() => import("@/pages/inventory/InventoryPage"));
+const StockTransfersPage = lazy(() =>
+  import("@/pages/inventory/StockTransfersPage")
+);
+const StockTransferFormPage = lazy(() =>
+  import("@/pages/inventory/StockTransferFormPage")
+);
+const StockMovementsPage = lazy(() =>
+  import("@/pages/inventory/StockMovementsPage")
+);
+const StockAdjustmentsPage = lazy(() =>
+  import("@/pages/inventory/StockAdjustmentsPage")
+);
+const StockAdjustmentFormPage = lazy(() =>
+  import("@/pages/inventory/StockAdjustmentFormPage")
+);
+const BatchTrackingPage = lazy(() =>
+  import("@/pages/inventory/BatchTrackingPage")
+);
 
 // Customers Pages
 const CustomersPage = lazy(() => import("@/pages/customers/CustomersPage"));
@@ -379,7 +397,7 @@ const router = createBrowserRouter([
 
       // Inventory Routes
       {
-        path: ROUTES.INVENTORY.ROOT,
+        path: ROUTES.INVENTORY.LIST,
         element: (
           <SuspenseWrapper>
             <InventoryPage />
@@ -387,10 +405,50 @@ const router = createBrowserRouter([
         ),
       },
       {
-        path: ROUTES.INVENTORY.STOCK,
+        path: ROUTES.INVENTORY.TRANSFERS.LIST,
         element: (
           <SuspenseWrapper>
-            <InventoryPage />
+            <StockTransfersPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.INVENTORY.TRANSFERS.NEW,
+        element: (
+          <SuspenseWrapper>
+            <StockTransferFormPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.INVENTORY.MOVEMENTS,
+        element: (
+          <SuspenseWrapper>
+            <StockMovementsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.INVENTORY.ADJUSTMENTS.LIST,
+        element: (
+          <SuspenseWrapper>
+            <StockAdjustmentsPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.INVENTORY.ADJUSTMENTS.NEW,
+        element: (
+          <SuspenseWrapper>
+            <StockAdjustmentFormPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.INVENTORY.BATCHES,
+        element: (
+          <SuspenseWrapper>
+            <BatchTrackingPage />
           </SuspenseWrapper>
         ),
       },

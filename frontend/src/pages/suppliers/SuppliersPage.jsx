@@ -56,7 +56,8 @@ const SuppliersPage = () => {
           ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
           : "supplierName,asc",
       ...(searchQuery && { search: searchQuery }),
-      ...(statusFilter && statusFilter !== "all" && { isActive: statusFilter === "active" }),
+      ...(statusFilter &&
+        statusFilter !== "all" && { isActive: statusFilter === "active" }),
     }),
     [pagination, sorting, searchQuery, statusFilter]
   );
