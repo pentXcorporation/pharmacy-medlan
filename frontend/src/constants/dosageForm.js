@@ -13,8 +13,8 @@ export const DOSAGE_FORM = {
   DROPS: "DROPS",
   INHALER: "INHALER",
   POWDER: "POWDER",
-  SOLUTION: "SOLUTION",
   LOTION: "LOTION",
+  SPRAY: "SPRAY",
   SUPPOSITORY: "SUPPOSITORY",
   PATCH: "PATCH",
 };
@@ -31,10 +31,10 @@ export const DOSAGE_FORM_LABELS = {
   [DOSAGE_FORM.DROPS]: "Drops",
   [DOSAGE_FORM.INHALER]: "Inhaler",
   [DOSAGE_FORM.POWDER]: "Powder",
-  [DOSAGE_FORM.SOLUTION]: "Solution",
   [DOSAGE_FORM.LOTION]: "Lotion",
-  [DOSAGE_FORM.SUPPOSITORY]: "Suppository",
+  [DOSAGE_FORM.SPRAY]: "Spray",
   [DOSAGE_FORM.PATCH]: "Patch",
+  [DOSAGE_FORM.SUPPOSITORY]: "Suppository",
 };
 
 export const DOSAGE_FORM_OPTIONS = Object.entries(DOSAGE_FORM_LABELS).map(

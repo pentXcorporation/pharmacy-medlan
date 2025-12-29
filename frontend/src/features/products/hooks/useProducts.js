@@ -25,7 +25,7 @@ export const useProducts = (params = {}) => {
   return useQuery({
     queryKey: productKeys.list(params),
     queryFn: () => productService.getAll(params),
-    select: (response) => response.data,
+    select: (response) => response.data.data, // ApiResponse.data contains PageResponse
   });
 };
 
@@ -36,7 +36,7 @@ export const useProduct = (id) => {
   return useQuery({
     queryKey: productKeys.detail(id),
     queryFn: () => productService.getById(id),
-    select: (response) => response.data,
+    select: (response) => response.data.data, // ApiResponse.data contains ProductResponse
     enabled: !!id,
   });
 };
@@ -48,7 +48,7 @@ export const useProductSearch = (query, params = {}) => {
   return useQuery({
     queryKey: productKeys.search(query),
     queryFn: () => productService.search(query, params),
-    select: (response) => response.data,
+    select: (response) => response.data.data, // ApiResponse.data contains List<ProductResponse>
     enabled: !!query && query.length >= 2,
   });
 };
@@ -60,7 +60,7 @@ export const useLowStockProducts = (branchId, params = {}) => {
   return useQuery({
     queryKey: productKeys.lowStock(branchId),
     queryFn: () => productService.getLowStock(branchId, params),
-    select: (response) => response.data,
+    select: (response) => response.data.data, // ApiResponse.data contains List<ProductResponse>
     enabled: !!branchId,
   });
 };

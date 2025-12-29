@@ -108,22 +108,25 @@ export const branchSchema = z.object({
 // ============================================
 
 export const productSchema = z.object({
-  name: requiredString("Product name"),
-  code: requiredString("Product code"),
+  productName: requiredString("Product name"),
   genericName: optionalString,
-  barcode: optionalString,
-  categoryId: z.number({ required_error: "Category is required" }),
-  subCategoryId: z.number().optional(),
-  unitId: z.number({ required_error: "Unit is required" }),
+  categoryId: optionalString,
   dosageForm: optionalString,
+  strength: optionalString,
   drugSchedule: optionalString,
   manufacturer: optionalString,
-  costPrice: nonNegativeNumber("Cost price"),
-  sellingPrice: positiveNumber("Selling price"),
-  mrp: positiveNumber("MRP"),
-  reorderLevel: nonNegativeNumber("Reorder level").default(10),
-  isActive: z.boolean().default(true),
-  requiresPrescription: z.boolean().default(false),
+  barcode: optionalString,
+  description: optionalString,
+  costPrice: optionalString,
+  sellingPrice: optionalString,
+  mrp: optionalString,
+  gstRate: optionalString,
+  reorderLevel: optionalString,
+  minimumStock: optionalString,
+  maximumStock: optionalString,
+  isPrescriptionRequired: z.boolean().default(false),
+  isNarcotic: z.boolean().default(false),
+  isRefrigerated: z.boolean().default(false),
 });
 
 // ============================================

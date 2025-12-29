@@ -128,6 +128,15 @@ const AdvancesPage = lazy(() => import("@/pages/payroll/AdvancesPage"));
 
 // Employees Pages
 const EmployeesPage = lazy(() => import("@/pages/employees/EmployeesPage"));
+const EmployeeFormPage = lazy(() =>
+  import("@/pages/employees/EmployeeFormPage")
+);
+const EmployeeViewPage = lazy(() =>
+  import("@/pages/employees/EmployeeViewPage")
+);
+const EmployeeAttendancePage = lazy(() =>
+  import("@/pages/employees/EmployeeAttendancePage")
+);
 
 // Placeholder for pages not yet implemented
 const PlaceholderPage = ({ title }) => (
@@ -803,6 +812,54 @@ const router = createBrowserRouter([
           >
             <SuspenseWrapper>
               <EmployeesPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.EMPLOYEES.NEW,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <EmployeeFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.EMPLOYEES.EDIT(":id"),
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <EmployeeFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.EMPLOYEES.VIEW(":id"),
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <EmployeeViewPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.EMPLOYEES.ATTENDANCE,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+          >
+            <SuspenseWrapper>
+              <EmployeeAttendancePage />
             </SuspenseWrapper>
           </RoleGuard>
         ),

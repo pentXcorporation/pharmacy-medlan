@@ -13,16 +13,29 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, Edit, Trash2, Eye } from "lucide-react";
+import {
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  Power,
+  PowerOff,
+} from "lucide-react";
 
 /**
  * Get column definitions for categories table
  * @param {Object} options - Column options
  * @param {Function} options.onView - View handler
  * @param {Function} options.onEdit - Edit handler
+ * @param {Function} options.onToggleStatus - Toggle active status handler
  * @param {Function} options.onDelete - Delete handler
  */
-export const getCategoryColumns = ({ onView, onEdit, onDelete } = {}) => [
+export const getCategoryColumns = ({
+  onView,
+  onEdit,
+  onToggleStatus,
+  onDelete,
+} = {}) => [
   {
     id: "select",
     header: ({ table }) => (
@@ -111,13 +124,21 @@ export const getCategoryColumns = ({ onView, onEdit, onDelete } = {}) => [
               <Edit className="mr-2 h-4 w-4" />
               Edit
             </DropdownMenuItem>
+            <DropdownMenuItem onClick={() => onToggleStatus?.(category)}>
+              {category.isActive ? (
+                <PowerOff className="mr-2 h-4 w-4" />
+              ) : (
+                <Power className="mr-2 h-4 w-4" />
+              )}
+              {category.isActive ? "Deactivate" : "Activate"}
+            </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => onDelete?.(category)}
-              className="text-destructive focus:text-destructive"
+              className="text-destructive focus:text-destructive focus:bg-destructive/10"
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete
+              Delete Permanently
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

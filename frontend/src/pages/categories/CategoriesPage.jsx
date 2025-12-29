@@ -43,22 +43,33 @@ const CategoriesPage = () => {
   // Sorting state
   const [sorting, setSorting] = useState([]);
 
-  // Build query params
-  const queryParams = useMemo(
-    () => ({
-      page: pagination.pageIndex,
-      size: pagination.pageSize,
-      sort:
-        sorting.length > 0
-          ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
-          : "categoryName,asc",
-      ...(searchQuery && { search: searchQuery }),
-    }),
-    [pagination, sorting, searchQuery]
-  );
+  // Fetch categories (no query params - we'll filter client-side)
+  const { data: apiData, isLoading, isFetching } = useCategories();
 
-  // Fetch categories
-  const { data, isLoading, isFetching } = useCategories(queryParams);
+  // Filter categories based on search query
+  const data = useMemo(() => {
+    if (!apiData?.content) return apiData;
+
+    if (!searchQuery.trim()) {
+      return apiData;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    const filteredContent = apiData.content.filter((category) => {
+      return (
+        category.categoryName?.toLowerCase().includes(query) ||
+        category.description?.toLowerCase().includes(query) ||
+        category.categoryCode?.toLowerCase().includes(query)
+      );
+    });
+
+    return {
+      ...apiData,
+      content: filteredContent,
+      totalElements: filteredContent.length,
+      totalPages: Math.ceil(filteredContent.length / pagination.pageSize),
+    };
+  }, [apiData, searchQuery, pagination.pageSize]);
 
   // Mutations
   const createCategory = useCreateCategory();
@@ -84,14 +95,47 @@ const CategoriesPage = () => {
     [navigate]
   );
 
+  const handleToggleStatus = useCallback(
+    async (category) => {
+      const isActivating = !category.isActive;
+      const confirmed = await confirm({
+        title: isActivating ? "Activate Category?" : "Deactivate Category?",
+        description: isActivating
+          ? `"${category.categoryName}" will be visible and available for use.`
+          : `"${category.categoryName}" will be hidden from active lists. Products in this category will remain unchanged.`,
+        confirmText: isActivating ? "Yes, Activate" : "Yes, Deactivate",
+        cancelText: "Cancel",
+        variant: "warning",
+      });
+
+      if (confirmed) {
+        // Backend update doesn't support isActive, so we just update with existing data
+        // In a real app, you'd need a separate backend endpoint for this
+        toast.info("Status toggle not yet supported by backend");
+        // TODO: Add backend endpoint to toggle status
+        // updateCategory.mutate({
+        //   id: category.id,
+        //   data: { categoryName: category.categoryName, description: category.description },
+        // });
+      }
+    },
+    [confirm]
+  );
+
   const handleDelete = useCallback(
     async (category) => {
+      const productCount = category.productCount || 0;
       const confirmed = await confirm({
-        title: "Delete Category",
-        description: `Are you sure you want to delete "${category.categoryName}"? Products in this category will need to be reassigned.`,
-        confirmText: "Delete",
+        title: "Delete Category?",
+        description:
+          productCount > 0
+            ? `"${category.categoryName}" has ${productCount} product${
+                productCount > 1 ? "s" : ""
+              }. These products will need to be reassigned. This action cannot be undone.`
+            : `Are you sure you want to delete "${category.categoryName}"? This action cannot be undone.`,
+        confirmText: "Yes, Delete",
         cancelText: "Cancel",
-        variant: "destructive",
+        variant: "danger",
       });
 
       if (confirmed) {
@@ -123,9 +167,10 @@ const CategoriesPage = () => {
       getCategoryColumns({
         onView: handleView,
         onEdit: handleEdit,
+        onToggleStatus: handleToggleStatus,
         onDelete: handleDelete,
       }),
-    [handleView, handleEdit, handleDelete]
+    [handleView, handleEdit, handleToggleStatus, handleDelete]
   );
 
   return (
@@ -149,12 +194,24 @@ const CategoriesPage = () => {
 
       {/* Search */}
       <div className="flex items-center gap-4">
-        <Input
-          placeholder="Search categories..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          className="max-w-sm"
-        />
+        <div className="relative flex-1 max-w-sm">
+          <Input
+            placeholder="Search categories by name, code, or description..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pr-8"
+          />
+          {searchQuery && (
+            <Button
+              variant="ghost"
+              size="sm"
+              className="absolute right-1 top-1/2 -translate-y-1/2 h-7 w-7 p-0"
+              onClick={() => setSearchQuery("")}
+            >
+              <span className="sr-only">Clear search</span>×
+            </Button>
+          )}
+        </div>
       </div>
 
       {/* Data Table */}

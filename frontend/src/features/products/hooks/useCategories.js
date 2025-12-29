@@ -22,24 +22,18 @@ export const categoryKeys = {
 export const useCategories = () => {
   return useQuery({
     queryKey: categoryKeys.lists(),
-    queryFn: async () => {
-      const response = await categoryService.getAll();
-      console.log("Categories API raw response:", response);
-      return response;
-    },
+    queryFn: () => categoryService.getAll(),
     select: (response) => {
-      console.log("Categories response in select:", response);
       // Axios response: { data: { success, message, data: [...], timestamp } }
       const apiResponse = response.data;
-      console.log("API response (response.data):", apiResponse);
 
       // Extract the actual data from ApiResponse wrapper
       const categories = apiResponse?.data;
-      console.log("Categories (apiResponse.data):", categories);
 
-      // Ensure we have an array
-      const categoryList = Array.isArray(categories) ? categories : [];
-      console.log("Final categoryList:", categoryList);
+      // Ensure we have an array and filter out soft-deleted categories
+      const categoryList = Array.isArray(categories)
+        ? categories.filter((cat) => !cat.deleted)
+        : [];
 
       // Return in paginated format for DataTable compatibility
       return {
@@ -136,7 +130,34 @@ export const useDeleteCategory = () => {
       toast.success("Category deleted successfully");
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to delete category");
+      console.error("Delete category error:", error);
+
+      // Handle network errors
+      if (
+        error.code === "ERR_NETWORK" ||
+        error.message.includes("Network Error")
+      ) {
+        toast.error(
+          "Network error. Please check your connection and try again."
+        );
+        return;
+      }
+
+      // Handle connection errors
+      if (error.code === "ERR_CONNECTION_CLOSED" || !error.response) {
+        toast.error(
+          "Connection lost. Please ensure the backend server is running."
+        );
+        return;
+      }
+
+      // Handle server errors
+      const message =
+        error.response?.data?.message ||
+        error.response?.data?.error ||
+        error.message ||
+        "Failed to delete category";
+      toast.error(message);
     },
   });
 };

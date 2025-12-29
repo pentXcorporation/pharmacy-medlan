@@ -93,7 +93,7 @@ const ConfirmDialog = ({
 
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      <AlertDialogContent>
+      <AlertDialogContent className="top-[20%] translate-y-0">
         <AlertDialogHeader>
           <div className="flex items-start gap-4">
             <div className={cn("rounded-full p-2", styles.iconBg)}>

@@ -98,10 +98,12 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
   }, [product, form]);
 
   const handleSubmit = (data) => {
-    // Convert string values to numbers
+    // Convert string values to numbers and handle empty enums
     const formattedData = {
       ...data,
       categoryId: data.categoryId ? parseInt(data.categoryId) : null,
+      dosageForm: data.dosageForm || null,
+      drugSchedule: data.drugSchedule || null,
       costPrice: data.costPrice ? parseFloat(data.costPrice) : null,
       sellingPrice: data.sellingPrice ? parseFloat(data.sellingPrice) : null,
       mrp: data.mrp ? parseFloat(data.mrp) : null,
