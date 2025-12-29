@@ -167,8 +167,8 @@ export const API_ENDPOINTS = {
     BY_ID: (id) => `/stock-transfers/${id}`,
     BY_NUMBER: (number) => `/stock-transfers/number/${number}`,
     BY_BRANCH: (branchId) => `/stock-transfers/branch/${branchId}`,
-    BY_SOURCE: (branchId) => `/stock-transfers/source/${branchId}`,
-    BY_DESTINATION: (branchId) => `/stock-transfers/destination/${branchId}`,
+    BY_SOURCE: (branchId) => `/stock-transfers/from-branch/${branchId}`,
+    BY_DESTINATION: (branchId) => `/stock-transfers/to-branch/${branchId}`,
     BY_STATUS: (status) => `/stock-transfers/status/${status}`,
     PENDING: (branchId) => `/stock-transfers/branch/${branchId}/pending`,
     APPROVE: (id) => `/stock-transfers/${id}/approve`,
@@ -224,6 +224,7 @@ export const API_ENDPOINTS = {
   // Sales
   SALES: {
     BASE: "/sales",
+    LIST: "/sales",
     BY_ID: (id) => `/sales/${id}`,
     BY_NUMBER: (number) => `/sales/number/${number}`,
     BY_BRANCH: (branchId) => `/sales/branch/${branchId}`,
@@ -304,6 +305,7 @@ export const API_ENDPOINTS = {
 
   // Dashboard
   DASHBOARD: {
+    STATS: "/dashboard/summary",
     SUMMARY: "/dashboard/summary",
     SALES_CHART: "/dashboard/sales-chart",
   },

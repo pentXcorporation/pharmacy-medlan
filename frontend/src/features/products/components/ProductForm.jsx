@@ -32,9 +32,9 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import {
-  DOSAGE_FORMS,
+  DOSAGE_FORM,
   DOSAGE_FORM_LABELS,
-  DRUG_SCHEDULES,
+  DRUG_SCHEDULE,
   DRUG_SCHEDULE_LABELS,
 } from "@/constants";
 
@@ -191,7 +191,7 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.entries(DOSAGE_FORMS).map(([key, value]) => (
+                      {Object.entries(DOSAGE_FORM).map(([key, value]) => (
                         <SelectItem key={key} value={value}>
                           {DOSAGE_FORM_LABELS[value]}
                         </SelectItem>
@@ -230,7 +230,7 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {Object.entries(DRUG_SCHEDULES).map(([key, value]) => (
+                      {Object.entries(DRUG_SCHEDULE).map(([key, value]) => (
                         <SelectItem key={key} value={value}>
                           {DRUG_SCHEDULE_LABELS[value]}
                         </SelectItem>

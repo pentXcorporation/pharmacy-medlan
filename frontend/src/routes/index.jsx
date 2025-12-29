@@ -39,6 +39,58 @@ const SupplierFormPage = lazy(() =>
   import("@/pages/suppliers/SupplierFormPage")
 );
 
+// Users Pages
+const UsersPage = lazy(() => import("@/pages/users/UsersPage"));
+const UserFormPage = lazy(() => import("@/pages/users/UserFormPage"));
+
+// Branches Pages
+const BranchesPage = lazy(() => import("@/pages/branches/BranchesPage"));
+const BranchFormPage = lazy(() => import("@/pages/branches/BranchFormPage"));
+
+// Purchase Orders Pages
+const PurchaseOrdersPage = lazy(() =>
+  import("@/pages/purchase-orders/PurchaseOrdersPage")
+);
+const PurchaseOrderFormPage = lazy(() =>
+  import("@/pages/purchase-orders/PurchaseOrderFormPage")
+);
+const PurchaseOrderViewPage = lazy(() =>
+  import("@/pages/purchase-orders/PurchaseOrderViewPage")
+);
+
+// GRN Pages
+const GRNListPage = lazy(() => import("@/pages/grn/GRNListPage"));
+const GRNFormPage = lazy(() => import("@/pages/grn/GRNFormPage"));
+const GRNViewPage = lazy(() => import("@/pages/grn/GRNViewPage"));
+
+// Reports Pages
+const ReportsPage = lazy(() => import("@/pages/reports/ReportsPage"));
+const SalesReportPage = lazy(() => import("@/pages/reports/SalesReportPage"));
+const InventoryReportPage = lazy(() =>
+  import("@/pages/reports/InventoryReportPage")
+);
+const FinancialReportPage = lazy(() =>
+  import("@/pages/reports/FinancialReportPage")
+);
+
+// Settings Pages
+const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
+
+// POS/Sales Pages
+const POSPage = lazy(() => import("@/pages/pos/POSPage"));
+const SalesHistoryPage = lazy(() => import("@/pages/sales/SalesHistoryPage"));
+const SaleViewPage = lazy(() => import("@/pages/sales/SaleViewPage"));
+const SaleReturnsPage = lazy(() => import("@/pages/sales/SaleReturnsPage"));
+const SaleReturnFormPage = lazy(() =>
+  import("@/pages/sales/SaleReturnFormPage")
+);
+
+// Finance Pages
+const FinancePage = lazy(() => import("@/pages/finance/FinancePage"));
+
+// Employees Pages
+const EmployeesPage = lazy(() => import("@/pages/employees/EmployeesPage"));
+
 // Placeholder for pages not yet implemented
 const PlaceholderPage = ({ title }) => (
   <div className="flex flex-col items-center justify-center min-h-[400px] text-center">
@@ -102,21 +154,177 @@ const router = createBrowserRouter([
           <RoleGuard
             allowedRoles={[
               ROLES.SUPER_ADMIN,
-              ROLES.OWNER,
-              ROLES.BRANCH_ADMIN,
+              ROLES.ADMIN,
+              ROLES.BRANCH_MANAGER,
               ROLES.PHARMACIST,
               ROLES.CASHIER,
             ]}
           >
-            <PlaceholderPage title="Point of Sale" />
+            <SuspenseWrapper>
+              <POSPage />
+            </SuspenseWrapper>
           </RoleGuard>
         ),
       },
       {
         path: ROUTES.POS.NEW_SALE,
         element: (
-          <RoleGuard feature="pos" action="create">
-            <PlaceholderPage title="New Sale" />
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.ADMIN,
+              ROLES.BRANCH_MANAGER,
+              ROLES.PHARMACIST,
+              ROLES.CASHIER,
+            ]}
+          >
+            <SuspenseWrapper>
+              <POSPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.POS.HELD_SALES,
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.ADMIN,
+              ROLES.BRANCH_MANAGER,
+              ROLES.PHARMACIST,
+              ROLES.CASHIER,
+            ]}
+          >
+            <SuspenseWrapper>
+              <POSPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.POS.HISTORY,
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.ADMIN,
+              ROLES.BRANCH_MANAGER,
+              ROLES.PHARMACIST,
+              ROLES.CASHIER,
+            ]}
+          >
+            <SuspenseWrapper>
+              <SalesHistoryPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.POS.RETURNS,
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.ADMIN,
+              ROLES.BRANCH_MANAGER,
+              ROLES.PHARMACIST,
+            ]}
+          >
+            <SuspenseWrapper>
+              <SaleReturnsPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+
+      // Sales Routes
+      {
+        path: ROUTES.SALES.LIST,
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.OWNER,
+              ROLES.BRANCH_ADMIN,
+              ROLES.PHARMACIST,
+              ROLES.CASHIER,
+            ]}
+          >
+            <SuspenseWrapper>
+              <SalesHistoryPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.SALES.VIEW(":id"),
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.OWNER,
+              ROLES.BRANCH_ADMIN,
+              ROLES.PHARMACIST,
+              ROLES.CASHIER,
+            ]}
+          >
+            <SuspenseWrapper>
+              <SaleViewPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+
+      // Sale Returns Routes
+      {
+        path: ROUTES.SALE_RETURNS.LIST,
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.ADMIN,
+              ROLES.BRANCH_MANAGER,
+              ROLES.PHARMACIST,
+            ]}
+          >
+            <SuspenseWrapper>
+              <SaleReturnsPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.SALE_RETURNS.CREATE,
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.ADMIN,
+              ROLES.BRANCH_MANAGER,
+              ROLES.PHARMACIST,
+            ]}
+          >
+            <SuspenseWrapper>
+              <SaleReturnFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.SALE_RETURNS.VIEW(":id"),
+        element: (
+          <RoleGuard
+            allowedRoles={[
+              ROLES.SUPER_ADMIN,
+              ROLES.ADMIN,
+              ROLES.BRANCH_MANAGER,
+              ROLES.PHARMACIST,
+            ]}
+          >
+            <SuspenseWrapper>
+              <SaleReturnFormPage />
+            </SuspenseWrapper>
           </RoleGuard>
         ),
       },
@@ -270,7 +478,9 @@ const router = createBrowserRouter([
           <RoleGuard
             allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
           >
-            <PlaceholderPage title="Finance" />
+            <SuspenseWrapper>
+              <FinancePage />
+            </SuspenseWrapper>
           </RoleGuard>
         ),
       },
@@ -287,7 +497,41 @@ const router = createBrowserRouter([
               ROLES.ACCOUNTANT,
             ]}
           >
-            <PlaceholderPage title="Reports" />
+            <SuspenseWrapper>
+              <ReportsPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.REPORTS.SALES,
+        element: (
+          <RoleGuard feature="reports" action="view">
+            <SuspenseWrapper>
+              <SalesReportPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.REPORTS.INVENTORY,
+        element: (
+          <RoleGuard feature="reports" action="view">
+            <SuspenseWrapper>
+              <InventoryReportPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.REPORTS.FINANCIAL,
+        element: (
+          <RoleGuard
+            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+          >
+            <SuspenseWrapper>
+              <FinancialReportPage />
+            </SuspenseWrapper>
           </RoleGuard>
         ),
       },
@@ -295,11 +539,17 @@ const router = createBrowserRouter([
       // Employees Routes
       {
         path: ROUTES.EMPLOYEES.ROOT,
+        element: <Navigate to={ROUTES.EMPLOYEES.LIST} replace />,
+      },
+      {
+        path: ROUTES.EMPLOYEES.LIST,
         element: (
           <RoleGuard
             allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
           >
-            <PlaceholderPage title="Employees" />
+            <SuspenseWrapper>
+              <EmployeesPage />
+            </SuspenseWrapper>
           </RoleGuard>
         ),
       },
@@ -307,9 +557,35 @@ const router = createBrowserRouter([
       // Branches Routes
       {
         path: ROUTES.BRANCHES.ROOT,
+        element: <Navigate to={ROUTES.BRANCHES.LIST} replace />,
+      },
+      {
+        path: ROUTES.BRANCHES.LIST,
         element: (
           <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
-            <PlaceholderPage title="Branches" />
+            <SuspenseWrapper>
+              <BranchesPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.BRANCHES.NEW,
+        element: (
+          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+            <SuspenseWrapper>
+              <BranchFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.BRANCHES.EDIT(":id"),
+        element: (
+          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+            <SuspenseWrapper>
+              <BranchFormPage />
+            </SuspenseWrapper>
           </RoleGuard>
         ),
       },
@@ -317,9 +593,117 @@ const router = createBrowserRouter([
       // Users Routes (Super Admin only)
       {
         path: ROUTES.USERS.ROOT,
+        element: <Navigate to={ROUTES.USERS.LIST} replace />,
+      },
+      {
+        path: ROUTES.USERS.LIST,
+        element: (
+          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+            <SuspenseWrapper>
+              <UsersPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.USERS.NEW,
         element: (
           <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN]}>
-            <PlaceholderPage title="Users" />
+            <SuspenseWrapper>
+              <UserFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.USERS.EDIT(":id"),
+        element: (
+          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+            <SuspenseWrapper>
+              <UserFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+
+      // Purchase Orders Routes
+      {
+        path: ROUTES.PURCHASE_ORDERS.ROOT,
+        element: <Navigate to={ROUTES.PURCHASE_ORDERS.LIST} replace />,
+      },
+      {
+        path: ROUTES.PURCHASE_ORDERS.LIST,
+        element: (
+          <RoleGuard feature="purchaseOrders" action="view">
+            <SuspenseWrapper>
+              <PurchaseOrdersPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.PURCHASE_ORDERS.NEW,
+        element: (
+          <RoleGuard feature="purchaseOrders" action="create">
+            <SuspenseWrapper>
+              <PurchaseOrderFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.PURCHASE_ORDERS.EDIT(":id"),
+        element: (
+          <RoleGuard feature="purchaseOrders" action="update">
+            <SuspenseWrapper>
+              <PurchaseOrderFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.PURCHASE_ORDERS.VIEW(":id"),
+        element: (
+          <RoleGuard feature="purchaseOrders" action="view">
+            <SuspenseWrapper>
+              <PurchaseOrderViewPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+
+      // GRN Routes
+      {
+        path: ROUTES.GRN.ROOT,
+        element: <Navigate to={ROUTES.GRN.LIST} replace />,
+      },
+      {
+        path: ROUTES.GRN.LIST,
+        element: (
+          <RoleGuard feature="grn" action="view">
+            <SuspenseWrapper>
+              <GRNListPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.GRN.CREATE,
+        element: (
+          <RoleGuard feature="grn" action="create">
+            <SuspenseWrapper>
+              <GRNFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.GRN.VIEW(":id"),
+        element: (
+          <RoleGuard feature="grn" action="view">
+            <SuspenseWrapper>
+              <GRNViewPage />
+            </SuspenseWrapper>
           </RoleGuard>
         ),
       },
@@ -327,7 +711,11 @@ const router = createBrowserRouter([
       // Settings Routes
       {
         path: ROUTES.SETTINGS.ROOT,
-        element: <PlaceholderPage title="Settings" />,
+        element: (
+          <SuspenseWrapper>
+            <SettingsPage />
+          </SuspenseWrapper>
+        ),
       },
 
       // Catch-all redirect to dashboard

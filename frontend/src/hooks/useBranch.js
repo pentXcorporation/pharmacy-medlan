@@ -28,7 +28,7 @@ export const useBranch = () => {
   /**
    * Fetch branches from API
    */
-  const branchesQuery = useApiQuery("branches", API_ENDPOINTS.BRANCHES.LIST, {
+  const branchesQuery = useApiQuery("branches", API_ENDPOINTS.BRANCHES.ALL, {
     enabled: !!user,
     onSuccess: (data) => {
       const branchList = data?.content || data || [];

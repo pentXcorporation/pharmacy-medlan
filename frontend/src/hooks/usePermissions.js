@@ -114,7 +114,7 @@ export const usePermissions = () => {
    * Check if user is owner or above
    */
   const isOwnerOrAbove = useMemo(
-    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER]),
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.ADMIN]),
     [hasAnyRole]
   );
 
@@ -122,7 +122,7 @@ export const usePermissions = () => {
    * Check if user is branch admin or above
    */
   const isBranchAdminOrAbove = useMemo(
-    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]),
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.BRANCH_MANAGER]),
     [hasAnyRole]
   );
 
@@ -133,8 +133,8 @@ export const usePermissions = () => {
     () =>
       hasAnyRole([
         ROLES.SUPER_ADMIN,
-        ROLES.OWNER,
-        ROLES.BRANCH_ADMIN,
+        ROLES.ADMIN,
+        ROLES.BRANCH_MANAGER,
         ROLES.PHARMACIST,
         ROLES.CASHIER,
       ]),
@@ -148,8 +148,8 @@ export const usePermissions = () => {
     () =>
       hasAnyRole([
         ROLES.SUPER_ADMIN,
-        ROLES.OWNER,
-        ROLES.BRANCH_ADMIN,
+        ROLES.ADMIN,
+        ROLES.BRANCH_MANAGER,
         ROLES.PHARMACIST,
         ROLES.INVENTORY_MANAGER,
       ]),
@@ -160,7 +160,7 @@ export const usePermissions = () => {
    * Check if user can access finance
    */
   const canAccessFinance = useMemo(
-    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]),
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.ACCOUNTANT]),
     [hasAnyRole]
   );
 
@@ -171,8 +171,8 @@ export const usePermissions = () => {
     () =>
       hasAnyRole([
         ROLES.SUPER_ADMIN,
-        ROLES.OWNER,
-        ROLES.BRANCH_ADMIN,
+        ROLES.ADMIN,
+        ROLES.BRANCH_MANAGER,
         ROLES.ACCOUNTANT,
       ]),
     [hasAnyRole]
@@ -182,7 +182,7 @@ export const usePermissions = () => {
    * Check if user can manage employees
    */
   const canManageEmployees = useMemo(
-    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]),
+    () => hasAnyRole([ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.BRANCH_MANAGER]),
     [hasAnyRole]
   );
 
@@ -193,8 +193,8 @@ export const usePermissions = () => {
     () =>
       hasAnyRole([
         ROLES.SUPER_ADMIN,
-        ROLES.OWNER,
-        ROLES.BRANCH_ADMIN,
+        ROLES.ADMIN,
+        ROLES.BRANCH_MANAGER,
         ROLES.PHARMACIST,
       ]),
     [hasAnyRole]

@@ -13,17 +13,18 @@ import { API_ENDPOINTS } from "@/config";
  */
 export const useDashboardStats = () => {
   const { selectedBranch } = useBranchStore();
-  const { isSuperAdmin, isOwnerOrAbove } = usePermissions();
 
-  // Use branch-specific or global endpoint based on role
-  const endpoint = isOwnerOrAbove
-    ? API_ENDPOINTS.DASHBOARD.STATS
-    : `${API_ENDPOINTS.DASHBOARD.STATS}?branchId=${selectedBranch?.id}`;
-
-  return useApiQuery(["dashboard-stats", selectedBranch?.id], endpoint, {
-    enabled: !!selectedBranch?.id || isOwnerOrAbove,
-    staleTime: 60 * 1000, // 1 minute
-  });
+  return useApiQuery(
+    ["dashboard-stats", selectedBranch?.id],
+    API_ENDPOINTS.DASHBOARD.STATS,
+    {
+      params: {
+        branchId: selectedBranch?.id,
+      },
+      enabled: !!selectedBranch?.id,
+      staleTime: 60 * 1000, // 1 minute
+    }
+  );
 };
 
 /**
@@ -34,10 +35,11 @@ export const useRecentSales = (limit = 10) => {
 
   return useApiQuery(
     ["recent-sales", selectedBranch?.id, limit],
-    API_ENDPOINTS.SALES.LIST,
+    selectedBranch?.id
+      ? API_ENDPOINTS.SALES.BY_BRANCH(selectedBranch.id)
+      : null,
     {
       params: {
-        branchId: selectedBranch?.id,
         size: limit,
         sort: "createdAt,desc",
       },
@@ -54,10 +56,11 @@ export const useLowStockAlerts = (limit = 10) => {
 
   return useApiQuery(
     ["low-stock", selectedBranch?.id, limit],
-    API_ENDPOINTS.INVENTORY.LOW_STOCK,
+    selectedBranch?.id
+      ? API_ENDPOINTS.INVENTORY.LOW_STOCK(selectedBranch.id)
+      : null,
     {
       params: {
-        branchId: selectedBranch?.id,
         size: limit,
       },
       enabled: !!selectedBranch?.id,
@@ -71,14 +74,19 @@ export const useLowStockAlerts = (limit = 10) => {
 export const useExpiringProducts = (days = 30, limit = 10) => {
   const { selectedBranch } = useBranchStore();
 
+  // Calculate alert date (today + days)
+  const alertDate = new Date();
+  alertDate.setDate(alertDate.getDate() + days);
+  const alertDateStr = alertDate.toISOString().split("T")[0];
+
   return useApiQuery(
     ["expiring-products", selectedBranch?.id, days, limit],
-    API_ENDPOINTS.INVENTORY.EXPIRING,
+    selectedBranch?.id
+      ? API_ENDPOINTS.INVENTORY.EXPIRING(selectedBranch.id)
+      : null,
     {
       params: {
-        branchId: selectedBranch?.id,
-        days,
-        size: limit,
+        alertDate: alertDateStr,
       },
       enabled: !!selectedBranch?.id,
     }

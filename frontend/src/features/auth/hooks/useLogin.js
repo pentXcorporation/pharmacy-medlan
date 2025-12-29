@@ -24,19 +24,27 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: async (credentials) => {
       const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, credentials);
-      return response.data;
+      // Backend returns: { success, message, data: { accessToken, refreshToken, userId, username, ... } }
+      return response.data.data; // Extract the actual login data from ApiResponse wrapper
     },
     onSuccess: (data) => {
+      // Build user object from response fields
+      const user = {
+        id: data.userId,
+        username: data.username,
+        fullName: data.fullName,
+        email: data.email,
+        role: data.role,
+      };
+
       // Set auth state
       setAuth({
-        user: data.user,
+        user,
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
       });
 
-      toast.success(
-        `Welcome back, ${data.user.firstName || data.user.username}!`
-      );
+      toast.success(`Welcome back, ${user.fullName || user.username}!`);
 
       // Navigate to intended destination
       navigate(from, { replace: true });
