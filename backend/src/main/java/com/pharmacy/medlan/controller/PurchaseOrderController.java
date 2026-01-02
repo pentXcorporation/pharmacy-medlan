@@ -30,7 +30,7 @@ public class PurchaseOrderController {
     private final PurchaseOrderService purchaseOrderService;
 
     @PostMapping
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'PHARMACIST')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER', 'PHARMACIST')")
     @Operation(summary = "Create purchase order", description = "Create a new purchase order")
     public ResponseEntity<PurchaseOrderResponse> createPurchaseOrder(
             @Valid @RequestBody CreatePurchaseOrderRequest request) {
@@ -95,7 +95,7 @@ public class PurchaseOrderController {
     }
 
     @PutMapping("/{id}/status")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER')")
     @Operation(summary = "Update purchase order status", description = "Update the status of a purchase order")
     public ResponseEntity<PurchaseOrderResponse> updateStatus(
             @PathVariable Long id,
@@ -104,14 +104,14 @@ public class PurchaseOrderController {
     }
 
     @PostMapping("/{id}/approve")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER')")
     @Operation(summary = "Approve purchase order", description = "Approve a purchase order")
     public ResponseEntity<PurchaseOrderResponse> approvePurchaseOrder(@PathVariable Long id) {
         return ResponseEntity.ok(purchaseOrderService.approvePurchaseOrder(id));
     }
 
     @PostMapping("/{id}/reject")
-    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN', 'MANAGER')")
     @Operation(summary = "Reject purchase order", description = "Reject a purchase order")
     public ResponseEntity<PurchaseOrderResponse> rejectPurchaseOrder(
             @PathVariable Long id,
@@ -120,7 +120,7 @@ public class PurchaseOrderController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('SUPER_ADMIN', 'ADMIN')")
     @Operation(summary = "Delete purchase order", description = "Delete a draft purchase order (admin only)")
     public ResponseEntity<Void> deletePurchaseOrder(@PathVariable Long id) {
         purchaseOrderService.deletePurchaseOrder(id);

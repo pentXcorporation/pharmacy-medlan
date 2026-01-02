@@ -3,13 +3,15 @@
  * Displays cart totals and checkout controls
  */
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import {
   Percent,
   DollarSign,
   CreditCard,
   Banknote,
   QrCode,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,17 +25,20 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { formatCurrency } from "@/utils/formatters";
 import { usePOSStore } from "../store";
 import { ButtonSpinner } from "@/components/common";
+import { PAYMENT_METHOD } from "@/constants/paymentMethods";
 
 const paymentMethods = [
-  { value: "CASH", label: "Cash", icon: Banknote },
-  { value: "CARD", label: "Card", icon: CreditCard },
-  { value: "QR", label: "QR Payment", icon: QrCode },
+  { value: PAYMENT_METHOD.CASH, label: "Cash", icon: Banknote },
+  { value: PAYMENT_METHOD.CARD, label: "Card", icon: CreditCard },
+  { value: PAYMENT_METHOD.UPI, label: "UPI / QR", icon: QrCode },
 ];
 
-const POSTotals = ({ onCheckout, isProcessing }) => {
+const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
   const items = usePOSStore((state) => state.items);
   const customer = usePOSStore((state) => state.customer);
   const discount = usePOSStore((state) => state.discount);
@@ -55,6 +60,49 @@ const POSTotals = ({ onCheckout, isProcessing }) => {
   const [discountType, setDiscountType] = useState(discount.type);
   const [discountValue, setDiscountValue] = useState(discount.value);
 
+  // Check for special product requirements and warnings
+  const cartWarnings = useMemo(() => {
+    const warnings = {
+      prescriptionRequired: false,
+      narcoticPresent: false,
+      refrigeratedItems: false,
+      expiringItems: [],
+      lowStockItems: [],
+    };
+
+    const today = new Date();
+    const thirtyDaysFromNow = new Date(today);
+    thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+    items.forEach((item) => {
+      if (item.isPrescriptionRequired) warnings.prescriptionRequired = true;
+      if (item.isNarcotic) warnings.narcoticPresent = true;
+      if (item.isRefrigerated) warnings.refrigeratedItems = true;
+
+      // Check expiry date
+      if (item.expiryDate) {
+        const expiryDate = new Date(item.expiryDate);
+        if (expiryDate < thirtyDaysFromNow) {
+          warnings.expiringItems.push({
+            name: item.productName,
+            expiryDate: item.expiryDate,
+            isExpired: expiryDate < today,
+          });
+        }
+      }
+
+      // Check low stock
+      if (item.maxQuantity <= 10) {
+        warnings.lowStockItems.push({
+          name: item.productName,
+          stock: item.maxQuantity,
+        });
+      }
+    });
+
+    return warnings;
+  }, [items]);
+
   const handleDiscountChange = (value) => {
     setDiscountValue(value);
     setDiscount({ type: discountType, value: parseFloat(value) || 0 });
@@ -66,14 +114,23 @@ const POSTotals = ({ onCheckout, isProcessing }) => {
   };
 
   const handleCheckout = () => {
-    if (payment.method === "CASH" && payment.amountTendered < grandTotal) {
+    if (payment.method === PAYMENT_METHOD.CASH && payment.amountTendered < grandTotal) {
       return; // Not enough cash
     }
+    
+    // For non-cash payments, ensure amountTendered equals grandTotal
+    const finalPayment = {
+      ...payment,
+      amountTendered: payment.method === PAYMENT_METHOD.CASH 
+        ? payment.amountTendered 
+        : grandTotal
+    };
+    
     onCheckout?.({
       items,
       customer,
       discount,
-      payment,
+      payment: finalPayment,
       subtotal,
       taxTotal,
       grandTotal,
@@ -87,6 +144,69 @@ const POSTotals = ({ onCheckout, isProcessing }) => {
   return (
     <Card>
       <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+        {/* Branch Warning */}
+        {!hasBranch && (
+          <Alert variant="destructive" className="py-2">
+            <AlertTriangle className="h-4 w-4" />
+            <AlertDescription className="text-xs">
+              ⚠️ No branch selected. Please select a branch from settings to complete sales.
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {/* Warnings Section */}
+        {(cartWarnings.prescriptionRequired ||
+          cartWarnings.narcoticPresent ||
+          cartWarnings.refrigeratedItems ||
+          cartWarnings.expiringItems.length > 0 ||
+          cartWarnings.lowStockItems.length > 0) && (
+          <div className="space-y-2">
+            {cartWarnings.prescriptionRequired && (
+              <Alert variant="destructive" className="py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  ℞ Prescription required for some items
+                </AlertDescription>
+              </Alert>
+            )}
+            {cartWarnings.narcoticPresent && (
+              <Alert variant="destructive" className="py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  Narcotic/Schedule X drug in cart - requires documentation
+                </AlertDescription>
+              </Alert>
+            )}
+            {cartWarnings.refrigeratedItems && (
+              <Alert className="py-2">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  ❄️ Cold storage items - handle with care
+                </AlertDescription>
+              </Alert>
+            )}
+            {cartWarnings.expiringItems.length > 0 && (
+              <Alert variant="warning" className="py-2">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  {cartWarnings.expiringItems.some((i) => i.isExpired)
+                    ? "⚠️ EXPIRED products in cart!"
+                    : `⏰ ${cartWarnings.expiringItems.length} item(s) expiring within 30 days`}
+                </AlertDescription>
+              </Alert>
+            )}
+            {cartWarnings.lowStockItems.length > 0 && (
+              <Alert variant="warning" className="py-2">
+                <Info className="h-4 w-4" />
+                <AlertDescription className="text-xs">
+                  📦 Low stock: {cartWarnings.lowStockItems.length} item(s)
+                </AlertDescription>
+              </Alert>
+            )}
+            <Separator />
+          </div>
+        )}
+
         {/* Totals */}
         <div className="space-y-2">
           <div className="flex justify-between text-xs sm:text-sm">
@@ -180,7 +300,7 @@ const POSTotals = ({ onCheckout, isProcessing }) => {
         </div>
 
         {/* Cash Tendered */}
-        {payment.method === "CASH" && (
+        {payment.method === PAYMENT_METHOD.CASH && (
           <div className="space-y-2">
             <Label className="text-sm">Amount Tendered</Label>
             <Input
@@ -202,7 +322,7 @@ const POSTotals = ({ onCheckout, isProcessing }) => {
         )}
 
         {/* Card Reference */}
-        {payment.method === "CARD" && (
+        {payment.method === PAYMENT_METHOD.CARD && (
           <div className="space-y-2">
             <Label className="text-sm">Card Reference / Last 4 Digits</Label>
             <Input
@@ -238,9 +358,10 @@ const POSTotals = ({ onCheckout, isProcessing }) => {
           className="w-full h-12 sm:h-14 text-base sm:text-lg"
           onClick={handleCheckout}
           disabled={
+            !hasBranch ||
             items.length === 0 ||
             isProcessing ||
-            (payment.method === "CASH" && payment.amountTendered < grandTotal)
+            (payment.method === PAYMENT_METHOD.CASH && payment.amountTendered < grandTotal)
           }
         >
           {isProcessing && <ButtonSpinner />}

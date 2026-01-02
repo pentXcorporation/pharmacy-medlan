@@ -35,9 +35,11 @@ import {
   useRejectPurchaseOrder,
   getPurchaseOrderColumns,
 } from "@/features/purchase-orders";
+import { usePermissions } from "@/hooks";
 
 const PurchaseOrdersPage = () => {
   const navigate = useNavigate();
+  const { hasPermission } = usePermissions();
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [deleteDialog, setDeleteDialog] = useState({ open: false, po: null });
@@ -62,6 +64,11 @@ const PurchaseOrdersPage = () => {
   const submitMutation = useSubmitPurchaseOrder();
   const approveMutation = useApprovePurchaseOrder();
   const rejectMutation = useRejectPurchaseOrder();
+
+  // Debug: Log purchase orders data
+  console.log('PO Page - Raw data:', posData);
+  console.log('PO Page - Is loading:', isLoading);
+  console.log('PO Page - Content:', posData?.content);
 
   const purchaseOrders = posData?.content || posData || [];
 
@@ -141,6 +148,7 @@ const PurchaseOrdersPage = () => {
         onApprove: handleApprove,
         onReject: handleRejectClick,
         onReceive: handleReceive,
+        hasPermission,
       }),
     [
       handleView,
@@ -150,6 +158,7 @@ const PurchaseOrdersPage = () => {
       handleApprove,
       handleRejectClick,
       handleReceive,
+      hasPermission,
     ]
   );
 
@@ -182,7 +191,7 @@ const PurchaseOrdersPage = () => {
           <SelectContent>
             <SelectItem value="all">All Status</SelectItem>
             <SelectItem value="DRAFT">Draft</SelectItem>
-            <SelectItem value="PENDING">Pending Approval</SelectItem>
+            <SelectItem value="PENDING_APPROVAL">Pending Approval</SelectItem>
             <SelectItem value="APPROVED">Approved</SelectItem>
             <SelectItem value="REJECTED">Rejected</SelectItem>
             <SelectItem value="ORDERED">Ordered</SelectItem>

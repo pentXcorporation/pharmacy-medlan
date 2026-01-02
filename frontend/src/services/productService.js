@@ -81,6 +81,38 @@ export const productService = {
   discontinue: (id) => {
     return api.patch(API_ENDPOINTS.PRODUCTS.DISCONTINUE(id));
   },
+
+  /**
+   * Export products to CSV
+   */
+  export: (params = {}) => {
+    return api.get(API_ENDPOINTS.PRODUCTS.EXPORT, {
+      params,
+      responseType: "blob", // Important for file download
+    });
+  },
+
+  /**
+   * Import products from CSV file
+   */
+  import: (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return api.post(API_ENDPOINTS.PRODUCTS.IMPORT, formData, {
+      headers: {
+        "Content-Type": "multipart/form-data",
+      },
+    });
+  },
+
+  /**
+   * Download import template
+   */
+  downloadTemplate: () => {
+    return api.get(API_ENDPOINTS.PRODUCTS.TEMPLATE, {
+      responseType: "blob",
+    });
+  },
 };
 
 export default productService;

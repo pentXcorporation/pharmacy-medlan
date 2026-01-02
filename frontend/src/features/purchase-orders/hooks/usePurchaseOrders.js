@@ -24,6 +24,7 @@ export const usePurchaseOrders = (params = {}, options = {}) => {
   return useQuery({
     queryKey: purchaseOrderKeys.list(params),
     queryFn: () => purchaseOrderService.getAll(params),
+    select: (response) => response.data?.data || response.data || response,
     ...options,
   });
 };
@@ -35,6 +36,16 @@ export const usePendingPurchaseOrders = (options = {}) => {
   return useQuery({
     queryKey: purchaseOrderKeys.pending(),
     queryFn: () => purchaseOrderService.getPending(),
+    select: (response) => {
+      // Extract data from nested response structure
+      const data = response.data?.data || response.data || response;
+      // If it's paginated, get the content array, otherwise return as-is
+      const items = data?.content || data || [];
+      console.log('usePendingPurchaseOrders - Raw response:', response);
+      console.log('usePendingPurchaseOrders - Extracted data:', data);
+      console.log('usePendingPurchaseOrders - Items:', items);
+      return items;
+    },
     ...options,
   });
 };
@@ -46,6 +57,7 @@ export const usePurchaseOrder = (id, options = {}) => {
   return useQuery({
     queryKey: purchaseOrderKeys.detail(id),
     queryFn: () => purchaseOrderService.getById(id),
+    select: (response) => response.data?.data || response.data || response,
     enabled: Boolean(id),
     ...options,
   });

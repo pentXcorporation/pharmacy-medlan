@@ -28,7 +28,7 @@ import { formatDate, formatCurrency } from "@/utils/formatters";
 // Status badge configuration
 const statusConfig = {
   DRAFT: { label: "Draft", variant: "secondary" },
-  PENDING: { label: "Pending", variant: "warning" },
+  PENDING_APPROVAL: { label: "Pending", variant: "warning" },
   APPROVED: { label: "Approved", variant: "default" },
   REJECTED: { label: "Rejected", variant: "destructive" },
   ORDERED: { label: "Ordered", variant: "outline" },
@@ -49,6 +49,7 @@ export const getPurchaseOrderColumns = ({
   onReject,
   onReceive,
   currentUserRole,
+  hasPermission,
 } = {}) => [
   {
     id: "select",
@@ -148,11 +149,13 @@ export const getPurchaseOrderColumns = ({
       const po = row.original;
       const status = po.status;
 
-      const canEdit = status === "DRAFT";
-      const canSubmit = status === "DRAFT";
-      const canApprove = status === "PENDING";
-      const canReceive = status === "APPROVED" || status === "ORDERED";
-      const canDelete = status === "DRAFT";
+      // Combine status checks with permission checks
+      const canEdit = status === "DRAFT" && (!hasPermission || hasPermission("purchaseOrders", "edit"));
+      const canSubmit = status === "DRAFT" && (!hasPermission || hasPermission("purchaseOrders", "edit"));
+      const canApprove = status === "PENDING_APPROVAL" && (!hasPermission || hasPermission("purchaseOrders", "approve"));
+      const canReject = status === "PENDING_APPROVAL" && (!hasPermission || hasPermission("purchaseOrders", "reject"));
+      const canReceive = (status === "APPROVED" || status === "ORDERED") && (!hasPermission || hasPermission("grn", "create"));
+      const canDelete = status === "DRAFT" && (!hasPermission || hasPermission("purchaseOrders", "delete"));
 
       return (
         <DropdownMenu>
@@ -186,11 +189,13 @@ export const getPurchaseOrderColumns = ({
                   <CheckCircle className="mr-2 h-4 w-4" />
                   Approve
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => onReject?.(po)}>
-                  <XCircle className="mr-2 h-4 w-4" />
-                  Reject
-                </DropdownMenuItem>
               </>
+            )}
+            {canReject && (
+              <DropdownMenuItem onClick={() => onReject?.(po)}>
+                <XCircle className="mr-2 h-4 w-4" />
+                Reject
+              </DropdownMenuItem>
             )}
             {canReceive && (
               <DropdownMenuItem onClick={() => onReceive?.(po)}>

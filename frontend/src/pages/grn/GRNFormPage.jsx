@@ -38,12 +38,19 @@ const GRNFormPage = () => {
 
   const createMutation = useCreateGRN();
 
+  // Debug: Log the pending POs data
+  console.log('GRN Form - Pending POs:', pendingPOs);
+  console.log('GRN Form - Is loading POs:', isLoadingPOs);
+
   const approvedPOs = (pendingPOs || []).filter(
     (po) =>
       po.status === "APPROVED" ||
       po.status === "ORDERED" ||
       po.status === "PARTIALLY_RECEIVED"
   );
+
+  console.log('GRN Form - Approved POs after filter:', approvedPOs);
+  console.log('GRN Form - Approved POs count:', approvedPOs.length);
 
   // Set selected PO from URL
   useEffect(() => {
@@ -54,7 +61,41 @@ const GRNFormPage = () => {
 
   // Handle form submission
   const handleSubmit = (data) => {
-    createMutation.mutate(data, {
+    console.log('GRN Form - Submitting data:', JSON.stringify(data, null, 2));
+    
+    // Validate that all items have received quantity > 0
+    const hasInvalidQuantity = data.items.some(item => !item.receivedQuantity || item.receivedQuantity <= 0);
+    if (hasInvalidQuantity) {
+      console.error('GRN Form - Some items have invalid quantity');
+      return;
+    }
+    
+    // Transform form data to match backend API
+    const apiData = {
+      supplierId: selectedPO?.supplier?.id || selectedPO?.supplierId,
+      branchId: selectedPO?.branch?.id || selectedPO?.branchId,
+      purchaseOrderId: parseInt(data.purchaseOrderId),
+      receivedDate: data.receivedDate,
+      supplierInvoiceNumber: data.invoiceNumber || null,
+      supplierInvoiceDate: data.invoiceDate || null,
+      remarks: data.notes || null,
+      items: data.items
+        .filter(item => item.receivedQuantity > 0) // Only include items with quantity > 0
+        .map(item => ({
+          productId: parseInt(item.productId),
+          batchNumber: item.batchNumber || 'BATCH-' + Date.now(),
+          quantity: parseInt(item.receivedQuantity),
+          costPrice: parseFloat(item.unitPrice),
+          sellingPrice: parseFloat(item.unitPrice * 1.2), // 20% markup, should come from product
+          manufacturingDate: null,
+          expiryDate: item.expiryDate,
+          discountAmount: 0,
+        }))
+    };
+    
+    console.log('GRN Form - Transformed API data:', JSON.stringify(apiData, null, 2));
+    
+    createMutation.mutate(apiData, {
       onSuccess: () => navigate(ROUTES.GRN.ROOT),
     });
   };

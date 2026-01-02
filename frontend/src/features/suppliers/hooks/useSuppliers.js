@@ -25,6 +25,7 @@ export const useSuppliers = (params = {}, options = {}) => {
   return useQuery({
     queryKey: supplierKeys.list(params),
     queryFn: () => supplierService.getAll(params),
+    select: (response) => response.data?.data, // Extract data from ApiResponse
     ...options,
   });
 };
@@ -36,7 +37,7 @@ export const useActiveSuppliers = (options = {}) => {
   return useQuery({
     queryKey: supplierKeys.active(),
     queryFn: () => supplierService.getAll({ isActive: true, size: 1000 }),
-    select: (data) => data?.content || [],
+    select: (response) => response.data?.data?.content || [], // Extract content array from PageResponse
     staleTime: 5 * 60 * 1000,
     ...options,
   });
@@ -49,6 +50,7 @@ export const useSupplier = (id, options = {}) => {
   return useQuery({
     queryKey: supplierKeys.detail(id),
     queryFn: () => supplierService.getById(id),
+    select: (response) => response.data?.data, // Extract data from ApiResponse
     enabled: Boolean(id),
     ...options,
   });
@@ -61,6 +63,7 @@ export const useSupplierSearch = (query, options = {}) => {
   return useQuery({
     queryKey: supplierKeys.search(query),
     queryFn: () => supplierService.search(query),
+    select: (response) => response.data?.data, // Extract data from ApiResponse
     enabled: Boolean(query) && query.length >= 2,
     ...options,
   });

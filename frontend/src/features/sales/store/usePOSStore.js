@@ -43,22 +43,34 @@ const usePOSStore = create(
           updated[existingIndex].quantity += quantity;
           set({ items: updated });
         } else {
-          // Add new item
+          // Add new item with comprehensive product information
           set({
             items: [
               ...items,
               {
                 productId: product.id,
                 batchId: product.batchId,
-                productName: product.name,
-                sku: product.sku,
+                productName: product.name || product.productName,
+                productCode: product.productCode || product.sku,
+                sku: product.sku || product.productCode,
                 barcode: product.barcode,
-                unitPrice: product.sellingPrice || product.unitPrice,
+                genericName: product.genericName,
+                manufacturer: product.manufacturer,
+                strength: product.strength,
+                dosageForm: product.dosageForm,
+                drugSchedule: product.drugSchedule,
+                batchNumber: product.batchNumber,
+                expiryDate: product.expiryDate,
+                unitPrice: product.sellingPrice || product.unitPrice || product.price,
                 costPrice: product.costPrice,
+                mrp: product.mrp,
                 quantity,
-                maxQuantity: product.stockQuantity || 999,
+                maxQuantity: product.stockQuantity || product.quantity || 999,
                 discount: 0,
-                taxRate: product.taxRate || 0,
+                taxRate: product.taxRate || product.gstRate || 0,
+                isPrescriptionRequired: product.isPrescriptionRequired,
+                isNarcotic: product.isNarcotic,
+                isRefrigerated: product.isRefrigerated,
               },
             ],
           });

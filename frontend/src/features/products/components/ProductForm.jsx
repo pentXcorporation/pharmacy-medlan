@@ -76,7 +76,7 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
       form.reset({
         productName: product.productName || "",
         genericName: product.genericName || "",
-        categoryId: product.category?.id?.toString() || "",
+        categoryId: (product.categoryId || product.category?.id)?.toString() || "",
         dosageForm: product.dosageForm || "",
         strength: product.strength || "",
         drugSchedule: product.drugSchedule || "",
@@ -161,6 +161,7 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
+                    defaultValue={field.value}
                     disabled={loadingCategories}
                   >
                     <FormControl>
@@ -202,7 +203,7 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Dosage Form</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select dosage form" />
@@ -241,7 +242,7 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Drug Schedule</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
+                  <Select onValueChange={field.onChange} value={field.value} defaultValue={field.value}>
                     <FormControl>
                       <SelectTrigger>
                         <SelectValue placeholder="Select schedule" />

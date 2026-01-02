@@ -32,6 +32,7 @@ export const useGRNs = (params = {}, options = {}) => {
   return useQuery({
     queryKey: grnKeys.list(params),
     queryFn: () => grnService.getAll(params),
+    select: (response) => response.data?.data || response.data || response,
     ...options,
   });
 };
@@ -43,6 +44,7 @@ export const useGRN = (id, options = {}) => {
   return useQuery({
     queryKey: grnKeys.detail(id),
     queryFn: () => grnService.getById(id),
+    select: (response) => response.data?.data || response.data || response,
     enabled: Boolean(id),
     ...options,
   });
@@ -55,6 +57,7 @@ export const useGRNsByPO = (poId, options = {}) => {
   return useQuery({
     queryKey: grnKeys.byPo(poId),
     queryFn: () => grnService.getByPurchaseOrder(poId),
+    select: (response) => response.data?.data?.content || response.data?.content || [],
     enabled: Boolean(poId),
     ...options,
   });

@@ -91,6 +91,9 @@ export const API_ENDPOINTS = {
     LOW_STOCK: "/products/low-stock",
     BARCODE: (barcode) => `/products/barcode/${barcode}`,
     DISCONTINUE: (id) => `/products/${id}/discontinue`,
+    EXPORT: "/products/export",
+    IMPORT: "/products/import",
+    TEMPLATE: "/products/import/template",
   },
 
   // Categories
@@ -198,6 +201,7 @@ export const API_ENDPOINTS = {
     BY_STATUS: (status) => `/purchase-orders/status/${status}`,
     PENDING: (branchId) => `/purchase-orders/branch/${branchId}/pending`,
     UPDATE_STATUS: (id) => `/purchase-orders/${id}/status`,
+    SUBMIT: (id) => `/purchase-orders/${id}/status`,
     APPROVE: (id) => `/purchase-orders/${id}/approve`,
     REJECT: (id) => `/purchase-orders/${id}/reject`,
     CANCEL: (id) => `/purchase-orders/${id}/cancel`,

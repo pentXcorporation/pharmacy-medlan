@@ -41,12 +41,47 @@ const POSCart = () => {
             >
               {/* Product Info */}
               <div className="flex-1 min-w-0">
-                <p className="font-medium text-sm truncate">
-                  {item.productName}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {item.sku}
-                </p>
+                <div className="flex items-center gap-1 flex-wrap">
+                  <p className="font-medium text-sm truncate">
+                    {item.productName}
+                  </p>
+                  {item.isPrescriptionRequired && (
+                    <Badge variant="destructive" className="text-xs h-4">
+                      ℞
+                    </Badge>
+                  )}
+                  {item.isNarcotic && (
+                    <Badge variant="destructive" className="text-xs h-4">
+                      N
+                    </Badge>
+                  )}
+                  {item.isRefrigerated && (
+                    <Badge variant="default" className="text-xs h-4">
+                      ❄️
+                    </Badge>
+                  )}
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs text-muted-foreground truncate">
+                    {item.sku || item.productCode}
+                  </p>
+                  {item.batchNumber && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      <span className="font-semibold">Batch:</span> {item.batchNumber}
+                      {item.expiryDate && ` • Exp: ${new Date(item.expiryDate).toLocaleDateString()}`}
+                    </p>
+                  )}
+                  {(item.strength || item.dosageForm) && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {item.strength} {item.dosageForm && `• ${item.dosageForm}`}
+                    </p>
+                  )}
+                  {item.manufacturer && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {item.manufacturer}
+                    </p>
+                  )}
+                </div>
                 <p className="text-xs sm:text-sm font-medium mt-1">
                   {formatCurrency(item.unitPrice)} each
                 </p>

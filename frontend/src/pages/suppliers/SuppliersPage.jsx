@@ -68,6 +68,10 @@ const SuppliersPage = () => {
   const activateSupplier = useActivateSupplier();
   const deactivateSupplier = useDeactivateSupplier();
 
+  // Debug: Log supplier data
+  console.log('Suppliers Page - Raw data:', data);
+  console.log('Suppliers Page - Is loading:', isLoading);
+
   // Handlers
   const handleView = useCallback(
     (supplier) => {

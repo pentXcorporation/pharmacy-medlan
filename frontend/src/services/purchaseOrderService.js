@@ -59,6 +59,17 @@ export const purchaseOrderService = {
   },
 
   /**
+   * Get pending/approved POs for GRN (multiple statuses)
+   */
+  getPending: () => {
+    // Get all POs and filter on frontend for now
+    // Ideally backend should support multiple status filtering
+    return api.get(API_ENDPOINTS.PURCHASE_ORDERS.BASE, {
+      params: { size: 1000, sort: 'createdAt,desc' },
+    });
+  },
+
+  /**
    * Create new PO
    */
   create: (data) => {
@@ -69,7 +80,18 @@ export const purchaseOrderService = {
    * Update PO status
    */
   updateStatus: (id, status) => {
-    return api.put(API_ENDPOINTS.PURCHASE_ORDERS.UPDATE_STATUS(id), { status });
+    return api.put(API_ENDPOINTS.PURCHASE_ORDERS.UPDATE_STATUS(id), null, {
+      params: { status }
+    });
+  },
+
+  /**
+   * Submit PO for approval
+   */
+  submit: (id) => {
+    return api.put(API_ENDPOINTS.PURCHASE_ORDERS.UPDATE_STATUS(id), null, {
+      params: { status: 'PENDING_APPROVAL' }
+    });
   },
 
   /**

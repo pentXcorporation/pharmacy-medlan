@@ -85,6 +85,7 @@ const PurchaseOrderViewPage = lazy(() =>
 // GRN Pages
 const GRNListPage = lazy(() => import("@/pages/grn/GRNListPage"));
 const GRNFormPage = lazy(() => import("@/pages/grn/GRNFormPage"));
+const DirectGRNFormPage = lazy(() => import("@/pages/grn/DirectGRNFormPage"));
 const GRNViewPage = lazy(() => import("@/pages/grn/GRNViewPage"));
 
 // Reports Pages
@@ -999,6 +1000,16 @@ const router = createBrowserRouter([
           <RoleGuard feature="grn" action="create">
             <SuspenseWrapper>
               <GRNFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.GRN.DIRECT,
+        element: (
+          <RoleGuard feature="grn" action="create">
+            <SuspenseWrapper>
+              <DirectGRNFormPage />
             </SuspenseWrapper>
           </RoleGuard>
         ),

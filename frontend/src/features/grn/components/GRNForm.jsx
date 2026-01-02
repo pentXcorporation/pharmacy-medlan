@@ -45,11 +45,11 @@ const lineItemSchema = z.object({
   productId: z.string(),
   productName: z.string(),
   orderedQuantity: z.number(),
-  receivedQuantity: z.number().min(0, "Cannot be negative"),
+  receivedQuantity: z.number().min(1, "Received quantity must be at least 1"),
   rejectedQuantity: z.number().min(0).default(0),
-  unitPrice: z.number(),
-  batchNumber: z.string().optional(),
-  expiryDate: z.string().optional(),
+  unitPrice: z.number().min(0.01, "Unit price must be greater than 0"),
+  batchNumber: z.string().min(1, "Batch number is required"),
+  expiryDate: z.string().min(1, "Expiry date is required"),
   notes: z.string().optional(),
 });
 
@@ -97,12 +97,12 @@ const GRNForm = ({
       const grnItems = purchaseOrder.items.map((item) => ({
         productId: item.productId?.toString() || "",
         productName: item.product?.name || item.productName || "",
-        orderedQuantity: item.quantity || 0,
-        receivedQuantity: item.quantity || 0, // Default to full quantity
+        orderedQuantity: item.quantityOrdered || item.quantity || 1,
+        receivedQuantity: item.quantityOrdered || item.quantity || 1, // Default to ordered quantity
         rejectedQuantity: 0,
         unitPrice: item.unitPrice || 0,
         batchNumber: "",
-        expiryDate: "",
+        expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default to 1 year from now
         notes: "",
       }));
 

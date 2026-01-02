@@ -68,9 +68,36 @@ public class SupplierServiceImpl implements SupplierService {
     }
 
     @Override
-    public Page<SupplierResponse> getAllSuppliers(Pageable pageable) {
-        return supplierRepository.findAll(pageable)
-                .map(supplierMapper::toResponse);
+    public Page<SupplierResponse> getAllSuppliers(Pageable pageable, Boolean isActive, String search) {
+        // If no filters, return all
+        if (isActive == null && (search == null || search.trim().isEmpty())) {
+            return supplierRepository.findAll(pageable)
+                    .map(supplierMapper::toResponse);
+        }
+        
+        // Build specification for filtering
+        return supplierRepository.findAll((root, query, criteriaBuilder) -> {
+            var predicates = new java.util.ArrayList<jakarta.persistence.criteria.Predicate>();
+            
+            // Filter by active status if provided
+            if (isActive != null) {
+                predicates.add(criteriaBuilder.equal(root.get("isActive"), isActive));
+            }
+            
+            // Filter by search query if provided
+            if (search != null && !search.trim().isEmpty()) {
+                String searchPattern = "%" + search.toLowerCase() + "%";
+                var searchPredicate = criteriaBuilder.or(
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("supplierName")), searchPattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("supplierCode")), searchPattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("contactPerson")), searchPattern),
+                    criteriaBuilder.like(criteriaBuilder.lower(root.get("email")), searchPattern)
+                );
+                predicates.add(searchPredicate);
+            }
+            
+            return criteriaBuilder.and(predicates.toArray(new jakarta.persistence.criteria.Predicate[0]));
+        }, pageable).map(supplierMapper::toResponse);
     }
 
     @Override

@@ -6,6 +6,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { Plus, Download } from "lucide-react";
+import { toast } from "sonner";
 import { ROUTES } from "@/config";
 import {
   useCategories,
@@ -46,16 +47,27 @@ const CategoriesPage = () => {
   // Fetch categories (no query params - we'll filter client-side)
   const { data: apiData, isLoading, isFetching } = useCategories();
 
-  // Filter categories based on search query
+  // Filter categories based on search query and exclude deleted items
   const data = useMemo(() => {
     if (!apiData?.content) return apiData;
 
+    // First, filter out deleted/inactive categories
+    const activeCategories = apiData.content.filter(
+      (category) => category.isActive !== false
+    );
+
+    // Then apply search filter if there's a search query
     if (!searchQuery.trim()) {
-      return apiData;
+      return {
+        ...apiData,
+        content: activeCategories,
+        totalElements: activeCategories.length,
+        totalPages: Math.ceil(activeCategories.length / pagination.pageSize),
+      };
     }
 
     const query = searchQuery.toLowerCase().trim();
-    const filteredContent = apiData.content.filter((category) => {
+    const filteredContent = activeCategories.filter((category) => {
       return (
         category.categoryName?.toLowerCase().includes(query) ||
         category.description?.toLowerCase().includes(query) ||
@@ -109,17 +121,17 @@ const CategoriesPage = () => {
       });
 
       if (confirmed) {
-        // Backend update doesn't support isActive, so we just update with existing data
-        // In a real app, you'd need a separate backend endpoint for this
-        toast.info("Status toggle not yet supported by backend");
-        // TODO: Add backend endpoint to toggle status
-        // updateCategory.mutate({
-        //   id: category.id,
-        //   data: { categoryName: category.categoryName, description: category.description },
-        // });
+        updateCategory.mutate({
+          id: category.id,
+          data: { 
+            categoryName: category.categoryName, 
+            description: category.description,
+            isActive: isActivating
+          },
+        });
       }
     },
-    [confirm]
+    [confirm, updateCategory]
   );
 
   const handleDelete = useCallback(

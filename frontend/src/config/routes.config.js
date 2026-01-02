@@ -81,6 +81,7 @@ export const ROUTES = {
     ROOT: "/grn",
     LIST: "/grn",
     CREATE: "/grn/new",
+    DIRECT: "/grn/direct",
     VIEW: (id = ":id") => `/grn/${id}`,
   },
 

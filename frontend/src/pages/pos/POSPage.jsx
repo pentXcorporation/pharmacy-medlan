@@ -5,7 +5,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { User, Clock, PauseCircle, Receipt, Menu } from "lucide-react";
+import { User, Clock, PauseCircle, Receipt, Menu, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/common";
 import { useProducts } from "@/features/products";
 import { useCustomers } from "@/features/customers";
@@ -40,11 +41,14 @@ import {
 } from "@/features/sales";
 import { formatCurrency, formatDateTime } from "@/utils/formatters";
 import { useAuthStore } from "@/store/authStore";
+import { useBranchStore } from "@/store/branchStore";
 import { ROUTES } from "@/config";
+import { toast } from "sonner";
 
 const POSPage = () => {
   const navigate = useNavigate();
   const { user } = useAuthStore();
+  const selectedBranch = useBranchStore((state) => state.selectedBranch);
   const [customerSearch, setCustomerSearch] = useState("");
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
   const [showHeldSalesSheet, setShowHeldSalesSheet] = useState(false);
@@ -91,28 +95,104 @@ const POSPage = () => {
 
   // Handle checkout
   const handleCheckout = async (saleData) => {
+    // Get branch ID from branch store
+    const branchId = selectedBranch?.id;
+    
+    if (!branchId) {
+      toast.error("No Branch Selected", {
+        description: "Please select a branch from the header dropdown to complete the sale.",
+      });
+      return;
+    }
+
+    // Validate items
+    if (!saleData.items || saleData.items.length === 0) {
+      toast.error("Cart is Empty", {
+        description: "Please add items to cart before checkout.",
+      });
+      return;
+    }
+
+    // Calculate total discount amount based on type
+    const subtotal = saleData.subtotal || 0;
+    const itemDiscountTotal = saleData.items.reduce((sum, item) => {
+      const itemTotal = item.unitPrice * item.quantity;
+      const discount = item.discount || 0;
+      return sum + (itemTotal * discount) / 100;
+    }, 0);
+    
+    const afterItemDiscount = subtotal - itemDiscountTotal;
+    
+    // For cart-level discount: send either percentage or fixed amount
+    const cartDiscountPercent = saleData.discount?.type === "percentage" 
+      ? Number(saleData.discount.value) || 0
+      : 0;
+      
+    const cartDiscountAmount = saleData.discount?.type === "fixed"
+      ? Math.min(Number(saleData.discount.value) || 0, afterItemDiscount)
+      : 0;
+
+    // Ensure paidAmount is valid
+    const paidAmount = Number(saleData.payment?.amountTendered) || Number(saleData.grandTotal) || 0;
+
     const payload = {
-      customerId: saleData.customer?.id,
-      items: saleData.items.map((item) => ({
-        productId: item.productId,
-        batchId: item.batchId,
-        quantity: item.quantity,
-        unitPrice: item.unitPrice,
-        discountPercent: item.discount,
-      })),
-      discountType:
-        saleData.discount.type === "percentage" ? "PERCENTAGE" : "FIXED",
-      discountValue: saleData.discount.value,
-      paymentMethod: saleData.payment.method,
-      amountTendered: saleData.payment.amountTendered,
-      reference: saleData.payment.reference,
+      customerId: saleData.customer?.id || null,
+      branchId: branchId,
+      items: saleData.items.map((item) => {
+        const itemTotal = item.unitPrice * item.quantity;
+        const itemDiscount = item.discount || 0;
+        return {
+          productId: item.productId,
+          inventoryBatchId: item.batchId || null,
+          quantity: Number(item.quantity),
+          discountAmount: Number((itemTotal * itemDiscount / 100).toFixed(2)),
+        };
+      }),
+      discountAmount: Number(cartDiscountAmount.toFixed(2)),
+      discountPercent: Number(cartDiscountPercent.toFixed(2)),
+      paymentMethod: saleData.payment?.method || "CASH",
+      paidAmount: Number(paidAmount.toFixed(2)),
+      patientName: saleData.customer?.name || null,
+      remarks: saleData.payment?.reference || null,
     };
 
-    const result = await createSaleMutation.mutateAsync(payload);
-    if (result) {
-      setLastSale(result);
-      setShowReceiptDialog(true);
-      clearCart();
+    // Log payload for debugging
+    console.log("Sale Payload:", JSON.stringify(payload, null, 2));
+
+    try {
+      const result = await createSaleMutation.mutateAsync(payload);
+      if (result) {
+        setLastSale(result);
+        setShowReceiptDialog(true);
+        clearCart();
+      }
+    } catch (error) {
+      console.error("Sale creation failed:", error);
+      console.error("Error response:", error.response?.data);
+      
+      // Extract error information
+      const errorData = error.response?.data;
+      const errorStatus = errorData?.error || errorData?.status;
+      const errorMessage = errorData?.message || "Failed to complete sale. Please try again.";
+      
+      // Handle specific error types
+      if (errorStatus === "Insufficient Stock" || errorMessage.includes("No available stock")) {
+        const productName = errorMessage.match(/product: (.+)/)?.[1] || "product";
+        toast.error("Insufficient Stock", {
+          description: `${productName} is out of stock or has no available batches. Please check inventory or remove this item.`,
+          duration: 5000,
+        });
+      } else if (errorData?.details || errorData?.errors) {
+        toast.error("Sale Failed", {
+          description: `${errorMessage}\n${JSON.stringify(errorData.details || errorData.errors)}`,
+          duration: 5000,
+        });
+      } else {
+        toast.error("Sale Failed", {
+          description: errorMessage,
+          duration: 5000,
+        });
+      }
     }
   };
 
@@ -133,6 +213,15 @@ const POSPage = () => {
             <User className="h-3 w-3" />
             {user?.firstName || user?.username}
           </Badge>
+          {selectedBranch ? (
+            <Badge variant="secondary" className="gap-1 hidden lg:flex">
+              📍 {selectedBranch.branchName || selectedBranch.name}
+            </Badge>
+          ) : (
+            <Badge variant="destructive" className="gap-1 hidden lg:flex">
+              ⚠️ No Branch Selected
+            </Badge>
+          )}
         </div>
         <div className="flex items-center gap-1 sm:gap-2 md:gap-4">
           <Badge variant="outline" className="gap-1 hidden md:flex">
@@ -226,6 +315,17 @@ const POSPage = () => {
       <div className="flex-1 flex flex-col lg:flex-row overflow-hidden">
         {/* Left Panel - Products & Cart */}
         <div className="flex-1 flex flex-col p-2 sm:p-4 overflow-hidden">
+          {/* Branch Warning Alert */}
+          {!selectedBranch && (
+            <Alert variant="destructive" className="mb-4">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>No Branch Selected</AlertTitle>
+              <AlertDescription>
+                Please select a branch from the dropdown in the header to process sales.
+              </AlertDescription>
+            </Alert>
+          )}
+
           {/* Product Search */}
           <POSProductSearch products={products} isLoading={productsLoading} />
 
@@ -265,6 +365,7 @@ const POSPage = () => {
           <POSTotals
             onCheckout={handleCheckout}
             isProcessing={createSaleMutation.isPending}
+            hasBranch={!!selectedBranch}
           />
         </div>
       </div>

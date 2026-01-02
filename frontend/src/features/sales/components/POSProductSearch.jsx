@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/formatters";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePOSStore } from "../store";
+import { toast } from "sonner";
 
 /**
  * Advanced product search algorithm
@@ -175,6 +176,15 @@ const POSProductSearch = ({ products = [], isLoading }) => {
 
   // Handle product selection
   const handleSelect = (product) => {
+    // Check if product has stock
+    const stockQty = product.stockQuantity || product.quantity || 0;
+    if (stockQty <= 0) {
+      toast.error("Out of Stock", {
+        description: `${product.name || product.productName} has no available stock.`,
+      });
+      return;
+    }
+
     addItem(product);
     setSearch("");
     setShowResults(false);
@@ -279,7 +289,7 @@ const POSProductSearch = ({ products = [], isLoading }) => {
               <div className="min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                   <p className="font-medium text-sm sm:text-base truncate">
-                    {product.name}
+                    {product.name || product.productName}
                   </p>
                   {product.matchType?.includes("barcode") && (
                     <Badge variant="secondary" className="text-xs">
@@ -296,20 +306,57 @@ const POSProductSearch = ({ products = [], isLoading }) => {
                       Similar
                     </Badge>
                   )}
+                  {product.isPrescriptionRequired && (
+                    <Badge variant="destructive" className="text-xs">
+                      ℞ Rx
+                    </Badge>
+                  )}
+                  {product.isNarcotic && (
+                    <Badge variant="destructive" className="text-xs">
+                      Narcotic
+                    </Badge>
+                  )}
+                  {product.isRefrigerated && (
+                    <Badge variant="default" className="text-xs">
+                      ❄️ Cold
+                    </Badge>
+                  )}
                 </div>
-                <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                  {product.sku || product.productCode} {(product.barcode) && `• ${product.barcode}`}
-                </p>
-                {product.genericName && (
-                  <p className="text-xs text-muted-foreground truncate">
-                    <span className="font-semibold">Generic:</span> {product.genericName}
+                <div className="space-y-0.5 mt-1">
+                  <p className="text-xs sm:text-sm text-muted-foreground truncate">
+                    {product.sku || product.productCode} {(product.barcode) && `• ${product.barcode}`}
                   </p>
-                )}
+                  {product.genericName && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      <span className="font-semibold">Generic:</span> {product.genericName}
+                    </p>
+                  )}
+                  {(product.strength || product.dosageForm) && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      {product.strength} {product.dosageForm && `• ${product.dosageForm}`}
+                    </p>
+                  )}
+                  {product.manufacturer && (
+                    <p className="text-xs text-muted-foreground truncate">
+                      <span className="font-semibold">Mfr:</span> {product.manufacturer}
+                    </p>
+                  )}
+                  {product.drugSchedule && (
+                    <p className="text-xs text-muted-foreground">
+                      <span className="font-semibold">Schedule:</span> {product.drugSchedule}
+                    </p>
+                  )}
+                </div>
               </div>
               <div className="text-right shrink-0">
                 <p className="font-bold text-sm sm:text-base">
                   {formatCurrency(product.sellingPrice || product.price)}
                 </p>
+                {product.mrp && (
+                  <p className="text-xs text-muted-foreground">
+                    MRP: {formatCurrency(product.mrp)}
+                  </p>
+                )}
                 <Badge
                   variant={
                     (product.stockQuantity || product.quantity || 0) > 10
@@ -320,7 +367,7 @@ const POSProductSearch = ({ products = [], isLoading }) => {
                   }
                   className="mt-1 text-xs"
                 >
-                  {product.stockQuantity || product.quantity || 0}
+                  Stock: {product.stockQuantity || product.quantity || 0}
                 </Badge>
               </div>
             </button>

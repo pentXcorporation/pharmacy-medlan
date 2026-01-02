@@ -17,7 +17,7 @@ public interface SupplierService {
 
     SupplierResponse getSupplierByCode(String supplierCode);
 
-    Page<SupplierResponse> getAllSuppliers(Pageable pageable);
+    Page<SupplierResponse> getAllSuppliers(Pageable pageable, Boolean isActive, String search);
 
     List<SupplierResponse> searchSuppliers(String search);
 

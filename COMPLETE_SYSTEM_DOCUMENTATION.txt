@@ -1,0 +1,3100 @@
+================================================================================
+                    PHARMACY MANAGEMENT SYSTEM (MEDLAN)
+              COMPLETE SYSTEM DOCUMENTATION AND SETUP GUIDE
+================================================================================
+                        Generated: January 2, 2026
+                     Project: Medlan Pharmacy Management
+================================================================================
+
+TABLE OF CONTENTS
+-----------------
+1. SYSTEM OVERVIEW
+2. TECHNOLOGY STACK
+3. SYSTEM ARCHITECTURE
+4. PROJECT STRUCTURE
+5. INITIAL SETUP & DEPLOYMENT
+6. DATABASE MODELS & ENTITIES
+7. FEATURE MODULES
+8. API REFERENCE
+9. SECURITY & PERMISSIONS
+10. SYSTEM WORKFLOWS
+11. CONFIGURATION REFERENCE
+12. USER GUIDE
+
+================================================================================
+1. SYSTEM OVERVIEW
+================================================================================
+
+Medlan Pharmacy Management System is a comprehensive enterprise-grade solution 
+designed for managing pharmacy operations including:
+
+- Multi-branch pharmacy management
+- Inventory tracking with batch and expiry management
+- Purchase orders and goods receiving (GRN)
+- Point of Sale (POS) system
+- Sales and invoicing
+- Customer management
+- Supplier management
+- Finance and payment tracking
+- Payroll management
+- Comprehensive reporting and analytics
+- Real-time notifications and alerts
+- Audit logging and compliance
+
+The system supports multiple branches with centralized administration,
+role-based access control, and real-time synchronization.
+
+================================================================================
+2. TECHNOLOGY STACK
+================================================================================
+
+BACKEND
+-------
+Framework: Spring Boot 3.4.1
+Java Version: 21
+Build Tool: Maven
+
+Core Dependencies:
+- Spring Boot Starter Data JPA (Database Access)
+- Spring Boot Starter Security (Authentication & Authorization)
+- Spring Boot Starter Web (REST APIs)
+- Spring Boot Starter WebSocket (Real-time Communication)
+- Spring Boot Starter Validation (Input Validation)
+- Spring Boot Starter Cache (Caching with Caffeine)
+- Spring Boot Starter AOP (Aspect-Oriented Programming)
+- Spring Boot Starter Actuator (Health Monitoring)
+- Spring Boot Starter Mail (Email Notifications)
+- Spring Boot Starter Quartz (Scheduled Jobs)
+
+Database:
+- PostgreSQL (Primary Database)
+- JDBC Driver: org.postgresql.Driver
+
+Security:
+- JWT (JSON Web Tokens) v0.12.6
+  * jjwt-api
+  * jjwt-impl
+  * jjwt-jackson
+- Spring Security 6.x
+
+Utilities & Libraries:
+- Lombok (Code Generation)
+- Apache Commons Lang3 (Utilities)
+- Apache Commons IO v2.16.1
+- ZXing v3.5.3 (Barcode/QR Code Generation)
+- Bucket4j v8.10.1 (Rate Limiting)
+- Micrometer Prometheus (Metrics)
+- iText7 v8.0.4 (PDF Generation)
+- Apache POI v5.2.5 (Excel Export)
+- Jackson Datatype JSR310 (Date/Time Serialization)
+- Spring Retry v2.0.5
+
+API Documentation:
+- SpringDoc OpenAPI v2.7.0 (Swagger UI)
+
+FRONTEND
+--------
+Framework: React 19.2.0
+Build Tool: Vite 7.2.4
+Language: JavaScript (ES6+)
+Package Manager: npm
+
+Core Libraries:
+- React Router DOM v7.11.0 (Routing)
+- @tanstack/react-query v5.90.14 (Data Fetching & State Management)
+- Axios v1.13.2 (HTTP Client)
+- Zustand v5.0.9 (Global State Management)
+
+Form Management:
+- React Hook Form v7.69.0
+- @hookform/resolvers v5.2.2
+- Zod v4.2.1 (Schema Validation)
+
+UI Components & Styling:
+- Tailwind CSS v4.1.18
+- @tailwindcss/vite v4.1.18
+- Radix UI Components (20+ components):
+  * Alert Dialog
+  * Avatar
+  * Checkbox
+  * Dialog
+  * Dropdown Menu
+  * Label
+  * Popover
+  * Scroll Area
+  * Select
+  * Slider
+  * Switch
+  * Tabs
+  * Tooltip
+  * And more...
+- Lucide React v0.562.0 (Icons)
+- Sonner v2.0.7 (Toast Notifications)
+- class-variance-authority v0.7.1 (CSS Class Management)
+- clsx v2.1.1 (CSS Class Utilities)
+- tailwind-merge v3.4.0
+
+Utilities:
+- date-fns v4.1.0 (Date Manipulation)
+- React Day Picker v9.13.0 (Date Picker)
+- CMDK v1.1.1 (Command Menu)
+- next-themes v0.4.6 (Theme Management)
+
+Development Tools:
+- ESLint v9.39.1 (Linting)
+- @vitejs/plugin-react-swc v4.2.2 (Fast Refresh)
+- @tanstack/react-query-devtools v5.91.2
+
+================================================================================
+3. SYSTEM ARCHITECTURE
+================================================================================
+
+The system follows a modern three-tier architecture:
+
+┌─────────────────────────────────────────────────────────────────┐
+│                        CLIENT LAYER                             │
+│   React Frontend (Port: Development Server - Vite)              │
+│   - Pages & Components                                          │
+│   - State Management (React Query + Zustand)                    │
+│   - Routing (React Router)                                      │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                    HTTP/HTTPS + WebSocket
+                              │
+┌─────────────────────────────────────────────────────────────────┐
+│                      APPLICATION LAYER                          │
+│            Spring Boot REST API (Port: 8080)                    │
+│   ┌────────────────────────────────────────────────────────┐   │
+│   │ Controllers (REST Endpoints)                           │   │
+│   │  - AuthController, ProductController, etc.             │   │
+│   └────────────────────────────────────────────────────────┘   │
+│   ┌────────────────────────────────────────────────────────┐   │
+│   │ Services (Business Logic)                              │   │
+│   │  - ProductService, InventoryService, etc.              │   │
+│   └────────────────────────────────────────────────────────┘   │
+│   ┌────────────────────────────────────────────────────────┐   │
+│   │ Repositories (Data Access)                             │   │
+│   │  - JPA Repositories                                    │   │
+│   └────────────────────────────────────────────────────────┘   │
+│   ┌────────────────────────────────────────────────────────┐   │
+│   │ Cross-Cutting Concerns (AOP)                           │   │
+│   │  - Security, Logging, Audit, Performance, Rate Limit   │   │
+│   └────────────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────────────┘
+                              │
+                          JDBC/JPA
+                              │
+┌─────────────────────────────────────────────────────────────────┐
+│                        DATA LAYER                               │
+│              PostgreSQL Database (Port: 5432)                   │
+│   - Tables: 30+ entities                                        │
+│   - Relationships: Foreign Keys, Constraints                    │
+│   - Indexes: Optimized Queries                                  │
+└─────────────────────────────────────────────────────────────────┘
+
+SECURITY FLOW:
+--------------
+1. User Login → AuthController
+2. Credentials Validation → UserService
+3. JWT Token Generation → JwtUtil
+4. Token returned to Client
+5. Subsequent Requests → JWT Token in Authorization Header
+6. JwtAuthenticationFilter validates token
+7. SecurityContext populated with user details
+8. @PreAuthorize annotations check permissions
+
+REAL-TIME COMMUNICATION:
+------------------------
+- WebSocket endpoint: /ws
+- STOMP protocol for messaging
+- Topics: /topic/notifications, /topic/alerts
+- User-specific queues: /queue/user/{userId}
+
+================================================================================
+4. PROJECT STRUCTURE
+================================================================================
+
+BACKEND STRUCTURE
+-----------------
+backend/
+├── pom.xml                                 # Maven configuration
+├── mvnw, mvnw.cmd                          # Maven wrapper scripts
+├── src/
+│   └── main/
+│       ├── java/com/pharmacy/medlan/
+│       │   ├── MedlanApplication.java       # Main Spring Boot application
+│       │   ├── aspect/                      # AOP aspects
+│       │   │   ├── AuditAspect.java         # Audit logging
+│       │   │   ├── LoggingAspect.java       # Request/response logging
+│       │   │   ├── PerformanceAspect.java   # Performance monitoring
+│       │   │   └── RateLimitAspect.java     # API rate limiting
+│       │   ├── config/                      # Configuration classes
+│       │   │   ├── SecurityConfig.java      # Security configuration
+│       │   │   ├── JwtConfig.java           # JWT configuration
+│       │   │   ├── WebSocketConfig.java     # WebSocket configuration
+│       │   │   ├── CacheConfig.java         # Cache configuration
+│       │   │   └── CorsConfig.java          # CORS configuration
+│       │   ├── controller/                  # REST Controllers
+│       │   │   ├── AuthController.java      # Authentication endpoints
+│       │   │   ├── ProductController.java   # Product CRUD
+│       │   │   ├── GRNController.java       # Goods Receipt
+│       │   │   ├── InventoryController.java # Inventory management
+│       │   │   ├── SaleController.java      # Sales operations
+│       │   │   ├── PurchaseOrderController.java
+│       │   │   ├── CustomerController.java
+│       │   │   ├── SupplierController.java
+│       │   │   ├── BranchController.java
+│       │   │   ├── UserController.java
+│       │   │   ├── DashboardController.java
+│       │   │   ├── ReportController.java
+│       │   │   └── [38 total controllers]
+│       │   ├── dto/                         # Data Transfer Objects
+│       │   │   ├── request/                 # Request DTOs
+│       │   │   └── response/                # Response DTOs
+│       │   ├── enums/                       # Enumeration types
+│       │   │   ├── Role.java
+│       │   │   ├── GRNStatus.java
+│       │   │   ├── PaymentStatus.java
+│       │   │   ├── InvoiceStatus.java
+│       │   │   └── [15+ enums]
+│       │   ├── event/                       # Event handling
+│       │   │   ├── listener/                # Event listeners
+│       │   │   └── publisher/               # Event publishers
+│       │   ├── exception/                   # Exception handling
+│       │   │   ├── GlobalExceptionHandler.java
+│       │   │   ├── ResourceNotFoundException.java
+│       │   │   └── Custom exceptions
+│       │   ├── mapper/                      # Entity-DTO mappers
+│       │   ├── model/                       # JPA Entities
+│       │   │   ├── base/                    # Base entities
+│       │   │   │   ├── BaseEntity.java      # Common fields (id)
+│       │   │   │   └── AuditableEntity.java # Audit fields
+│       │   │   ├── user/                    # User entities
+│       │   │   │   ├── User.java
+│       │   │   │   ├── UserSession.java
+│       │   │   │   ├── BranchStaff.java
+│       │   │   │   └── EmployeeAuthorization.java
+│       │   │   ├── product/                 # Product entities
+│       │   │   │   ├── Product.java
+│       │   │   │   ├── Category.java
+│       │   │   │   ├── SubCategory.java
+│       │   │   │   ├── Unit.java
+│       │   │   │   ├── TaxCategory.java
+│       │   │   │   ├── ProductPricing.java
+│       │   │   │   ├── InventoryBatch.java
+│       │   │   │   └── BranchInventory.java
+│       │   │   ├── inventory/               # Inventory entities
+│       │   │   │   ├── GRN.java
+│       │   │   │   ├── GRNLine.java
+│       │   │   │   ├── RGRN.java
+│       │   │   │   ├── StockTransfer.java
+│       │   │   │   ├── ProductBinCard.java
+│       │   │   │   └── InventoryTransaction.java
+│       │   │   ├── supplier/                # Supplier entities
+│       │   │   │   ├── Supplier.java
+│       │   │   │   ├── PurchaseOrder.java
+│       │   │   │   ├── GoodsReceipt.java
+│       │   │   │   └── SupplierPayment.java
+│       │   │   ├── pos/                     # POS entities
+│       │   │   │   ├── Invoice.java
+│       │   │   │   ├── Customer.java
+│       │   │   │   └── CustomerPrescription.java
+│       │   │   ├── finance/                 # Finance entities
+│       │   │   │   ├── CashBook.java
+│       │   │   │   ├── Bank.java
+│       │   │   │   └── IncomingCheque.java
+│       │   │   ├── payroll/                 # Payroll entities
+│       │   │   ├── notification/            # Notification entities
+│       │   │   ├── report/                  # Report entities
+│       │   │   ├── organization/            # Organization entities
+│       │   │   │   └── Branch.java
+│       │   │   ├── system/                  # System entities
+│       │   │   │   └── SystemConfig.java
+│       │   │   └── audit/                   # Audit entities
+│       │   ├── repository/                  # JPA Repositories
+│       │   │   ├── user/
+│       │   │   │   ├── UserRepository.java
+│       │   │   │   └── [User related repos]
+│       │   │   ├── product/
+│       │   │   │   ├── ProductRepository.java
+│       │   │   │   ├── CategoryRepository.java
+│       │   │   │   └── [Product related repos]
+│       │   │   └── [Repositories for each module]
+│       │   ├── scheduler/                   # Scheduled jobs
+│       │   │   ├── InventoryScheduler.java  # Stock alerts
+│       │   │   ├── ExpiryScheduler.java     # Expiry alerts
+│       │   │   └── NotificationScheduler.java
+│       │   ├── security/                    # Security components
+│       │   │   ├── JwtAuthenticationFilter.java
+│       │   │   ├── JwtUtil.java
+│       │   │   └── CustomUserDetailsService.java
+│       │   ├── service/                     # Business logic services
+│       │   │   ├── user/
+│       │   │   │   ├── UserService.java
+│       │   │   │   └── AuthenticationService.java
+│       │   │   ├── product/
+│       │   │   │   ├── ProductService.java
+│       │   │   │   └── CategoryService.java
+│       │   │   ├── inventory/
+│       │   │   │   ├── InventoryService.java
+│       │   │   │   ├── GRNService.java
+│       │   │   │   └── StockTransferService.java
+│       │   │   ├── supplier/
+│       │   │   │   ├── SupplierService.java
+│       │   │   │   ├── PurchaseOrderService.java
+│       │   │   │   └── RGRNService.java
+│       │   │   ├── pos/
+│       │   │   │   ├── SaleService.java
+│       │   │   │   └── InvoiceService.java
+│       │   │   ├── branch/
+│       │   │   │   └── BranchService.java
+│       │   │   ├── dashboard/
+│       │   │   │   └── DashboardService.java
+│       │   │   ├── report/
+│       │   │   │   └── ReportService.java
+│       │   │   ├── notification/
+│       │   │   │   └── NotificationService.java
+│       │   │   ├── barcode/
+│       │   │   │   └── BarcodeService.java
+│       │   │   └── [Services for each module]
+│       │   ├── util/                        # Utility classes
+│       │   │   ├── DateUtil.java
+│       │   │   ├── NumberUtil.java
+│       │   │   └── PDFGenerator.java
+│       │   ├── validation/                  # Custom validations
+│       │   │   ├── annotation/              # Custom annotations
+│       │   │   └── validator/               # Validator classes
+│       │   └── websocket/                   # WebSocket handlers
+│       │       ├── WebSocketHandler.java
+│       │       └── WebSocketSessionManager.java
+│       └── resources/
+│           ├── application.properties       # Application configuration
+│           ├── static/                      # Static resources
+│           └── templates/                   # Email templates
+└── target/                                  # Build output
+
+FRONTEND STRUCTURE
+------------------
+frontend/
+├── package.json                             # NPM dependencies
+├── vite.config.js                           # Vite configuration
+├── index.html                               # Entry HTML
+├── .env                                     # Environment variables
+├── components.json                          # Shadcn UI config
+├── eslint.config.js                         # ESLint configuration
+├── public/                                  # Public static assets
+└── src/
+    ├── main.jsx                             # Application entry point
+    ├── App.jsx                              # Root component
+    ├── App.css, index.css                   # Global styles
+    ├── assets/                              # Images, fonts, etc.
+    ├── components/                          # Reusable components
+    │   ├── common/                          # Shared components
+    │   │   ├── DataTable.jsx
+    │   │   ├── LoadingSpinner.jsx
+    │   │   ├── ErrorBoundary.jsx
+    │   │   └── ConfirmDialog.jsx
+    │   ├── layout/                          # Layout components
+    │   │   ├── Header.jsx
+    │   │   ├── Sidebar.jsx
+    │   │   ├── Footer.jsx
+    │   │   └── MainLayout.jsx
+    │   ├── ui/                              # UI components (Shadcn)
+    │   │   ├── button.jsx
+    │   │   ├── input.jsx
+    │   │   ├── select.jsx
+    │   │   ├── dialog.jsx
+    │   │   ├── alert-dialog.jsx
+    │   │   └── [20+ UI components]
+    │   └── index.js                         # Component exports
+    ├── config/                              # Configuration files
+    │   ├── api.config.js                    # API endpoints
+    │   ├── app.config.js                    # App settings
+    │   ├── routes.config.js                 # Route definitions
+    │   └── index.js
+    ├── constants/                           # Constants and enums
+    │   ├── roles.js                         # User roles
+    │   ├── permissions.js                   # Permission constants
+    │   ├── paymentMethods.js
+    │   ├── invoiceStatus.js
+    │   ├── grnStatus.js
+    │   ├── dosageForm.js
+    │   ├── drugSchedule.js
+    │   └── [20+ constant files]
+    ├── core/                                # Core functionality
+    │   ├── api/                             # API client setup
+    │   │   └── apiClient.js                 # Axios instance
+    │   ├── config/
+    │   └── store/
+    ├── features/                            # Feature modules
+    │   ├── auth/                            # Authentication
+    │   │   ├── components/
+    │   │   │   ├── LoginForm.jsx
+    │   │   │   └── ProtectedRoute.jsx
+    │   │   ├── hooks/
+    │   │   │   └── useAuth.js
+    │   │   └── services/
+    │   │       └── authService.js
+    │   ├── products/                        # Product management
+    │   │   ├── components/
+    │   │   │   ├── ProductForm.jsx
+    │   │   │   ├── ProductList.jsx
+    │   │   │   └── ProductFilter.jsx
+    │   │   ├── hooks/
+    │   │   │   ├── useProducts.js
+    │   │   │   └── useProductForm.js
+    │   │   └── services/
+    │   │       └── productService.js
+    │   ├── categories/                      # Category management
+    │   ├── inventory/                       # Inventory management
+    │   ├── grn/                             # GRN management
+    │   ├── sales/                           # Sales management
+    │   ├── customers/                       # Customer management
+    │   ├── suppliers/                       # Supplier management
+    │   ├── purchase-orders/                 # Purchase orders
+    │   ├── branches/                        # Branch management
+    │   ├── users/                           # User management
+    │   ├── dashboard/                       # Dashboard
+    │   └── reports/                         # Reports
+    ├── hooks/                               # Custom React hooks
+    │   ├── useApi.js                        # API hook
+    │   ├── useAuth.js                       # Auth hook
+    │   ├── useBranch.js                     # Branch context
+    │   ├── useDebounce.js                   # Debounce hook
+    │   ├── usePagination.js                 # Pagination hook
+    │   ├── usePermissions.js                # Permissions check
+    │   ├── useWebSocket.js                  # WebSocket hook
+    │   └── use-mobile.js                    # Mobile detection
+    ├── lib/                                 # Library utilities
+    │   └── utils.js                         # Utility functions
+    ├── pages/                               # Page components
+    │   ├── auth/
+    │   │   ├── LoginPage.jsx
+    │   │   └── ForgotPasswordPage.jsx
+    │   ├── dashboard/
+    │   │   └── DashboardPage.jsx
+    │   ├── products/
+    │   │   ├── ProductsPage.jsx
+    │   │   ├── ProductFormPage.jsx
+    │   │   └── ProductDetailsPage.jsx
+    │   ├── categories/
+    │   │   └── CategoriesPage.jsx
+    │   ├── inventory/
+    │   │   ├── InventoryPage.jsx
+    │   │   └── StockAdjustmentPage.jsx
+    │   ├── grn/
+    │   │   ├── GRNPage.jsx
+    │   │   ├── GRNFormPage.jsx
+    │   │   └── RGRNPage.jsx
+    │   ├── purchase-orders/
+    │   │   ├── PurchaseOrdersPage.jsx
+    │   │   └── PurchaseOrderFormPage.jsx
+    │   ├── sales/
+    │   │   ├── SalesPage.jsx
+    │   │   └── SaleDetailsPage.jsx
+    │   ├── pos/
+    │   │   └── POSPage.jsx
+    │   ├── customers/
+    │   │   ├── CustomersPage.jsx
+    │   │   └── CustomerFormPage.jsx
+    │   ├── suppliers/
+    │   │   ├── SuppliersPage.jsx
+    │   │   └── SupplierFormPage.jsx
+    │   ├── branches/
+    │   │   └── BranchesPage.jsx
+    │   ├── users/
+    │   │   ├── UsersPage.jsx
+    │   │   └── UserFormPage.jsx
+    │   ├── reports/
+    │   │   ├── SalesReportPage.jsx
+    │   │   ├── InventoryReportPage.jsx
+    │   │   └── FinanceReportPage.jsx
+    │   ├── settings/
+    │   │   └── SettingsPage.jsx
+    │   ├── finance/
+    │   │   └── FinancePage.jsx
+    │   ├── payroll/
+    │   │   └── PayrollPage.jsx
+    │   └── employees/
+    │       └── EmployeesPage.jsx
+    ├── routes/                              # Routing configuration
+    │   ├── index.jsx                        # Route definitions
+    │   └── guards/                          # Route guards
+    │       ├── AuthGuard.jsx
+    │       └── PermissionGuard.jsx
+    ├── services/                            # API services
+    │   ├── authService.js
+    │   ├── productService.js
+    │   ├── categoryService.js
+    │   ├── inventoryService.js
+    │   ├── grnService.js
+    │   ├── saleService.js
+    │   ├── customerService.js
+    │   ├── supplierService.js
+    │   ├── branchService.js
+    │   ├── userService.js
+    │   ├── dashboardService.js
+    │   ├── reportService.js
+    │   ├── purchaseOrderService.js
+    │   ├── systemConfigService.js
+    │   └── index.js
+    ├── store/                               # Zustand stores
+    │   ├── authStore.js                     # Auth state
+    │   ├── branchStore.js                   # Branch context
+    │   ├── cartStore.js                     # POS cart
+    │   ├── notificationStore.js             # Notifications
+    │   ├── uiStore.js                       # UI state
+    │   └── index.js
+    ├── styles/                              # Style configurations
+    │   └── theme/                           # Theme definitions
+    ├── types/                               # TypeScript types (if used)
+    └── utils/                               # Utility functions
+        ├── api.js                           # API utilities
+        ├── auth.js                          # Auth utilities
+        ├── formatters.js                    # Data formatters
+        ├── exportImport.js                  # Export/import utilities
+        ├── permissions.js                   # Permission utilities
+        └── index.js
+
+================================================================================
+5. INITIAL SETUP & DEPLOYMENT
+================================================================================
+
+PREREQUISITES
+-------------
+1. Java Development Kit (JDK) 21
+   - Download from: https://adoptium.net/ or Oracle JDK
+   - Verify: java -version (should show version 21)
+
+2. PostgreSQL 12 or higher
+   - Download from: https://www.postgresql.org/download/
+   - Default port: 5432
+
+3. Node.js 18+ and npm
+   - Download from: https://nodejs.org/
+   - Verify: node -v && npm -v
+
+4. Maven 3.6+ (or use included Maven wrapper)
+   - Download from: https://maven.apache.org/download.cgi
+   - Or use: ./mvnw (Unix) or mvnw.cmd (Windows)
+
+5. Git (for version control)
+   - Download from: https://git-scm.com/
+
+DATABASE SETUP
+--------------
+Step 1: Create PostgreSQL Database
+   Open PostgreSQL command line or pgAdmin and execute:
+   
+   CREATE DATABASE medlan_pharmacy;
+   CREATE USER postgres WITH ENCRYPTED PASSWORD 'Hello@3126';
+   GRANT ALL PRIVILEGES ON DATABASE medlan_pharmacy TO postgres;
+
+Step 2: Update Database Configuration (if needed)
+   Edit: backend/src/main/resources/application.properties
+   
+   spring.datasource.url=jdbc:postgresql://localhost:5432/medlan_pharmacy
+   spring.datasource.username=postgres
+   spring.datasource.password=Hello@3126
+
+Step 3: Database Initialization
+   The application uses spring.jpa.hibernate.ddl-auto=update
+   This will automatically create tables on first run.
+   
+   Tables will be created from JPA entities automatically.
+
+BACKEND SETUP
+-------------
+Step 1: Navigate to Backend Directory
+   cd backend
+
+Step 2: Configure Environment Variables
+   Create .env file or set system environment variables:
+   
+   JWT_SECRET=MedlanPharmacySecretKey2024VeryLongSecureKeyForJWTTokenGeneration256Bits
+   SPRING_DATASOURCE_URL=jdbc:postgresql://localhost:5432/medlan_pharmacy
+   SPRING_DATASOURCE_USERNAME=postgres
+   SPRING_DATASOURCE_PASSWORD=Hello@3126
+
+Step 3: Build the Application
+   Using Maven wrapper (recommended):
+   
+   # Windows
+   mvnw.cmd clean install
+   
+   # Unix/Linux/Mac
+   ./mvnw clean install
+   
+   Or using installed Maven:
+   maven clean install
+
+Step 4: Run the Application
+   # Using Maven wrapper
+   mvnw.cmd spring-boot:run     (Windows)
+   ./mvnw spring-boot:run       (Unix/Linux/Mac)
+   
+   # Or using Maven
+   mvn spring-boot:run
+   
+   # Or run the JAR file
+   java -jar target/medlan-0.0.1-SNAPSHOT.jar
+
+Step 5: Verify Backend is Running
+   The application will start on port 8080
+   
+   Access Swagger UI: http://localhost:8080/swagger-ui.html
+   Health Check: http://localhost:8080/actuator/health
+   
+   Expected output:
+   Started MedlanApplication in X.XXX seconds
+
+FRONTEND SETUP
+--------------
+Step 1: Navigate to Frontend Directory
+   cd frontend
+
+Step 2: Install Dependencies
+   npm install
+   
+   This will install all dependencies from package.json
+
+Step 3: Configure Environment Variables
+   Create .env file in frontend directory:
+   
+   VITE_API_BASE_URL=http://localhost:8080/api
+   VITE_WS_URL=ws://localhost:8080/ws
+
+Step 4: Start Development Server
+   npm run dev
+   
+   The application will start on http://localhost:5173
+   (Vite default port)
+
+Step 5: Build for Production
+   npm run build
+   
+   This creates optimized production build in dist/ folder
+
+Step 6: Preview Production Build
+   npm run preview
+
+INITIAL DATA SEEDING
+--------------------
+Step 1: Create Super Admin User
+   The system requires at least one admin user to start.
+   
+   Option A: Use SQL Insert
+   Execute in PostgreSQL:
+   
+   INSERT INTO users (username, password, full_name, email, role, is_active, created_at)
+   VALUES (
+     'admin',
+     '$2a$10$<bcrypt-hashed-password>',  -- Use BCrypt to hash 'admin123'
+     'System Administrator',
+     'admin@medlan.com',
+     'SUPER_ADMIN',
+     true,
+     CURRENT_TIMESTAMP
+   );
+   
+   Option B: Use Registration Endpoint (First Time Only)
+   POST /api/auth/register
+   {
+     "username": "admin",
+     "password": "admin123",
+     "fullName": "System Administrator",
+     "email": "admin@medlan.com",
+     "role": "SUPER_ADMIN"
+   }
+
+Step 2: Create Initial Branch
+   POST /api/branches
+   {
+     "branchCode": "MAIN",
+     "branchName": "Main Branch",
+     "address": "Head Office Address",
+     "city": "City",
+     "state": "State",
+     "phoneNumber": "1234567890",
+     "email": "main@medlan.com",
+     "isMainBranch": true,
+     "isActive": true
+   }
+
+Step 3: Configure System Settings
+   POST /api/system-config
+   {
+     "configKey": "COMPANY_NAME",
+     "configValue": "Medlan Pharmacy",
+     "description": "Company name for reports"
+   }
+
+DEPLOYMENT CHECKLIST
+--------------------
+□ Database created and accessible
+□ Backend application.properties configured
+□ JWT secret key generated (production should use strong key)
+□ Frontend .env configured with correct API URL
+□ Super admin user created
+□ Initial branch created
+□ System configuration set
+□ Email settings configured (if using notifications)
+□ SSL/TLS certificates configured (for production)
+□ Firewall rules set (allow ports 8080, 5432, 80, 443)
+□ Backup strategy established
+□ Monitoring tools configured
+□ Log rotation configured
+
+PRODUCTION DEPLOYMENT
+---------------------
+Backend:
+1. Build JAR: mvn clean package -DskipTests
+2. Deploy JAR to server
+3. Run with: java -jar -Dspring.profiles.active=prod medlan-0.0.1-SNAPSHOT.jar
+4. Use process manager (systemd, PM2, or Docker)
+5. Configure reverse proxy (Nginx/Apache)
+6. Enable HTTPS with SSL certificates
+
+Frontend:
+1. Build: npm run build
+2. Deploy dist/ folder to web server
+3. Configure web server (Nginx/Apache)
+4. Set up SSL certificates
+5. Configure environment-specific API URLs
+
+Docker Deployment (Optional):
+Create Dockerfile for backend and frontend
+Use docker-compose for orchestration
+Configure volumes for persistent data
+
+TROUBLESHOOTING
+---------------
+Issue: Port 8080 already in use
+Solution: Change server.port in application.properties or kill process on 8080
+
+Issue: Database connection failed
+Solution: Verify PostgreSQL is running and credentials are correct
+
+Issue: JWT token invalid
+Solution: Check JWT_SECRET matches between requests
+
+Issue: CORS errors in frontend
+Solution: Verify CORS configuration in SecurityConfig.java
+
+Issue: Frontend can't connect to backend
+Solution: Check VITE_API_BASE_URL in .env matches backend URL
+
+================================================================================
+6. DATABASE MODELS & ENTITIES
+================================================================================
+
+The system uses 30+ JPA entities organized into modules:
+
+USER ENTITIES
+-------------
+1. User
+   Table: users
+   Primary Key: id (Long)
+   Fields:
+   - username: String (unique, required, max 100)
+   - password: String (required, BCrypt hashed, max 255)
+   - fullName: String (required, max 200)
+   - email: String (unique, max 100)
+   - phoneNumber: String (max 50)
+   - role: Role enum (SUPER_ADMIN, ADMIN, MANAGER, CASHIER, etc.)
+   - isActive: Boolean (default true)
+   - lastLoginDate: LocalDate
+   - discountLimit: BigDecimal (max discount user can apply)
+   - creditTransactionLimit: BigDecimal (max credit limit)
+   - employeeCode: String (unique, max 50)
+   Relationships:
+   - One-to-Many with BranchStaff
+   - One-to-Many with UserSession
+   Audit: Extends AuditableEntity (createdAt, updatedAt, createdBy, updatedBy)
+
+2. UserSession
+   Table: user_sessions
+   Purpose: Track active user sessions for security
+   Fields:
+   - user: ManyToOne User
+   - sessionToken: String (unique, JWT token)
+   - ipAddress: String
+   - userAgent: String (browser info)
+   - loginTime: LocalDateTime
+   - lastActivityTime: LocalDateTime
+   - logoutTime: LocalDateTime (null if active)
+   - isActive: Boolean
+   - expiresAt: LocalDateTime
+
+3. BranchStaff
+   Table: branch_staff
+   Purpose: Associate users with branches
+   Fields:
+   - user: ManyToOne User
+   - branch: ManyToOne Branch
+   - designation: String
+   - employmentType: EmploymentType enum (FULL_TIME, PART_TIME, CONTRACT)
+   - joiningDate: LocalDate
+   - leavingDate: LocalDate (null if active)
+   - isPrimaryBranch: Boolean
+   - isActive: Boolean
+   Unique Constraint: (user_id, branch_id)
+
+4. EmployeeAuthorization
+   Table: employee_authorizations
+   Purpose: Track authorization requests for special operations
+   Fields:
+   - employee: ManyToOne User
+   - authorizedBy: ManyToOne User
+   - transactionType: String (DISCOUNT, CREDIT_SALE, etc.)
+   - transactionReferenceId: Long
+   - authorizationCode: String (unique)
+   - amount: BigDecimal
+   - reason: String (TEXT)
+   - status: AuthorizationStatus enum (PENDING, APPROVED, REJECTED)
+   - requestedAt: LocalDateTime
+   - respondedAt: LocalDateTime
+   - remarks: String (TEXT)
+
+PRODUCT ENTITIES
+----------------
+5. Category
+   Table: categories
+   Fields:
+   - categoryName: String (unique, required, max 100)
+   - categoryCode: String (unique, max 50)
+   - description: String (TEXT)
+   - minCode: Integer (for product code range)
+   - maxCode: Integer
+   - isActive: Boolean
+   Relationships:
+   - One-to-Many with SubCategory
+   - One-to-Many with Product
+
+6. SubCategory
+   Table: sub_categories
+   Fields:
+   - subCategoryName: String (required, max 100)
+   - subCategoryCode: String (unique, max 50)
+   - category: ManyToOne Category
+   - description: String (TEXT)
+   - minCode: Integer
+   - maxCode: Integer
+   - isActive: Boolean
+
+7. Unit
+   Table: units
+   Purpose: Measurement units (Tablet, Capsule, ml, etc.)
+   Fields:
+   - unitName: String (unique, required, max 50)
+   - unitCode: String (unique, max 20)
+   - description: String (max 200)
+   - isActive: Boolean
+
+8. TaxCategory
+   Table: tax_categories
+   Purpose: Tax rates (GST 5%, 12%, 18%, etc.)
+   Fields:
+   - taxName: String (unique, required, max 100)
+   - taxRate: BigDecimal (precision 5, scale 2)
+   - isActive: Boolean
+
+9. Product
+   Table: products
+   Primary Fields:
+   - productCode: String (unique, required, indexed)
+   - productName: String (required, indexed)
+   - genericName: String
+   - category: ManyToOne Category
+   - subCategory: ManyToOne SubCategory
+   - unit: ManyToOne Unit
+   - dosageForm: DosageForm enum (TABLET, CAPSULE, SYRUP, INJECTION, etc.)
+   - strength: String (e.g., "500mg")
+   - drugSchedule: DrugSchedule enum (H, H1, X, G, OTC)
+   - manufacturer: String
+   - supplier: String
+   - barcode: String (indexed)
+   - description: String (TEXT)
+   
+   Pricing Fields:
+   - costPrice: BigDecimal (purchase price)
+   - sellingPrice: BigDecimal (retail price)
+   - mrp: BigDecimal (maximum retail price)
+   - profitMargin: BigDecimal (percentage, default 15%)
+   - gstRate: BigDecimal (default 0%)
+   - taxCategory: ManyToOne TaxCategory
+   
+   Stock Control:
+   - reorderLevel: Integer (default 10)
+   - minimumStock: Integer (default 5)
+   - maximumStock: Integer (default 1000)
+   
+   Flags:
+   - isPrescriptionRequired: Boolean
+   - isActive: Boolean
+   - isDiscontinued: Boolean
+   - isNarcotic: Boolean
+   - isRefrigerated: Boolean
+   
+   Relationships:
+   - One-to-Many with InventoryBatch
+   - One-to-Many with BranchInventory
+   - One-to-Many with ProductPricing
+
+10. ProductPricing
+    Table: product_pricing
+    Purpose: Track historical pricing changes
+    Fields:
+    - product: ManyToOne Product
+    - effectiveDate: LocalDate
+    - costPrice: BigDecimal
+    - sellingPrice: BigDecimal
+    - mrp: BigDecimal
+    - profitMargin: BigDecimal
+    - isCurrent: Boolean
+
+11. InventoryBatch
+    Table: inventory_batches
+    Purpose: Track product batches with expiry dates
+    Fields:
+    - product: ManyToOne Product
+    - branch: ManyToOne Branch
+    - batchNumber: String (required)
+    - manufacturingDate: LocalDate
+    - expiryDate: LocalDate (indexed)
+    - quantityReceived: Integer
+    - quantityAvailable: Integer (current available)
+    - quantitySold: Integer
+    - quantityDamaged: Integer
+    - quantityReturned: Integer
+    - purchasePrice: BigDecimal
+    - mrp: BigDecimal
+    - sellingPrice: BigDecimal
+    - grnLine: ManyToOne GRNLine (reference to originating GRN)
+    - isExpired: Boolean
+    - isActive: Boolean
+    - daysToExpiryAlert: Integer (default 90)
+    - rackLocation: String (physical location)
+
+12. BranchInventory
+    Table: branch_inventory
+    Purpose: Summary of product quantities per branch
+    Fields:
+    - product: ManyToOne Product
+    - branch: ManyToOne Branch
+    - quantityOnHand: Integer (total quantity)
+    - quantityAllocated: Integer (reserved for orders)
+    - quantityAvailable: Integer (available for sale)
+    - reorderLevel: Integer
+    - minimumStock: Integer
+    - maximumStock: Integer
+    Unique Constraint: (product_id, branch_id)
+
+INVENTORY ENTITIES
+------------------
+13. GRN (Goods Received Note)
+    Table: grns
+    Purpose: Record goods received from suppliers
+    Fields:
+    - grnNumber: String (unique, auto-generated, e.g., GRN-2024-00001)
+    - purchaseOrder: ManyToOne PurchaseOrder (optional reference)
+    - supplier: ManyToOne Supplier
+    - branch: ManyToOne Branch
+    - receivedDate: LocalDate
+    - supplierInvoiceNumber: String
+    - supplierInvoiceDate: LocalDate
+    - totalAmount: BigDecimal
+    - discountAmount: BigDecimal
+    - taxAmount: BigDecimal
+    - netAmount: BigDecimal
+    - status: GRNStatus enum (DRAFT, PENDING_APPROVAL, APPROVED, RECEIVED, REJECTED, CANCELLED)
+    - remarks: String (TEXT)
+    - receivedBy: ManyToOne User
+    - approvedBy: ManyToOne User
+    - approvedAt: LocalDateTime
+    - paidAmount: BigDecimal
+    - balanceAmount: BigDecimal
+    - paymentStatus: PaymentStatus enum (UNPAID, PARTIAL, PAID)
+    Relationships:
+    - One-to-Many with GRNLine
+
+14. GRNLine
+    Table: grn_lines
+    Purpose: Individual items in a GRN
+    Fields:
+    - grn: ManyToOne GRN
+    - product: ManyToOne Product
+    - batchNumber: String
+    - manufacturingDate: LocalDate
+    - expiryDate: LocalDate
+    - quantityOrdered: Integer (from PO, if any)
+    - quantityReceived: Integer
+    - freeQuantity: Integer (bonus quantity)
+    - unitPrice: BigDecimal
+    - discountPercent: BigDecimal
+    - discountAmount: BigDecimal
+    - gstRate: BigDecimal
+    - gstAmount: BigDecimal
+    - totalAmount: BigDecimal
+    - mrp: BigDecimal
+    - sellingPrice: BigDecimal
+    - remarks: String (TEXT)
+
+15. RGRN (Return GRN)
+    Table: rgrns
+    Purpose: Return goods to supplier
+    Fields:
+    - rgrnNumber: String (unique, e.g., RGRN-2024-00001)
+    - originalGrn: ManyToOne GRN (reference to original GRN)
+    - supplier: ManyToOne Supplier
+    - branch: ManyToOne Branch
+    - returnDate: LocalDate
+    - totalReturnAmount: BigDecimal
+    - refundStatus: PaymentStatus enum (PENDING, PAID, CANCELLED)
+    - returnReason: String (TEXT)
+    - returnedBy: ManyToOne User
+    - remarks: String (TEXT)
+    Relationships:
+    - One-to-Many with RGRNLine
+
+16. RGRNLine
+    Table: rgrn_lines
+    Fields:
+    - rgrn: ManyToOne RGRN
+    - product: ManyToOne Product
+    - inventoryBatch: ManyToOne InventoryBatch
+    - productName: String
+    - batchNumber: String
+    - quantityReturned: Integer
+    - unitPrice: BigDecimal
+    - totalAmount: BigDecimal
+    - returnReason: String
+
+17. StockTransfer
+    Table: stock_transfers
+    Purpose: Transfer stock between branches
+    Fields:
+    - transferNumber: String (unique)
+    - fromBranch: ManyToOne Branch
+    - toBranch: ManyToOne Branch
+    - transferDate: LocalDate
+    - expectedReceiptDate: LocalDate
+    - actualReceiptDate: LocalDate
+    - status: StockTransferStatus enum (PENDING, IN_TRANSIT, RECEIVED, CANCELLED)
+    - initiatedBy: ManyToOne User
+    - approvedBy: ManyToOne User
+    - approvedAt: LocalDateTime
+    - receivedBy: ManyToOne User
+    - remarks: String (TEXT)
+    Relationships:
+    - One-to-Many with StockTransferItem
+
+18. StockTransferItem
+    Table: stock_transfer_items
+    Fields:
+    - stockTransfer: ManyToOne StockTransfer
+    - product: ManyToOne Product
+    - inventoryBatch: ManyToOne InventoryBatch
+    - quantityTransferred: Integer
+    - quantityReceived: Integer
+    - remarks: String
+
+19. ProductBinCard
+    Table: product_bin_cards
+    Purpose: Audit trail of all stock movements
+    Fields:
+    - product: ManyToOne Product
+    - branch: ManyToOne Branch
+    - transactionDate: LocalDateTime (indexed)
+    - transactionType: TransactionType enum (RECEIPT, SALE, RETURN, ADJUSTMENT, TRANSFER, DAMAGE)
+    - referenceId: Long (ID of related transaction)
+    - referenceNumber: String (Invoice#, GRN#, etc.)
+    - quantityIn: Integer
+    - quantityOut: Integer
+    - runningBalance: Integer (quantity after transaction)
+    - description: String
+    - user: ManyToOne User
+
+20. InventoryTransaction
+    Table: inventory_transactions
+    Purpose: Manual stock adjustments
+    Fields:
+    - transactionNumber: String (unique)
+    - product: ManyToOne Product
+    - branch: ManyToOne Branch
+    - transactionType: TransactionType enum
+    - quantity: Integer (positive for addition, negative for reduction)
+    - transactionDate: LocalDateTime
+    - reason: String (TEXT)
+    - approvedBy: ManyToOne User
+    - isApproved: Boolean
+
+SUPPLIER ENTITIES
+-----------------
+21. Supplier
+    Table: suppliers
+    Fields:
+    - supplierCode: String (unique, indexed)
+    - supplierName: String (required, indexed)
+    - contactPerson: String
+    - phoneNumber: String
+    - email: String
+    - address: String (TEXT)
+    - city: String
+    - state: String
+    - pincode: String
+    - gstinNumber: String (GST registration)
+    - panNumber: String
+    - drugLicenseNumber: String
+    - defaultDiscountPercent: BigDecimal
+    - paymentTermDays: Integer (default 30)
+    - creditLimit: BigDecimal
+    - currentBalance: BigDecimal (outstanding amount)
+    - isActive: Boolean
+
+22. PurchaseOrder
+    Table: purchase_orders
+    Fields:
+    - poNumber: String (unique, indexed, e.g., PO-2024-00001)
+    - supplier: ManyToOne Supplier
+    - branch: ManyToOne Branch
+    - orderDate: LocalDate
+    - expectedDeliveryDate: LocalDate
+    - actualDeliveryDate: LocalDate
+    - totalAmount: BigDecimal
+    - discountAmount: BigDecimal
+    - taxAmount: BigDecimal
+    - netAmount: BigDecimal
+    - status: PurchaseOrderStatus enum (DRAFT, PENDING, APPROVED, RECEIVED, CANCELLED, CLOSED)
+    - createdByUser: ManyToOne User
+    - approvedByUser: ManyToOne User
+    - approvedAt: LocalDateTime
+    - remarks: String (TEXT)
+    - supplierReference: String (supplier's reference number)
+    Relationships:
+    - One-to-Many with PurchaseOrderItem
+
+23. PurchaseOrderItem
+    Table: purchase_order_items
+    Fields:
+    - purchaseOrder: ManyToOne PurchaseOrder
+    - product: ManyToOne Product
+    - quantityOrdered: Integer
+    - quantityReceived: Integer (updated when GRN created)
+    - unitPrice: BigDecimal
+    - discountPercent: BigDecimal
+    - discountAmount: BigDecimal
+    - gstRate: BigDecimal
+    - gstAmount: BigDecimal
+    - totalAmount: BigDecimal
+    - remarks: String
+
+24. SupplierPayment
+    Table: supplier_payments
+    Purpose: Record payments to suppliers
+    Fields:
+    - paymentNumber: String (unique)
+    - supplier: ManyToOne Supplier
+    - paymentDate: LocalDate
+    - amount: BigDecimal
+    - paymentMethod: PaymentMethod enum (CASH, CHEQUE, BANK_TRANSFER, CARD, UPI)
+    - chequeNumber: String
+    - chequeDate: LocalDate
+    - bankName: String
+    - transactionReference: String
+    - status: PaymentStatus enum
+    - paidByUser: ManyToOne User
+    - remarks: String (TEXT)
+    Relationships:
+    - One-to-Many with SupplierPaymentDetail
+
+25. SupplierPaymentDetail
+    Table: supplier_payment_details
+    Purpose: Allocate payment to specific invoices
+    Fields:
+    - supplierPayment: ManyToOne SupplierPayment
+    - grn: ManyToOne GRN
+    - invoiceNumber: String
+    - invoiceAmount: BigDecimal
+    - paidAmount: BigDecimal
+    - balanceAmount: BigDecimal
+
+ORGANIZATION ENTITIES
+---------------------
+26. Branch
+    Table: branches
+    Fields:
+    - branchCode: String (unique, required)
+    - branchName: String (required)
+    - address: String (TEXT)
+    - city: String
+    - state: String
+    - pincode: String
+    - phoneNumber: String
+    - email: String
+    - gstinNumber: String (branch-specific GST number)
+    - drugLicenseNumber: String
+    - manager: ManyToOne User
+    - isActive: Boolean
+    - isMainBranch: Boolean
+
+POS ENTITIES (Customer & Sales)
+--------------------------------
+27. Customer
+    Table: customers
+    Fields:
+    - customerCode: String (unique)
+    - customerName: String (required)
+    - phoneNumber: String (indexed)
+    - email: String
+    - address: String (TEXT)
+    - city: String
+    - dateOfBirth: LocalDate
+    - gender: Gender enum (MALE, FEMALE, OTHER)
+    - creditLimit: BigDecimal
+    - currentBalance: BigDecimal (outstanding amount)
+    - loyaltyPoints: Integer
+    - status: CustomerStatus enum (ACTIVE, INACTIVE, BLOCKED)
+    - isActive: Boolean
+
+28. Invoice
+    Table: invoices
+    Purpose: Sales invoice/bill
+    Fields:
+    - invoiceNumber: String (unique, indexed)
+    - invoiceDate: LocalDateTime
+    - customer: ManyToOne Customer
+    - branch: ManyToOne Branch
+    - totalAmount: BigDecimal
+    - discountAmount: BigDecimal
+    - taxAmount: BigDecimal
+    - netAmount: BigDecimal
+    - paidAmount: BigDecimal
+    - balanceAmount: BigDecimal
+    - paymentStatus: PaymentStatus enum
+    - paymentMethod: PaymentMethod enum
+    - status: InvoiceStatus enum (DRAFT, COMPLETED, CANCELLED, RETURNED)
+    - prescriptionNumber: String
+    - doctorName: String
+    - createdByUser: ManyToOne User
+    - remarks: String (TEXT)
+    Relationships:
+    - One-to-Many with InvoiceItem
+    - One-to-Many with InvoicePayment
+
+29. InvoiceItem
+    Table: invoice_items
+    Fields:
+    - invoice: ManyToOne Invoice
+    - product: ManyToOne Product
+    - inventoryBatch: ManyToOne InventoryBatch (batch from which sold)
+    - batchNumber: String
+    - expiryDate: LocalDate
+    - quantity: Integer
+    - unitPrice: BigDecimal
+    - discountPercent: BigDecimal
+    - discountAmount: BigDecimal
+    - gstRate: BigDecimal
+    - gstAmount: BigDecimal
+    - totalAmount: BigDecimal
+
+30. CustomerPrescription
+    Table: customer_prescriptions
+    Purpose: Store customer prescriptions
+    Fields:
+    - customer: ManyToOne Customer
+    - prescriptionNumber: String
+    - prescriptionDate: LocalDate
+    - doctorName: String
+    - diagnosis: String
+    - notes: String (TEXT)
+    - imageUrl: String (scan of prescription)
+
+FINANCE ENTITIES
+----------------
+31. CashBook
+    Table: cash_book
+    Purpose: Track all cash transactions
+    Fields:
+    - branch: ManyToOne Branch
+    - transactionDate: LocalDateTime
+    - transactionType: TransactionType enum
+    - amount: BigDecimal
+    - balance: BigDecimal (running balance)
+    - description: String
+    - referenceNumber: String
+    - user: ManyToOne User
+
+32. Bank
+    Table: banks
+    Fields:
+    - bankName: String
+    - bankCode: String (unique)
+    - branchName: String
+    - accountNumber: String
+    - ifscCode: String
+    - isActive: Boolean
+
+33. IncomingCheque
+    Table: incoming_cheques
+    Purpose: Track cheques received from customers
+    Fields:
+    - chequeNumber: String
+    - chequeDate: LocalDate
+    - bank: ManyToOne Bank
+    - amount: BigDecimal
+    - customer: ManyToOne Customer
+    - receivedDate: LocalDate
+    - depositDate: LocalDate
+    - clearanceDate: LocalDate
+    - status: ChequeStatus enum (PENDING, DEPOSITED, CLEARED, BOUNCED, CANCELLED)
+    - remarks: String (TEXT)
+
+SYSTEM ENTITIES
+---------------
+34. SystemConfig
+    Table: system_config
+    Purpose: Store system-wide configuration
+    Fields:
+    - configKey: String (unique)
+    - configValue: String (TEXT)
+    - description: String
+    - dataType: String (STRING, NUMBER, BOOLEAN, DATE)
+    - isEncrypted: Boolean
+
+35. Notification
+    Table: notifications
+    Purpose: User notifications
+    Fields:
+    - user: ManyToOne User
+    - title: String
+    - message: String (TEXT)
+    - notificationType: NotificationType enum (INFO, WARNING, ERROR, ALERT)
+    - isRead: Boolean
+    - createdAt: LocalDateTime
+    - readAt: LocalDateTime
+
+REPORT ENTITIES
+---------------
+36. DailySalesSummary
+    Table: daily_sales_summary
+    Purpose: Cache daily sales aggregates
+    Fields:
+    - branch: ManyToOne Branch
+    - salesDate: LocalDate
+    - totalSales: BigDecimal
+    - totalDiscount: BigDecimal
+    - totalTax: BigDecimal
+    - netSales: BigDecimal
+    - invoiceCount: Integer
+    - itemCount: Integer
+
+37. LowStockAlert
+    Table: low_stock_alerts
+    Purpose: Track products with low stock
+    Fields:
+    - product: ManyToOne Product
+    - branch: ManyToOne Branch
+    - currentQuantity: Integer
+    - reorderLevel: Integer
+    - alertLevel: AlertLevel enum (LOW, CRITICAL)
+    - alertDate: LocalDate
+    - isResolved: Boolean
+
+38. ExpiryAlert
+    Table: expiry_alerts
+    Purpose: Track products nearing expiry
+    Fields:
+    - inventoryBatch: ManyToOne InventoryBatch
+    - product: ManyToOne Product
+    - branch: ManyToOne Branch
+    - batchNumber: String
+    - expiryDate: LocalDate
+    - currentQuantity: Integer
+    - daysToExpiry: Integer
+    - alertLevel: AlertLevel enum (WARNING, CRITICAL, URGENT)
+    - alertDate: LocalDate
+    - isResolved: Boolean
+
+================================================================================
+7. FEATURE MODULES
+================================================================================
+
+The system is organized into feature-based modules. Each module handles a 
+specific business domain with dedicated controllers, services, and UI pages.
+
+MODULE 1: AUTHENTICATION & AUTHORIZATION
+-----------------------------------------
+Purpose: User authentication, session management, role-based access control
+
+Components:
+- Backend Controller: AuthController (/api/auth)
+- Frontend Pages: LoginPage, ForgotPasswordPage
+- Services: AuthenticationService, UserService, JwtUtil
+- Security: JwtAuthenticationFilter, SecurityConfig
+
+Features:
+1. User Login
+   - Endpoint: POST /api/auth/login
+   - Input: username, password
+   - Output: JWT access token, refresh token, user details
+   - Security: Public endpoint (no authentication required)
+   - Token Expiration: 24 hours (access), 7 days (refresh)
+
+2. Initial Admin Registration
+   - Endpoint: POST /api/auth/register/initial
+   - Purpose: Create first superadmin user (only if no users exist)
+   - Input: username, password, fullName, email
+   - Security: Public but only works once
+
+3. User Registration
+   - Endpoint: POST /api/auth/register
+   - Purpose: Create new users (by admins)
+   - Auth Required: ADMIN, OWNER
+   - Input: RegisterRequest with role assignment
+
+4. Token Refresh
+   - Endpoint: POST /api/auth/refresh
+   - Purpose: Get new access token using refresh token
+   - Input: refreshToken (query parameter)
+
+5. Change Password
+   - Endpoint: POST /api/auth/change-password
+   - Input: oldPassword, newPassword
+   - Security: User must be authenticated
+
+6. Logout
+   - Endpoint: POST /api/auth/logout
+   - Purpose: Invalidate current session
+   - Action: Marks UserSession as inactive
+
+7. Get Current User
+   - Endpoint: GET /api/auth/me
+   - Purpose: Get authenticated user's details
+   - Output: UserResponse with permissions
+
+Session Management:
+- All active sessions tracked in user_sessions table
+- Sessions include: IP address, user agent, login/logout times
+- Automatic session expiry after inactivity
+- Force logout capability for admins
+
+Roles & Permissions:
+- SUPER_ADMIN: Full system access
+- ADMIN: Branch-level admin
+- MANAGER: Store manager
+- PHARMACIST: Inventory & sales
+- CASHIER: POS operations
+- INVENTORY_MANAGER: Stock management
+
+MODULE 2: USER MANAGEMENT
+--------------------------
+Purpose: Manage system users, roles, and permissions
+
+Components:
+- Backend Controller: UserController (/api/users)
+- Frontend Pages: UsersPage, UserFormPage
+- Services: UserService, BranchStaffService
+
+Features:
+1. Create User (POST /api/users)
+2. Update User (PUT /api/users/{id})
+3. Get User by ID (GET /api/users/{id})
+4. Get User by Username (GET /api/users/username/{username})
+5. List All Users (GET /api/users) - Paginated
+6. Get Users by Role (GET /api/users/role/{role})
+7. Get Active Users (GET /api/users/active)
+8. Get Users by Branch (GET /api/users/branch/{branchId})
+9. Delete User (DELETE /api/users/{id}) - Soft delete
+10. Activate User (PATCH /api/users/{id}/activate)
+11. Deactivate User (PATCH /api/users/{id}/deactivate)
+12. Reset Password (PATCH /api/users/{id}/reset-password)
+
+User Fields:
+- Basic: username, fullName, email, phoneNumber, employeeCode
+- Access: role, isActive, discountLimit, creditTransactionLimit
+- Tracking: lastLoginDate, createdAt, updatedAt
+
+Branch Assignment:
+- Users can be assigned to multiple branches
+- Each assignment has designation, employmentType, joiningDate
+- One branch marked as primary (isPrimaryBranch)
+
+MODULE 3: BRANCH MANAGEMENT
+----------------------------
+Purpose: Manage multiple pharmacy branches
+
+Components:
+- Backend Controller: BranchController (/api/branches)
+- Frontend Pages: BranchesPage, BranchFormPage
+- Services: BranchService
+
+Features:
+1. Create Branch (POST /api/branches)
+2. Get Branch by ID (GET /api/branches/{id})
+3. Get Branch by Code (GET /api/branches/code/{branchCode})
+4. List All Branches (GET /api/branches) - Paginated
+5. Get All Branches (GET /api/branches/all) - Non-paginated
+6. Get Active Branches (GET /api/branches/active)
+7. Update Branch (PUT /api/branches/{id})
+8. Delete Branch (DELETE /api/branches/{id})
+9. Activate Branch (POST /api/branches/{id}/activate)
+10. Deactivate Branch (POST /api/branches/{id}/deactivate)
+
+Branch Information:
+- Identification: branchCode, branchName
+- Contact: address, city, state, pincode, phoneNumber, email
+- Legal: gstinNumber, drugLicenseNumber
+- Management: manager (User reference)
+- Flags: isActive, isMainBranch
+
+Use Cases:
+- Multi-location pharmacy chains
+- Separate inventory per branch
+- Branch-specific reporting
+- Stock transfers between branches
+
+MODULE 4: PRODUCT & CATEGORY MANAGEMENT
+----------------------------------------
+Purpose: Manage product catalog, categories, and pricing
+
+Components:
+- Backend Controllers: ProductController, CategoryController, SubCategoryController
+- Frontend Pages: ProductsPage, ProductFormPage, CategoriesPage
+- Services: ProductService, CategoryService
+
+CATEGORIES:
+Features:
+1. Create Category (POST /api/categories)
+2. Update Category (PUT /api/categories/{id})
+3. Get Category (GET /api/categories/{id})
+4. List All Categories (GET /api/categories)
+5. Get Active Categories (GET /api/categories/active)
+6. Delete Category (DELETE /api/categories/{id})
+
+Category Structure:
+- categoryName, categoryCode
+- description
+- minCode, maxCode (for product code ranges)
+- isActive flag
+
+PRODUCTS:
+Features:
+1. Create Product (POST /api/products)
+2. Update Product (PUT /api/products/{id})
+3. Get Product by ID (GET /api/products/{id})
+4. Get Product by Code (GET /api/products/code/{productCode})
+5. List All Products (GET /api/products) - Paginated
+6. Search Products (GET /api/products/search?query=)
+7. Get Low Stock Products (GET /api/products/low-stock)
+8. Delete Product (DELETE /api/products/{id})
+9. Discontinue Product (PATCH /api/products/{id}/discontinue)
+
+Product Information:
+- Identification: productCode, productName, genericName, barcode
+- Classification: category, subCategory, unit
+- Drug Info: dosageForm, strength, drugSchedule
+- Manufacturer: manufacturer, supplier
+- Pricing: costPrice, sellingPrice, mrp, profitMargin, gstRate
+- Stock Control: reorderLevel, minimumStock, maximumStock
+- Flags: isPrescriptionRequired, isNarcotic, isRefrigerated, 
+         isActive, isDiscontinued
+
+Dosage Forms: TABLET, CAPSULE, SYRUP, INJECTION, CREAM, OINTMENT, 
+              DROPS, POWDER, SUSPENSION, INHALER
+
+Drug Schedules: H (Prescription), H1 (Habit Forming), X (Narcotic), 
+                G (General), OTC (Over The Counter)
+
+MODULE 5: SUPPLIER MANAGEMENT
+------------------------------
+Purpose: Manage supplier information and relationships
+
+Components:
+- Backend Controller: SupplierController (/api/suppliers)
+- Frontend Pages: SuppliersPage, SupplierFormPage
+- Services: SupplierService
+
+Features:
+1. Create Supplier (POST /api/suppliers)
+2. Update Supplier (PUT /api/suppliers/{id})
+3. Get Supplier by ID (GET /api/suppliers/{id})
+4. Get Supplier by Code (GET /api/suppliers/code/{supplierCode})
+5. List All Suppliers (GET /api/suppliers) - Paginated
+6. Search Suppliers (GET /api/suppliers/search?query=)
+7. Get Active Suppliers (GET /api/suppliers/active)
+8. Delete Supplier (DELETE /api/suppliers/{id})
+9. Activate Supplier (PATCH /api/suppliers/{id}/activate)
+10. Deactivate Supplier (PATCH /api/suppliers/{id}/deactivate)
+
+Supplier Information:
+- Identification: supplierCode, supplierName, contactPerson
+- Contact: phoneNumber, email, address, city, state, pincode
+- Legal: gstinNumber, panNumber, drugLicenseNumber
+- Terms: defaultDiscountPercent, paymentTermDays, creditLimit
+- Financial: currentBalance (outstanding amount)
+- Status: isActive
+
+MODULE 6: PURCHASE ORDER MANAGEMENT
+------------------------------------
+Purpose: Create and manage purchase orders to suppliers
+
+Components:
+- Backend Controller: PurchaseOrderController (/api/purchase-orders)
+- Frontend Pages: PurchaseOrdersPage, PurchaseOrderFormPage
+- Services: PurchaseOrderService
+
+Features:
+1. Create Purchase Order (POST /api/purchase-orders)
+2. Get PO by ID (GET /api/purchase-orders/{id})
+3. Get PO by Number (GET /api/purchase-orders/number/{poNumber})
+4. List All POs (GET /api/purchase-orders) - Paginated
+5. Get POs by Supplier (GET /api/purchase-orders/supplier/{supplierId})
+6. Get POs by Branch (GET /api/purchase-orders/branch/{branchId})
+7. Get POs by Status (GET /api/purchase-orders/status/{status})
+8. Get POs by Date Range (GET /api/purchase-orders/date-range)
+9. Update PO Status (PUT /api/purchase-orders/{id}/status)
+10. Approve PO (POST /api/purchase-orders/{id}/approve)
+11. Reject PO (POST /api/purchase-orders/{id}/reject)
+12. Delete Draft PO (DELETE /api/purchase-orders/{id})
+
+Purchase Order Workflow:
+1. DRAFT → Created, can be edited
+2. PENDING → Submitted for approval
+3. APPROVED → Approved, sent to supplier
+4. RECEIVED → Goods received (via GRN)
+5. CANCELLED → Cancelled before receiving
+6. CLOSED → Fully received and closed
+
+PO Fields:
+- Header: poNumber, supplier, branch, orderDate, expectedDeliveryDate
+- Amounts: totalAmount, discountAmount, taxAmount, netAmount
+- Status: status (enum), approvedByUser, approvedAt
+- Items: List of PurchaseOrderItem
+
+PO Item Fields:
+- product, quantityOrdered, quantityReceived
+- unitPrice, discountPercent, gstRate
+- totalAmount
+
+MODULE 7: GRN (GOODS RECEIVED NOTE)
+------------------------------------
+Purpose: Record goods received from suppliers and update inventory
+
+Components:
+- Backend Controller: GRNController (/api/grn)
+- Frontend Pages: GRNPage, GRNFormPage
+- Services: GRNService, InventoryService
+
+Features:
+1. Create GRN (POST /api/grn)
+2. Get GRN by ID (GET /api/grn/{id})
+3. Get GRN by Number (GET /api/grn/number/{grnNumber})
+4. List All GRNs (GET /api/grn) - Paginated
+5. Get GRNs by Branch (GET /api/grn/branch/{branchId})
+6. Get GRNs by Supplier (GET /api/grn/supplier/{supplierId})
+7. Get GRNs by Date Range (GET /api/grn/date-range)
+8. Get GRNs by Status (GET /api/grn/status/{status})
+9. Approve GRN (POST /api/grn/{id}/approve) - **Updates Inventory**
+10. Reject GRN (POST /api/grn/{id}/reject)
+11. Cancel GRN (POST /api/grn/{id}/cancel)
+
+GRN Workflow:
+1. DRAFT → Created, can be edited
+2. PENDING_APPROVAL → Submitted for approval
+3. APPROVED → Approved by manager
+4. RECEIVED → Inventory updated (batches created)
+5. REJECTED → Rejected with reason
+6. CANCELLED → Cancelled before receiving
+
+GRN Fields:
+- Header: grnNumber, purchaseOrder (optional), supplier, branch
+- Dates: receivedDate, supplierInvoiceDate
+- Invoice: supplierInvoiceNumber
+- Amounts: totalAmount, discountAmount, taxAmount, netAmount
+- Payment: paidAmount, balanceAmount, paymentStatus
+- Approval: receivedBy, approvedBy, approvedAt, status
+- Items: List of GRNLine
+
+GRN Line Fields:
+- product, batchNumber, manufacturingDate, expiryDate
+- quantityOrdered (from PO), quantityReceived, freeQuantity
+- unitPrice, discountPercent, gstRate
+- mrp, sellingPrice
+- totalAmount
+
+CRITICAL: When GRN is approved (status → RECEIVED):
+- Creates InventoryBatch for each GRN line
+- Updates BranchInventory quantities
+- Records ProductBinCard transaction (RECEIPT)
+- Updates GRN payment status
+
+MODULE 8: RGRN (RETURN GOODS RECEIVED NOTE)
+--------------------------------------------
+Purpose: Return goods to supplier and adjust inventory
+
+Components:
+- Backend Controller: RGRNController (/api/rgrns)
+- Frontend Pages: RGRNPage
+- Services: RGRNService
+
+Features:
+1. Create RGRN (POST /api/rgrns)
+2. Get RGRN by ID (GET /api/rgrns/{id})
+3. Get RGRN by Number (GET /api/rgrns/number/{rgrnNumber})
+4. List All RGRNs (GET /api/rgrns) - Paginated
+5. Get RGRNs by Supplier (GET /api/rgrns/supplier/{supplierId})
+6. Get RGRNs by Branch (GET /api/rgrns/branch/{branchId})
+7. Get RGRNs by Original GRN (GET /api/rgrns/grn/{grnId})
+8. Get RGRNs by Refund Status (GET /api/rgrns/refund-status/{status})
+9. Get RGRNs by Date Range (GET /api/rgrns/date-range)
+10. Update Refund Status (PUT /api/rgrns/{id}/refund-status)
+11. Delete RGRN (DELETE /api/rgrns/{id}) - Admin only
+
+RGRN Fields:
+- rgrnNumber, originalGrn, supplier, branch
+- returnDate, totalReturnAmount
+- refundStatus (PENDING, PAID, CANCELLED)
+- returnReason, returnedBy
+- Items: List of RGRNLine
+
+RGRN Line Fields:
+- product, inventoryBatch, batchNumber
+- quantityReturned, unitPrice, totalAmount
+- returnReason
+
+Inventory Impact:
+- Reduces InventoryBatch.quantityAvailable
+- Increases InventoryBatch.quantityReturned
+- Updates BranchInventory totals
+- Records ProductBinCard transaction (RETURN)
+
+MODULE 9: INVENTORY MANAGEMENT
+-------------------------------
+Purpose: Track stock levels, batches, and movements
+
+Components:
+- Backend Controller: InventoryController (/api/inventory)
+- Frontend Pages: InventoryPage, StockAdjustmentPage
+- Services: InventoryService, StockTransferService
+
+Features:
+1. Get Inventory by Product & Branch (GET /api/inventory/product/{productId}/branch/{branchId})
+2. Get Branch Inventory (GET /api/inventory/branch/{branchId}) - Paginated
+3. Get Low Stock Items (GET /api/inventory/branch/{branchId}/low-stock)
+4. Get Out of Stock Items (GET /api/inventory/branch/{branchId}/out-of-stock)
+5. Get Product Batches (GET /api/inventory/batches/product/{productId}/branch/{branchId})
+6. Get Expiring Batches (GET /api/inventory/branch/{branchId}/expiring)
+7. Get Expired Batches (GET /api/inventory/branch/{branchId}/expired)
+8. Get Available Quantity (GET /api/inventory/available/{productId}/branch/{branchId})
+
+Inventory Tracking:
+- BranchInventory: Summary per product per branch
+  * quantityOnHand: Total quantity
+  * quantityAllocated: Reserved for orders
+  * quantityAvailable: Available for sale
+  
+- InventoryBatch: Detailed batch tracking
+  * Batch-specific quantities
+  * Expiry date management
+  * FIFO/FEFO allocation
+  * Physical location (rackLocation)
+
+Stock Alerts:
+- Low Stock: quantity < reorderLevel
+- Critical Stock: quantity < minimumStock
+- Expiring: expiryDate within configured days
+- Expired: expiryDate < today
+
+MODULE 10: STOCK TRANSFER
+--------------------------
+Purpose: Transfer stock between branches
+
+Components:
+- Backend Controller: StockTransferController (/api/stock-transfers)
+- Frontend Pages: StockTransferPage
+- Services: StockTransferService
+
+Features:
+1. Create Stock Transfer (POST /api/stock-transfers)
+2. Get Transfer by ID (GET /api/stock-transfers/{id})
+3. Get Transfer by Number (GET /api/stock-transfers/number/{transferNumber})
+4. List All Transfers (GET /api/stock-transfers) - Paginated
+5. Get Transfers by Branch (GET /api/stock-transfers/branch/{branchId})
+6. Get Transfers by Status (GET /api/stock-transfers/status/{status})
+7. Approve Transfer (POST /api/stock-transfers/{id}/approve)
+8. Receive Transfer (POST /api/stock-transfers/{id}/receive)
+9. Cancel Transfer (POST /api/stock-transfers/{id}/cancel)
+
+Transfer Workflow:
+1. PENDING → Created, awaiting approval
+2. APPROVED → Approved, ready to ship
+3. IN_TRANSIT → Shipped from source branch
+4. RECEIVED → Received at destination branch
+5. CANCELLED → Cancelled before completion
+
+Transfer Fields:
+- transferNumber, fromBranch, toBranch
+- transferDate, expectedReceiptDate, actualReceiptDate
+- status, initiatedBy, approvedBy, receivedBy
+- Items: List of StockTransferItem
+
+Inventory Impact:
+- Source Branch: Reduces inventory
+- Destination Branch: Increases inventory
+- ProductBinCard: Records TRANSFER_OUT and TRANSFER_IN
+
+MODULE 11: CUSTOMER MANAGEMENT
+-------------------------------
+Purpose: Manage customer information and loyalty
+
+Components:
+- Backend Controller: CustomerController (/api/customers)
+- Frontend Pages: CustomersPage, CustomerFormPage
+- Services: CustomerService
+
+Features:
+1. Create Customer (POST /api/customers)
+2. Update Customer (PUT /api/customers/{id})
+3. Get Customer by ID (GET /api/customers/{id})
+4. Get Customer by Code (GET /api/customers/code/{customerCode})
+5. List All Customers (GET /api/customers) - Paginated
+6. Search Customers (GET /api/customers/search?query=)
+7. Get Active Customers (GET /api/customers/active)
+8. Delete Customer (DELETE /api/customers/{id})
+9. Activate Customer (PATCH /api/customers/{id}/activate)
+10. Deactivate Customer (PATCH /api/customers/{id}/deactivate)
+
+Customer Information:
+- Identification: customerCode, customerName
+- Contact: phoneNumber, email, address, city
+- Personal: dateOfBirth, gender
+- Financial: creditLimit, currentBalance, loyaltyPoints
+- Status: status (ACTIVE, INACTIVE, BLOCKED), isActive
+
+Use Cases:
+- Credit sales tracking
+- Loyalty program management
+- Prescription history
+- Outstanding balance management
+
+MODULE 12: SALES & INVOICING
+-----------------------------
+Purpose: Process sales transactions and generate invoices
+
+Components:
+- Backend Controllers: SaleController, InvoiceController
+- Frontend Pages: SalesPage, POSPage
+- Services: SaleService, InvoiceService
+
+SALES:
+Features:
+1. Create Sale (POST /api/sales)
+2. Get Sale by ID (GET /api/sales/{id})
+3. Get Sale by Number (GET /api/sales/number/{saleNumber})
+4. List All Sales (GET /api/sales) - Paginated
+5. Get Sales by Branch (GET /api/sales/branch/{branchId})
+6. Get Sales by Customer (GET /api/sales/customer/{customerId})
+7. Get Sales by Date Range (GET /api/sales/date-range)
+8. Get Sales by Status (GET /api/sales/status/{status})
+9. Cancel Sale (POST /api/sales/{id}/cancel)
+10. Void Sale (POST /api/sales/{id}/void) - Admin only
+11. Get Branch Total Sales (GET /api/sales/branch/{branchId}/total)
+12. Get Sales Count (GET /api/sales/branch/{branchId}/count)
+
+INVOICES:
+Features:
+1. Get Invoice by ID (GET /api/invoices/{id})
+2. Get Invoice by Number (GET /api/invoices/number/{invoiceNumber})
+3. List All Invoices (GET /api/invoices) - Paginated
+4. Get Invoices by Branch (GET /api/invoices/branch/{branchId})
+5. Get Invoices by Customer (GET /api/invoices/customer/{customerId})
+6. Get Invoices by Date Range (GET /api/invoices/date-range)
+7. Get Invoices by Status (GET /api/invoices/status/{status})
+8. Get Invoices by Payment Status (GET /api/invoices/payment-status/{paymentStatus})
+9. Record Payment (POST /api/invoices/{id}/payment)
+10. Get Customer Outstanding (GET /api/invoices/customer/{customerId}/outstanding)
+11. Get Overdue Invoices (GET /api/invoices/overdue)
+
+Sale/Invoice Workflow:
+1. DRAFT → Being created in POS
+2. COMPLETED → Sale finalized, inventory reduced
+3. CANCELLED → Cancelled with reason
+4. RETURNED → Partially or fully returned
+
+Invoice Fields:
+- Header: invoiceNumber, invoiceDate, customer, branch
+- Amounts: totalAmount, discountAmount, taxAmount, netAmount
+- Payment: paidAmount, balanceAmount, paymentStatus, paymentMethod
+- Medical: prescriptionNumber, doctorName
+- Status: status, createdByUser
+- Items: List of InvoiceItem
+
+Invoice Item Fields:
+- product, inventoryBatch, batchNumber, expiryDate
+- quantity, unitPrice
+- discountPercent, discountAmount
+- gstRate, gstAmount
+- totalAmount
+
+Inventory Impact:
+- Reduces InventoryBatch.quantityAvailable
+- Increases InventoryBatch.quantitySold
+- Updates BranchInventory
+- Records ProductBinCard transaction (SALE)
+
+Payment Methods:
+- CASH: Cash payment
+- CARD: Credit/debit card
+- UPI: UPI payment
+- BANK_TRANSFER: Bank transfer
+- CHEQUE: Cheque payment
+
+MODULE 13: POINT OF SALE (POS)
+-------------------------------
+Purpose: Fast checkout interface for pharmacy sales
+
+Components:
+- Frontend Page: POSPage
+- Store: cartStore (Zustand)
+- Services: SaleService, ProductService, CustomerService
+
+POS Features:
+1. Product Search & Selection
+   - Barcode scanning
+   - Product code search
+   - Name-based search
+   - Category browsing
+
+2. Cart Management
+   - Add items to cart
+   - Update quantities
+   - Remove items
+   - Apply discounts
+   - Calculate totals (with GST)
+
+3. Customer Selection
+   - Quick customer search
+   - Create new customer
+   - Anonymous sale
+   - Credit limit check
+
+4. Payment Processing
+   - Multiple payment methods
+   - Split payments
+   - Change calculation
+   - Payment validation
+
+5. Invoice Generation
+   - Print invoice
+   - Email invoice
+   - PDF generation
+
+6. Quick Actions
+   - Keyboard shortcuts
+   - Barcode scanner integration
+   - Recent products
+   - Favorite products
+
+Cart Store (Zustand):
+- items: Array of cart items
+- customer: Selected customer
+- discount: Applied discount
+- paymentMethod: Selected method
+- Actions: addItem, removeItem, updateQuantity, clearCart
+
+MODULE 14: DASHBOARD & ANALYTICS
+---------------------------------
+Purpose: Provide business insights and KPIs
+
+Components:
+- Backend Controller: DashboardController (/api/dashboard)
+- Frontend Page: DashboardPage
+- Services: DashboardService
+
+Features:
+1. Get Dashboard Summary (GET /api/dashboard/summary)
+   - Today's sales, invoices, revenue
+   - Monthly totals
+   - Low stock alerts
+   - Expiring products
+   - Recent sales
+   - Top selling products
+
+2. Get Sales Chart Data (GET /api/dashboard/sales-chart)
+   - Daily sales trend
+   - Configurable period (default 7 days)
+
+Dashboard Metrics:
+- Today's Metrics:
+  * Total sales amount
+  * Number of invoices
+  * Average invoice value
+  * Cash vs credit sales
+  
+- Monthly Metrics:
+  * Total revenue
+  * Total profit
+  * Invoice count
+  * Customer count
+  * Growth rate vs previous month
+  
+- Inventory Alerts:
+  * Low stock count
+  * Out of stock count
+  * Expiring products count (30 days)
+  * Expired products count
+  
+- Top Products:
+  * Top 10 selling products (by quantity)
+  * Top 10 revenue-generating products
+  * Fast-moving items
+  * Slow-moving items
+
+MODULE 15: COMPREHENSIVE REPORTING
+-----------------------------------
+Purpose: Generate detailed business reports
+
+Components:
+- Backend Controller: ReportController (/api/reports)
+- Frontend Page: ReportsPage
+- Services: ReportService
+
+SALES REPORTS:
+1. Total Sales Amount (GET /api/reports/sales/total)
+2. Sales Count (GET /api/reports/sales/count)
+3. Detailed Sales Report (GET /api/reports/sales/details)
+4. Daily Sales Breakdown (GET /api/reports/sales/daily)
+5. Top Selling Products (GET /api/reports/sales/top-products)
+6. Sales by Payment Method (GET /api/reports/sales/by-payment-method)
+7. Sales Comparison (GET /api/reports/sales/comparison) - Period vs period
+
+INVENTORY REPORTS:
+8. Stock Value (GET /api/reports/inventory/stock-value)
+9. Stock Value by Category (GET /api/reports/inventory/stock-value/by-category)
+10. Low Stock Report (GET /api/reports/inventory/low-stock)
+11. Expiring Products (GET /api/reports/inventory/expiring)
+12. Expired Products (GET /api/reports/inventory/expired)
+13. Inventory Summary (GET /api/reports/inventory/summary)
+14. Dead Stock (GET /api/reports/inventory/dead-stock)
+
+FINANCIAL REPORTS:
+15. Total Revenue (GET /api/reports/financial/revenue)
+16. Daily Revenue Breakdown (GET /api/reports/financial/daily-revenue)
+17. Profit & Loss Statement (GET /api/reports/financial/profit-loss)
+18. Cash Flow Analysis (GET /api/reports/financial/cash-flow)
+19. Accounts Receivable (GET /api/reports/financial/receivables)
+20. Ageing Analysis (GET /api/reports/financial/ageing)
+21. Tax Collection Summary (GET /api/reports/financial/tax-summary)
+
+ALERT REPORTS:
+22. All Alerts (GET /api/reports/alerts/all)
+23. Alert Count (GET /api/reports/alerts/count)
+24. Low Stock Alerts (GET /api/reports/alerts/low-stock)
+25. Expiry Alerts (GET /api/reports/alerts/expiry)
+26. Overdue Invoices (GET /api/reports/alerts/overdue-invoices)
+27. Acknowledge Alert (POST /api/reports/alerts/{alertId}/acknowledge)
+
+Report Formats:
+- JSON (API response)
+- PDF (via iText7)
+- Excel (via Apache POI)
+- CSV export
+
+MODULE 16: NOTIFICATIONS & ALERTS
+----------------------------------
+Purpose: Real-time notifications and alert system
+
+Components:
+- Backend Controller: NotificationController (/api/notifications)
+- WebSocket: /ws endpoint with STOMP protocol
+- Frontend: NotificationStore, useWebSocket hook
+- Services: NotificationService, WebSocketHandler
+
+Features:
+1. Get All Notifications (GET /api/notifications/all)
+2. Get Unread Notifications (GET /api/notifications/unread)
+3. Get Unread Count (GET /api/notifications/count)
+4. Send Notification (POST /api/notifications/send)
+5. Bulk Send (POST /api/notifications/bulk)
+6. Send to Branch (POST /api/notifications/branch/{branchId})
+7. Send to Role (POST /api/notifications/role)
+8. Mark as Read (PUT /api/notifications/{id}/read)
+9. Mark All as Read (PUT /api/notifications/read-all)
+10. Delete Notification (DELETE /api/notifications/{id})
+11. Delete All (DELETE /api/notifications/all)
+
+Notification Types:
+- INFO: General information
+- WARNING: Important warnings
+- ERROR: Error messages
+- ALERT: Critical alerts
+
+WebSocket Topics:
+- /topic/notifications: Broadcast to all
+- /queue/user/{userId}: User-specific
+- /topic/branch/{branchId}: Branch-specific
+- /topic/role/{role}: Role-specific
+
+Auto-Generated Alerts:
+- Low stock alert (scheduled daily at 7 AM)
+- Expiry alert (scheduled daily at 6 AM)
+- Overdue invoices (weekly on Monday at 8 AM)
+- Critical stock alert (real-time)
+
+MODULE 17: SYSTEM CONFIGURATION
+--------------------------------
+Purpose: Manage system-wide settings
+
+Components:
+- Backend Controller: SystemConfigController (/api/system-config)
+- Entity: SystemConfig
+- Service: SystemConfigService
+
+Configuration Categories:
+- Company: name, address, logo, GST number
+- Inventory: low stock threshold, expiry warning days
+- Sales: default discount, tax rates, invoice prefix
+- Payment: accepted methods, credit terms
+- Email: SMTP settings, notification templates
+- Security: password policy, session timeout
+- Backup: schedule, retention period
+
+Configuration Storage:
+- Key-value pairs in system_config table
+- Supports: STRING, NUMBER, BOOLEAN, DATE types
+- Encrypted sensitive values (passwords, API keys)
+
+MODULE 18: AUDIT & LOGGING
+---------------------------
+Purpose: Track all system activities for compliance
+
+Components:
+- AOP Aspects: AuditAspect, LoggingAspect, PerformanceAspect
+- Base Entity: AuditableEntity
+- Services: AuditService
+
+Audit Features:
+- Automatic tracking of created/updated timestamps
+- User tracking (createdBy, updatedBy)
+- Request/response logging
+- Performance monitoring
+- Security audit trail
+
+Auditable Entities:
+- All entities extend AuditableEntity or BaseEntity
+- Fields: createdAt, updatedAt, createdBy, updatedBy
+- Automatic population via JPA @PrePersist, @PreUpdate
+
+Transaction Tracking:
+- ProductBinCard: Complete stock movement history
+- All financial transactions logged
+- User authentication history in UserSession
+
+MODULE 19: SCHEDULED JOBS
+--------------------------
+Purpose: Automated background tasks
+
+Components:
+- Scheduler Classes: InventoryScheduler, ExpiryScheduler, NotificationScheduler
+- Configuration: Quartz scheduler with cron expressions
+
+Scheduled Tasks:
+1. Low Stock Check
+   - Schedule: Daily at 7 AM (0 0 7 * * ?)
+   - Action: Check all products, generate alerts
+   
+2. Expiry Check
+   - Schedule: Daily at 6 AM (0 0 6 * * ?)
+   - Action: Check expiring/expired batches, send notifications
+   
+3. Weekly Alert Summary
+   - Schedule: Monday at 8 AM (0 0 8 * * MON)
+   - Action: Send weekly summary to managers
+   
+4. Notification Cleanup
+   - Schedule: Sunday at midnight (0 0 0 * * SUN)
+   - Action: Archive old notifications
+   
+5. Update Batch Expiry Status
+   - Schedule: Daily at 1 AM (0 0 1 * * ?)
+   - Action: Mark expired batches, update status
+
+Configuration:
+- Editable in application.properties
+- Cron expression format
+- Enable/disable individual jobs
+
+MODULE 20: BARCODE & QR CODE GENERATION
+----------------------------------------
+Purpose: Generate barcodes for products and invoices
+
+Components:
+- Backend Controller: BarcodeController (/api/barcode)
+- Service: BarcodeService
+- Library: ZXing (com.google.zxing)
+
+Features:
+1. Generate Product Barcode
+2. Generate QR Code for Invoice
+3. Bulk Barcode Generation
+4. Print Labels
+
+Supported Formats:
+- CODE_128: Product barcodes
+- QR_CODE: Invoice QR codes
+- EAN_13: International product codes
+
+================================================================================
+8. COMPLETE API REFERENCE
+================================================================================
+
+[See detailed API documentation above in Section 7 for all endpoints]
+
+API SUMMARY:
+- Total Controllers: 17+
+- Total Endpoints: 200+
+- Base URL: http://localhost:8080/api
+- Authentication: JWT Bearer Token
+- Response Format: JSON (ApiResponse wrapper)
+- Pagination: Spring Data Pageable (page, size, sortBy, sortDir)
+- Error Handling: GlobalExceptionHandler with standardized error responses
+
+AUTHENTICATION HEADER:
+Authorization: Bearer <jwt_access_token>
+
+COMMON RESPONSE STRUCTURE:
+{
+  "success": true/false,
+  "message": "Success/error message",
+  "data": <response_data>,
+  "timestamp": "2024-01-01T12:00:00"
+}
+
+PAGINATION RESPONSE:
+{
+  "content": [<array_of_items>],
+  "totalElements": 100,
+  "totalPages": 10,
+  "currentPage": 0,
+  "pageSize": 10,
+  "first": true,
+  "last": false
+}
+
+ERROR RESPONSE:
+{
+  "success": false,
+  "message": "Error description",
+  "errorCode": "ERROR_CODE",
+  "timestamp": "2024-01-01T12:00:00"
+}
+
+================================================================================
+9. SECURITY & PERMISSIONS
+================================================================================
+
+AUTHENTICATION MECHANISM:
+--------------------------
+1. User Login:
+   - POST /api/auth/login with username/password
+   - System validates credentials using BCrypt
+   - Generates JWT access token (24h expiry)
+   - Generates JWT refresh token (7 days expiry)
+   - Creates UserSession record
+   
+2. Token Structure:
+   - Access Token: Short-lived, used for API requests
+   - Refresh Token: Long-lived, used to get new access tokens
+   - Claims: userId, username, role, branchId
+   
+3. Token Validation:
+   - JwtAuthenticationFilter intercepts all requests
+   - Validates token signature and expiry
+   - Populates SecurityContext with user details
+   - Rejects invalid/expired tokens
+
+AUTHORIZATION:
+--------------
+Role-Based Access Control (RBAC):
+
+1. SUPER_ADMIN
+   - Full system access
+   - User management
+   - System configuration
+   - All module access
+   - Can perform any operation
+
+2. ADMIN
+   - Branch-level administration
+   - User management in branch
+   - All business operations
+   - Reporting and analytics
+   - Cannot modify system config
+
+3. MANAGER
+   - Store management
+   - Approve purchase orders
+   - Approve GRNs
+   - Sales management
+   - Staff oversight
+   - Reports access
+
+4. PHARMACIST
+   - Product management
+   - Inventory operations
+   - GRN creation
+   - Sales processing
+   - Customer service
+   - Cannot approve POs/GRNs
+
+5. CASHIER
+   - POS operations only
+   - Create sales/invoices
+   - Customer lookup
+   - Limited reporting
+   - No inventory management
+
+6. INVENTORY_MANAGER
+   - Full inventory access
+   - Stock management
+   - GRN operations
+   - Stock transfers
+   - Inventory reports
+
+PERMISSION MATRIX:
+------------------
+Operation                  | SUPER_ADMIN | ADMIN | MANAGER | PHARMACIST | CASHIER | INV_MGR
+---------------------------|-------------|-------|---------|------------|---------|--------
+Create User                |      ✓      |   ✓   |    ✗    |     ✗      |    ✗    |   ✗
+Create Branch              |      ✓      |   ✓   |    ✗    |     ✗      |    ✗    |   ✗
+Create Product             |      ✓      |   ✓   |    ✓    |     ✓      |    ✗    |   ✓
+Create Category            |      ✓      |   ✓   |    ✓    |     ✗      |    ✗    |   ✗
+Create Supplier            |      ✓      |   ✓   |    ✓    |     ✗      |    ✗    |   ✗
+Create Purchase Order      |      ✓      |   ✓   |    ✓    |     ✓      |    ✗    |   ✓
+Approve Purchase Order     |      ✓      |   ✓   |    ✓    |     ✗      |    ✗    |   ✗
+Create GRN                 |      ✓      |   ✓   |    ✓    |     ✓      |    ✗    |   ✓
+Approve GRN                |      ✓      |   ✓   |    ✓    |     ✗      |    ✗    |   ✗
+Create Sale                |      ✓      |   ✓   |    ✓    |     ✓      |    ✓    |   ✗
+Cancel Sale                |      ✓      |   ✓   |    ✓    |     ✗      |    ✗    |   ✗
+Void Sale                  |      ✓      |   ✗   |    ✗    |     ✗      |    ✗    |   ✗
+Create Customer            |      ✓      |   ✓   |    ✓    |     ✓      |    ✓    |   ✗
+Stock Transfer             |      ✓      |   ✓   |    ✓    |     ✓      |    ✗    |   ✓
+View Reports               |      ✓      |   ✓   |    ✓    |     ✓      |    ⚬    |   ✓
+Financial Reports          |      ✓      |   ✓   |    ✓    |     ✗      |    ✗    |   ✗
+System Configuration       |      ✓      |   ✗   |    ✗    |     ✗      |    ✗    |   ✗
+Delete Records             |      ✓      |   ✓   |    ✗    |     ✗      |    ✗    |   ✗
+Reset Password             |      ✓      |   ✓   |    ✗    |     ✗      |    ✗    |   ✗
+Send Notifications         |      ✓      |   ✓   |    ✓    |     ✗      |    ✗    |   ✗
+
+Legend: ✓ = Full Access, ⚬ = Limited Access, ✗ = No Access
+
+SECURITY FEATURES:
+------------------
+1. Password Security:
+   - BCrypt hashing (strength 10)
+   - Minimum 8 characters
+   - Password expiry (optional)
+   - Password history (prevent reuse)
+
+2. Session Management:
+   - Active session tracking
+   - Concurrent session control
+   - Session timeout after inactivity
+   - Force logout capability
+
+3. API Security:
+   - Rate limiting (Bucket4j)
+   - Request validation
+   - SQL injection prevention (JPA)
+   - XSS protection
+   - CORS configuration
+
+4. Data Protection:
+   - Sensitive data encryption
+   - SSL/TLS for production
+   - Secure password reset flow
+   - Audit logging
+
+5. Network Security:
+   - Firewall configuration
+   - IP whitelisting (optional)
+   - API key rotation
+   - Token refresh mechanism
+
+================================================================================
+10. SYSTEM WORKFLOWS
+================================================================================
+
+WORKFLOW 1: PURCHASE ORDER TO STOCK RECEIPT
+--------------------------------------------
+Step 1: Create Purchase Order
+- User: Manager/Pharmacist
+- Action: POST /api/purchase-orders
+- Input: Supplier, products, quantities, prices
+- Status: DRAFT
+
+Step 2: Approve Purchase Order
+- User: Admin/Manager
+- Action: POST /api/purchase-orders/{id}/approve
+- Validation: Check supplier credit limit
+- Status: DRAFT → APPROVED
+- Output: PO sent to supplier (email/print)
+
+Step 3: Receive Goods
+- User: Inventory Manager/Pharmacist
+- Action: POST /api/grn
+- Input: GRN details, batch numbers, expiry dates
+- Link: Reference original PO
+- Status: GRN created as DRAFT
+
+Step 4: Verify & Approve GRN
+- User: Manager
+- Action: POST /api/grn/{id}/approve
+- Validation: Check quantities, prices
+- Status: DRAFT → RECEIVED
+
+Step 5: Inventory Update (Automatic)
+- System Action: GRNService.approveGRN()
+- Creates InventoryBatch records
+- Updates BranchInventory quantities
+- Records ProductBinCard transactions
+- Updates PO status to RECEIVED
+
+Step 6: Payment Processing
+- User: Admin/Manager
+- Action: POST /api/supplier-payments
+- Input: Payment amount, method
+- Updates: GRN.paidAmount, paymentStatus
+
+WORKFLOW 2: POS SALE PROCESS
+-----------------------------
+Step 1: Customer Selection (Optional)
+- User: Cashier
+- Action: Search customer by phone/code
+- Alternative: Create new customer or anonymous sale
+
+Step 2: Add Products to Cart
+- User: Cashier
+- Methods:
+  * Barcode scan
+  * Product code entry
+  * Name search
+- Validation: Check stock availability
+- Cart Store: Add items with quantities
+
+Step 3: Apply Discounts
+- User: Cashier
+- Types:
+  * Line item discount
+  * Invoice level discount
+- Authorization: Check user discount limit
+- Calculation: Auto-calculate GST on discounted amount
+
+Step 4: Select Payment Method
+- User: Cashier
+- Options: CASH, CARD, UPI, CHEQUE, BANK_TRANSFER
+- For Credit: Check customer credit limit
+
+Step 5: Complete Sale
+- User: Cashier
+- Action: POST /api/sales
+- System Process:
+  * Create Invoice record
+  * Create InvoiceItem records
+  * Allocate inventory (FIFO/FEFO)
+  * Reduce InventoryBatch quantities
+  * Update BranchInventory
+  * Record ProductBinCard (SALE)
+  * Update customer balance (if credit)
+- Output: Invoice number generated
+
+Step 6: Print Invoice
+- User: Cashier
+- Options:
+  * Thermal printer
+  * A4 format
+  * Email to customer
+- Format: PDF via iText7
+
+WORKFLOW 3: STOCK TRANSFER BETWEEN BRANCHES
+--------------------------------------------
+Step 1: Initiate Transfer
+- User: Manager/Inventory Manager
+- Action: POST /api/stock-transfers
+- Input: Source branch, destination branch, products, quantities
+- Status: PENDING
+
+Step 2: Approve Transfer
+- User: Admin/Manager (Source Branch)
+- Action: POST /api/stock-transfers/{id}/approve
+- Validation: Check stock availability
+- Status: PENDING → APPROVED
+
+Step 3: Ship Stock
+- System Action: Update status to IN_TRANSIT
+- Inventory Impact:
+  * Reduce source branch inventory
+  * Mark quantity as "in transit"
+  * Record ProductBinCard (TRANSFER_OUT)
+
+Step 4: Receive Stock
+- User: Manager (Destination Branch)
+- Action: POST /api/stock-transfers/{id}/receive
+- Input: Received quantities (may differ from sent)
+- Status: IN_TRANSIT → RECEIVED
+- Inventory Impact:
+  * Increase destination branch inventory
+  * Record ProductBinCard (TRANSFER_IN)
+
+Step 5: Reconciliation
+- System: Compare sent vs received
+- Alert: Notify if quantities don't match
+- Report: Generate transfer completion report
+
+WORKFLOW 4: EXPIRY MANAGEMENT
+------------------------------
+Step 1: Daily Expiry Check (Scheduled)
+- Schedule: 6:00 AM daily
+- System Action: ExpiryScheduler runs
+- Check: All batches with expiryDate approaching
+- Thresholds:
+  * URGENT: < 7 days
+  * CRITICAL: < 30 days
+  * WARNING: < 90 days
+
+Step 2: Generate Expiry Alerts
+- System: Create ExpiryAlert records
+- Notification: Send to Managers/Pharmacists
+- Dashboard: Update expiry count widget
+
+Step 3: Review Expiring Stock
+- User: Manager/Pharmacist
+- Action: GET /api/inventory/branch/{id}/expiring
+- View: Products expiring soon with quantities
+
+Step 4: Take Action
+Options:
+a) Dispose Expired Stock:
+   - Create InventoryTransaction (type: DAMAGE/EXPIRY)
+   - Reduce inventory
+   - Record disposal details
+   
+b) Return to Supplier:
+   - Create RGRN
+   - Link to original GRN
+   - Request credit/refund
+   
+c) Transfer to Another Branch:
+   - Create StockTransfer
+   - Move to branch with higher demand
+
+Step 5: Mark Alert as Resolved
+- User: Manager
+- Action: Update alert status
+- System: Remove from active alerts
+
+WORKFLOW 5: CUSTOMER CREDIT SALE & PAYMENT
+-------------------------------------------
+Step 1: Create Credit Sale
+- User: Cashier/Pharmacist
+- Action: POST /api/sales
+- Input: Customer, items, paymentMethod=CREDIT
+- Validation: Check customer creditLimit
+- System:
+  * Create Invoice with paymentStatus=UNPAID
+  * Update Customer.currentBalance
+  * Generate payment due date
+
+Step 2: Track Outstanding
+- User: Admin/Manager
+- Action: GET /api/invoices/customer/{id}/outstanding
+- View: Total outstanding amount per customer
+
+Step 3: Receive Payment
+- User: Cashier
+- Action: POST /api/invoices/{id}/payment
+- Input: Amount, payment method, reference
+- System:
+  * Update Invoice.paidAmount
+  * Update paymentStatus (PARTIAL/PAID)
+  * Update Customer.currentBalance
+  * Record payment transaction
+
+Step 4: Overdue Management
+- Schedule: Daily check
+- System: GET /api/invoices/overdue
+- Alert: Notify for overdue payments
+- Action: Follow up with customers
+
+WORKFLOW 6: MONTHLY CLOSING
+----------------------------
+Step 1: Generate Month-End Reports
+- User: Admin/Manager
+- Reports:
+  * Sales summary
+  * Inventory valuation
+  * P&L statement
+  * Tax summary
+  * Outstanding receivables/payables
+
+Step 2: Inventory Reconciliation
+- User: Inventory Manager
+- Action: Physical stock count
+- Compare: Physical vs system quantities
+- Adjust: Create InventoryTransaction for discrepancies
+
+Step 3: Financial Reconciliation
+- User: Admin
+- Tasks:
+  * Bank reconciliation
+  * Cash book verification
+  * Payment settlements
+  * Supplier payment status
+
+Step 4: Archive Data
+- System: Archive old transactions
+- Backup: Create database backup
+- Reports: Generate audit reports
+
+Step 5: Notifications
+- System: Send month-end summary to stakeholders
+- Distribution: Email reports to management
+
+WORKFLOW 7: USER ONBOARDING
+----------------------------
+Step 1: Create User Account
+- User: Admin
+- Action: POST /api/users
+- Input: username, email, role, branch assignment
+- System: Generate temporary password
+
+Step 2: Assign Permissions
+- User: Admin
+- Action: Set role and discount/credit limits
+- Configure: Branch assignments, primary branch
+
+Step 3: Initial Login
+- User: New user
+- Action: POST /api/auth/login
+- Required: Change password on first login
+
+Step 4: Training & Access
+- Provide: System training
+- Test: Access to assigned modules
+- Verify: Permissions working correctly
+
+Step 5: Monitor Activity
+- System: Track UserSession records
+- Admin: Review login/logout times
+- Audit: Check for unusual activity
+
+================================================================================
+11. CONFIGURATION REFERENCE
+================================================================================
+
+APPLICATION.PROPERTIES CONFIGURATION:
+--------------------------------------
+
+# APPLICATION SETTINGS
+spring.application.name=medlan-pharmacy
+server.port=8080
+
+# DATABASE CONFIGURATION
+spring.datasource.url=jdbc:postgresql://localhost:5432/medlan_pharmacy
+spring.datasource.username=postgres
+spring.datasource.password=Hello@3126
+spring.datasource.driver-class-name=org.postgresql.Driver
+
+# JPA/HIBERNATE SETTINGS
+spring.jpa.hibernate.ddl-auto=update
+  Options: none, validate, update, create, create-drop
+  Recommendation: update for development, validate for production
+spring.jpa.show-sql=true
+spring.jpa.properties.hibernate.format_sql=true
+spring.jpa.open-in-view=false
+
+# JWT CONFIGURATION
+jwt.secret=${JWT_SECRET:MedlanPharmacySecretKey2024...}
+  Note: Use environment variable in production
+jwt.expiration=86400000
+  Value: 24 hours in milliseconds
+jwt.refresh-expiration=604800000
+  Value: 7 days in milliseconds
+
+# LOGGING
+logging.level.root=INFO
+logging.level.com.pharmacy.medlan=DEBUG
+logging.level.org.springframework.security=DEBUG
+
+# ACTUATOR (HEALTH MONITORING)
+management.endpoints.web.exposure.include=health,info,metrics,prometheus
+management.endpoint.health.show-details=always
+
+# SWAGGER/OPENAPI
+springdoc.api-docs.path=/api-docs
+springdoc.swagger-ui.path=/swagger-ui.html
+springdoc.swagger-ui.enabled=true
+
+# FILE UPLOAD
+spring.servlet.multipart.max-file-size=10MB
+spring.servlet.multipart.max-request-size=10MB
+
+# JACKSON (JSON SERIALIZATION)
+spring.jackson.serialization.write-dates-as-timestamps=false
+spring.jackson.time-zone=UTC
+
+# SCHEDULER CONFIGURATION
+spring.task.scheduling.pool.size=5
+
+# Cron expressions: second minute hour day month weekday
+
+# Low stock check - Daily at 7 AM
+scheduler.low-stock.cron=0 0 7 * * ?
+
+# Expiry check - Daily at 6 AM
+scheduler.expiry.cron=0 0 6 * * ?
+
+# Weekly alert summary - Monday at 8 AM
+scheduler.alert-summary.cron=0 0 8 * * MON
+
+# Notification cleanup - Sunday at midnight
+scheduler.notification-cleanup.cron=0 0 0 * * SUN
+
+# Update batch expiry status - Daily at 1 AM
+scheduler.update-expiry-status.cron=0 0 1 * * ?
+
+# NOTIFICATION CONFIGURATION
+notification.email.enabled=false
+notification.sms.enabled=false
+
+# MAIL CONFIGURATION (if enabled)
+# spring.mail.host=smtp.gmail.com
+# spring.mail.port=587
+# spring.mail.username=${MAIL_USERNAME}
+# spring.mail.password=${MAIL_PASSWORD}
+# spring.mail.properties.mail.smtp.auth=true
+# spring.mail.properties.mail.smtp.starttls.enable=true
+
+# CACHE CONFIGURATION
+spring.cache.type=caffeine
+
+# ASYNC CONFIGURATION
+spring.task.execution.pool.core-size=5
+spring.task.execution.pool.max-size=10
+spring.task.execution.pool.queue-capacity=100
+spring.task.execution.thread-name-prefix=medlan-async-
+
+# BARCODE CONFIGURATION
+barcode.default.width=200
+barcode.default.height=80
+barcode.qr.default.size=200
+
+# INVENTORY THRESHOLDS
+inventory.low-stock.threshold=10
+inventory.critical-stock.threshold=5
+inventory.expiry-warning.days=90
+inventory.expiry-critical.days=30
+inventory.expiry-urgent.days=7
+
+FRONTEND .ENV CONFIGURATION:
+----------------------------
+# API Configuration
+VITE_API_BASE_URL=http://localhost:8080/api
+  Production: https://your-domain.com/api
+
+# WebSocket Configuration
+VITE_WS_URL=ws://localhost:8080/ws
+  Production: wss://your-domain.com/ws
+
+# Application Settings
+VITE_APP_NAME=Medlan Pharmacy
+VITE_APP_VERSION=1.0.0
+
+# Feature Flags
+VITE_ENABLE_DEBUG=true
+VITE_ENABLE_NOTIFICATIONS=true
+
+# UI Configuration
+VITE_ITEMS_PER_PAGE=10
+VITE_MAX_FILE_SIZE=10485760
+
+================================================================================
+12. USER GUIDE - HOW TO USE THE SYSTEM
+================================================================================
+
+GETTING STARTED
+---------------
+1. Access the Application
+   - Open web browser
+   - Navigate to: http://localhost:5173 (development) or production URL
+   - Login page will appear
+
+2. Login
+   - Enter username (default: admin)
+   - Enter password
+   - Click "Login" button
+   - System redirects to Dashboard
+
+3. Dashboard Overview
+   - Today's sales summary
+   - Inventory alerts
+   - Recent transactions
+   - Quick action buttons
+
+MANAGING PRODUCTS
+-----------------
+1. View Products
+   - Navigate: Products → Product List
+   - See: All products with stock levels
+   - Search: By name, code, or barcode
+   - Filter: By category, status
+
+2. Add New Product
+   - Click: "Add Product" button
+   - Fill Required Fields:
+     * Product Code (auto-generated or manual)
+     * Product Name
+     * Category
+     * Unit
+   - Fill Optional Fields:
+     * Generic name, dosage form, strength
+     * Pricing: Cost, selling price, MRP
+     * Stock levels: Min, max, reorder point
+   - Click: "Save"
+
+3. Edit Product
+   - Click: Product row or edit icon
+   - Modify: Required fields
+   - Click: "Update"
+
+4. Manage Categories
+   - Navigate: Products → Categories
+   - Click: "Add Category"
+   - Enter: Category name, description
+   - Click: "Save"
+
+PURCHASING GOODS
+----------------
+1. Create Purchase Order
+   - Navigate: Purchase → Purchase Orders
+   - Click: "New Purchase Order"
+   - Select: Supplier, Branch
+   - Add Items:
+     * Search and select product
+     * Enter quantity, price
+     * Add more items as needed
+   - Review: Total, discount, tax
+   - Click: "Submit for Approval"
+
+2. Approve Purchase Order
+   - Navigate: Purchase → Pending Approvals
+   - Click: PO to review
+   - Verify: Items, quantities, prices
+   - Click: "Approve" or "Reject"
+
+3. Receive Goods (GRN)
+   - Navigate: Inventory → Goods Receipt
+   - Click: "New GRN"
+   - Select: Purchase Order (if applicable) or Supplier
+   - Add Items:
+     * Select product
+     * Enter batch number
+     * Enter manufacturing & expiry dates
+     * Enter received quantity (include free quantity)
+     * Enter prices
+   - Click: "Submit for Approval"
+
+4. Approve GRN
+   - Navigate: Inventory → GRN List
+   - Filter: Status = PENDING_APPROVAL
+   - Click: GRN to review
+   - Verify: Batch details, quantities, expiry dates
+   - Click: "Approve"
+   - System: Automatically updates inventory
+
+MAKING SALES
+------------
+POS (Point of Sale):
+1. Navigate: Sales → POS
+2. Select Customer (optional)
+   - Click: "Select Customer"
+   - Search by phone or name
+   - Or: "New Customer" or "Anonymous"
+3. Add Products:
+   - Method 1: Scan barcode
+   - Method 2: Enter product code
+   - Method 3: Search by name
+   - System: Adds to cart with price
+4. Adjust Quantities:
+   - Click: +/- buttons or enter directly
+5. Apply Discount (if authorized):
+   - Item discount: Click item discount icon
+   - Invoice discount: Enter discount %
+6. Select Payment Method:
+   - Cash, Card, UPI, Cheque, Bank Transfer, or Credit
+   - For Credit: Verify customer limit
+7. Complete Sale:
+   - Click: "Complete Sale"
+   - System: Generates invoice
+   - Action: Print or email invoice
+
+Regular Sale (Non-POS):
+1. Navigate: Sales → New Sale
+2. Follow similar steps as POS
+3. Additional fields: Sale date, delivery details
+
+INVENTORY MANAGEMENT
+--------------------
+1. Check Stock Levels
+   - Navigate: Inventory → Stock Status
+   - View: Current stock by product/branch
+   - Filter: Low stock, out of stock
+
+2. Stock Adjustment
+   - Navigate: Inventory → Adjustments
+   - Click: "New Adjustment"
+   - Select: Product, Branch
+   - Enter: Quantity (+ for addition, - for reduction)
+   - Enter: Reason (damage, loss, count correction)
+   - Click: "Submit for Approval"
+
+3. Stock Transfer
+   - Navigate: Inventory → Stock Transfer
+   - Click: "New Transfer"
+   - Select: From Branch, To Branch
+   - Add Items with quantities
+   - Click: "Submit"
+   - Approval: Requires manager approval
+   - Receive: Destination branch receives stock
+
+4. View Expiring Products
+   - Navigate: Inventory → Expiry Alerts
+   - View: Products expiring soon
+   - Filter: By urgency (7/30/90 days)
+   - Action: Return to supplier or transfer
+
+CUSTOMER MANAGEMENT
+-------------------
+1. Add Customer
+   - Navigate: Customers → New Customer
+   - Enter: Name, phone, email, address
+   - Set: Credit limit (if applicable)
+   - Click: "Save"
+
+2. View Customer History
+   - Click: Customer from list
+   - View: Purchase history, payments, balance
+
+3. Record Payment
+   - Navigate: Customers → Customer List
+   - Click: Customer with outstanding balance
+   - Click: "Record Payment"
+   - Enter: Amount, method, reference
+   - Click: "Save"
+
+REPORTS
+-------
+1. Sales Reports
+   - Navigate: Reports → Sales
+   - Select: Date range, branch
+   - Choose Report Type:
+     * Daily sales
+     * Top products
+     * Payment method breakdown
+   - Click: "Generate"
+   - Export: PDF, Excel, or CSV
+
+2. Inventory Reports
+   - Navigate: Reports → Inventory
+   - Choose Report Type:
+     * Stock value
+     * Low stock
+     * Expiring products
+     * Dead stock
+   - Click: "Generate"
+
+3. Financial Reports
+   - Navigate: Reports → Financial
+   - Choose Report Type:
+     * Revenue
+     * Profit & Loss
+     * Cash flow
+     * Tax summary
+   - Select: Period
+   - Click: "Generate"
+
+SYSTEM ADMINISTRATION
+---------------------
+1. User Management
+   - Navigate: Administration → Users
+   - Add User: Click "New User"
+   - Assign Role: Select appropriate role
+   - Assign Branch: Select primary and additional branches
+   - Set Limits: Discount and credit limits
+   - Click: "Save"
+
+2. Branch Management
+   - Navigate: Administration → Branches
+   - Add Branch: Click "New Branch"
+   - Enter: Branch details, licenses
+   - Assign Manager: Select user
+   - Click: "Save"
+
+3. System Configuration
+   - Navigate: Settings → System Config
+   - Configure:
+     * Company details
+     * Tax rates
+     * Inventory thresholds
+     * Email settings
+   - Click: "Save"
+
+TIPS & BEST PRACTICES
+----------------------
+1. Always approve GRNs on the same day to maintain accurate inventory
+2. Conduct physical stock counts monthly
+3. Monitor expiry alerts daily
+4. Back up database regularly
+5. Review low stock alerts weekly
+6. Train all users on their specific modules
+7. Use strong passwords and change regularly
+8. Monitor user activity via audit logs
+9. Generate reports before month-end closing
+10. Keep supplier and customer information updated
+
+TROUBLESHOOTING
+---------------
+Issue: Cannot login
+Solution: Verify username/password, check if account is active
+
+Issue: Product not found in POS
+Solution: Check if product is active and has stock
+
+Issue: GRN approval fails
+Solution: Verify all batch details and expiry dates are filled
+
+Issue: Cannot complete sale - insufficient stock
+Solution: Check inventory levels, receive stock via GRN
+
+Issue: Reports not generating
+Solution: Verify date range, check if data exists for period
+
+Issue: Barcode scanner not working
+Solution: Check scanner connection, verify scanner mode settings
+
+================================================================================
+                           END OF DOCUMENTATION
+================================================================================
+
+This comprehensive documentation covers the complete Medlan Pharmacy Management
+System from setup to daily operations. For additional support:
+
+- Technical Issues: Contact system administrator
+- Feature Requests: Submit via issue tracker
+- Training: Schedule with your manager
+- Updates: Check release notes for new versions
+
+Version: 1.0
+Last Updated: January 2, 2026
+Generated By: GitHub Copilot System Analysis

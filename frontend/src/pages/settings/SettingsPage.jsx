@@ -50,7 +50,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader, ButtonSpinner } from "@/components/common";
-import { useAuthStore } from "@/store";
+import { useAuthStore, useBranchStore } from "@/store";
 import {
   authService,
   userService,
@@ -83,6 +83,7 @@ const SettingsPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, setUser } = useAuthStore();
+  const { setSelectedBranch, selectedBranch: currentBranch } = useBranchStore();
   const [isUpdating, setIsUpdating] = useState(false);
 
   // Preferences state
@@ -164,7 +165,7 @@ const SettingsPage = () => {
 
   // Branch and Tax settings state
   const [branches, setBranches] = useState([]);
-  const [selectedBranch, setSelectedBranch] = useState("");
+  const [viewBranch, setViewBranch] = useState("");
   const [branchSettings, setBranchSettings] = useState(() => {
     const saved = localStorage.getItem("branch-settings");
     return saved
@@ -198,9 +199,10 @@ const SettingsPage = () => {
     const loadBranches = async () => {
       try {
         const response = await branchService.getActive();
-        // Handle both array and paginated response
-        const branchData = response.data?.content || response.data || [];
+        // Extract data from ApiResponse wrapper (response.data.data)
+        const branchData = response.data?.data || response.data?.content || [];
         setBranches(Array.isArray(branchData) ? branchData : []);
+        console.log("Loaded branches:", branchData);
       } catch (error) {
         console.error("Failed to load branches:", error);
         setBranches([]);
@@ -208,6 +210,16 @@ const SettingsPage = () => {
     };
     loadBranches();
   }, []);
+
+  // Sync branch settings with currently selected branch
+  useEffect(() => {
+    if (currentBranch && currentBranch.id) {
+      setBranchSettings((prev) => ({
+        ...prev,
+        defaultBranch: String(currentBranch.id),
+      }));
+    }
+  }, [currentBranch]);
 
   // Profile form
   const profileForm = useForm({
@@ -288,9 +300,23 @@ const SettingsPage = () => {
   const handleSaveBranchSettings = async () => {
     setIsLoadingSettings(true);
     try {
-      // Save to localStorage (backend endpoint not implemented yet)
+      // Save to localStorage
       localStorage.setItem("branch-settings", JSON.stringify(branchSettings));
-      toast.success("Branch settings saved successfully");
+      
+      // If a default branch is selected, set it as the active branch
+      if (branchSettings.defaultBranch) {
+        const selectedBranchId = parseInt(branchSettings.defaultBranch);
+        const branch = branches.find((b) => b.id === selectedBranchId);
+        
+        if (branch) {
+          setSelectedBranch(branch);
+          toast.success("Branch settings saved and default branch set");
+        } else {
+          toast.success("Branch settings saved");
+        }
+      } else {
+        toast.success("Branch settings saved");
+      }
     } catch (error) {
       console.error("Failed to save branch settings:", error);
       toast.error("Failed to save branch settings");
@@ -667,7 +693,7 @@ const SettingsPage = () => {
                     {Array.isArray(branches) && branches.length > 0 ? (
                       branches.map((branch) => (
                         <SelectItem key={branch.id} value={String(branch.id)}>
-                          {branch.branchName} - {branch.branchCode}
+                          {branch.branchName || branch.name} - {branch.branchCode || branch.code}
                         </SelectItem>
                       ))
                     ) : (
@@ -733,8 +759,8 @@ const SettingsPage = () => {
               <div className="space-y-2">
                 <Label>Select Branch to View</Label>
                 <Select
-                  value={selectedBranch}
-                  onValueChange={setSelectedBranch}
+                  value={viewBranch}
+                  onValueChange={setViewBranch}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Select a branch" />
@@ -754,10 +780,10 @@ const SettingsPage = () => {
                   </SelectContent>
                 </Select>
               </div>
-              {selectedBranch && (
+              {viewBranch && (
                 <div className="space-y-2 pt-4">
                   {branches
-                    .filter((b) => String(b.id) === selectedBranch)
+                    .filter((b) => String(b.id) === viewBranch)
                     .map((branch) => (
                       <div key={branch.id} className="space-y-3">
                         <div className="grid grid-cols-2 gap-4">

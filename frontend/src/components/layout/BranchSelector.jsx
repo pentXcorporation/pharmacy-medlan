@@ -3,7 +3,7 @@
  * Dropdown for switching between branches (for authorized roles)
  */
 
-import { Building2, Check, ChevronsUpDown } from "lucide-react";
+import { Building2, Check, ChevronsUpDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useBranch } from "@/hooks";
 import { Button } from "@/components/ui/button";
@@ -36,12 +36,22 @@ const BranchSelector = () => {
     formatBranchName,
   } = useBranch();
 
-  // Don't show if user can't switch branches
+  // Show loading state
+  if (isLoading && branches.length === 0) {
+    return (
+      <div className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md bg-muted">
+        <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+        <span className="text-muted-foreground">Loading...</span>
+      </div>
+    );
+  }
+
+  // Show static display only if user can't switch branches AND there's only one branch
   if (!canSwitchBranch && branches.length <= 1) {
     return (
-      <div className="flex items-center gap-2 px-3 py-2 text-sm">
+      <div className="flex items-center gap-2 px-3 py-2 text-sm border rounded-md bg-muted">
         <Building2 className="h-4 w-4 text-muted-foreground" />
-        <span className="hidden sm:inline">
+        <span className="font-medium">
           {selectedBranch ? formatBranchName(selectedBranch) : "No Branch"}
         </span>
       </div>
@@ -56,7 +66,7 @@ const BranchSelector = () => {
           role="combobox"
           aria-expanded={open}
           className="justify-between gap-2 min-w-[150px] max-w-[200px]"
-          disabled={isLoading || !canSwitchBranch}
+          disabled={isLoading}
         >
           <Building2 className="h-4 w-4 shrink-0" />
           <span className="truncate">
@@ -99,7 +109,7 @@ const BranchSelector = () => {
                       </span>
                     )}
                   </div>
-                  {!branch.active && (
+                  {!(branch.isActive ?? branch.active ?? true) && (
                     <span className="ml-auto text-xs text-destructive">
                       Inactive
                     </span>

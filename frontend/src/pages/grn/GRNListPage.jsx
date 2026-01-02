@@ -49,6 +49,10 @@ const GRNListPage = () => {
   const verifyMutation = useVerifyGRN();
   const completeMutation = useCompleteGRN();
 
+  // Debug: Log GRN data
+  console.log('GRN List - Raw data:', grnsData);
+  console.log('GRN List - Is loading:', isLoading);
+
   const grns = grnsData?.content || grnsData || [];
 
   // Handlers
@@ -119,10 +123,19 @@ const GRNListPage = () => {
         description="Manage goods received from suppliers"
         icon={Package}
         actions={
-          <Button onClick={() => navigate(ROUTES.GRN.CREATE)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New GRN
-          </Button>
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={() => navigate(ROUTES.GRN.DIRECT)}
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Direct Stock
+            </Button>
+            <Button onClick={() => navigate(ROUTES.GRN.CREATE)}>
+              <Plus className="mr-2 h-4 w-4" />
+              New GRN
+            </Button>
+          </div>
         }
       />
 

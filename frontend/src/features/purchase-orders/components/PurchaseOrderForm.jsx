@@ -81,6 +81,13 @@ const PurchaseOrderForm = ({
     return [];
   }, [products]);
 
+  // Debug: Log suppliers in form component
+  console.log('PO Form Component - Suppliers:', suppliers);
+  console.log('PO Form Component - Suppliers length:', suppliers?.length);
+  console.log('PO Form Component - Products:', products);
+  console.log('PO Form Component - Product list:', productList);
+  console.log('PO Form Component - Product list length:', productList?.length);
+
   const form = useForm({
     resolver: zodResolver(purchaseOrderSchema),
     defaultValues: {
@@ -157,11 +164,11 @@ const PurchaseOrderForm = ({
     } else {
       append({
         productId: product.id?.toString(),
-        productName: product.name,
+        productName: product.productName || product.name,
         quantity: 1,
-        unitPrice: product.costPrice || product.purchasePrice || 0,
+        unitPrice: product.costPrice || product.purchasePrice || product.sellingPrice || 0,
         discount: 0,
-        taxRate: product.taxRate || 0,
+        taxRate: product.taxRate || product.gstRate || 0,
       });
     }
     setProductSearch("");
@@ -170,9 +177,12 @@ const PurchaseOrderForm = ({
   // Filter products based on search
   const filteredProducts = productList
     .filter(
-      (p) =>
-        p.name?.toLowerCase().includes(productSearch.toLowerCase()) ||
-        p.sku?.toLowerCase().includes(productSearch.toLowerCase())
+      (p) => {
+        const name = (p.productName || p.name || '').toLowerCase();
+        const sku = (p.sku || p.productCode || '').toLowerCase();
+        const search = productSearch.toLowerCase();
+        return name.includes(search) || sku.includes(search);
+      }
     )
     .slice(0, 10);
 
@@ -205,14 +215,20 @@ const PurchaseOrderForm = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      {suppliers.map((supplier) => (
-                        <SelectItem
-                          key={supplier.id}
-                          value={supplier.id?.toString()}
-                        >
-                          {supplier.name}
-                        </SelectItem>
-                      ))}
+                      {suppliers.length === 0 ? (
+                        <div className="py-6 text-center text-sm text-muted-foreground">
+                          No active suppliers found
+                        </div>
+                      ) : (
+                        suppliers.map((supplier) => (
+                          <SelectItem
+                            key={supplier.id}
+                            value={supplier.id?.toString()}
+                          >
+                            {supplier.supplierName || supplier.name}
+                          </SelectItem>
+                        ))
+                      )}
                     </SelectContent>
                   </Select>
                   <FormMessage />
@@ -274,9 +290,9 @@ const PurchaseOrderForm = ({
                       className="w-full px-4 py-2 text-left text-sm hover:bg-muted flex justify-between"
                       onClick={() => handleAddProduct(product)}
                     >
-                      <span>{product.name}</span>
+                      <span>{product.productName || product.name}</span>
                       <span className="text-muted-foreground">
-                        {product.sku}
+                        {product.sku || product.productCode}
                       </span>
                     </button>
                   ))}

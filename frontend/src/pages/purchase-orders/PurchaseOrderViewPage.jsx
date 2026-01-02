@@ -36,12 +36,13 @@ import {
   useApprovePurchaseOrder,
   useCancelPurchaseOrder,
 } from "@/features/purchase-orders";
+import { usePermissions } from "@/hooks";
 import { formatDate, formatCurrency } from "@/utils/formatters";
 
 // Status badge configuration
 const statusConfig = {
   DRAFT: { label: "Draft", variant: "secondary" },
-  PENDING: { label: "Pending Approval", variant: "warning" },
+  PENDING_APPROVAL: { label: "Pending Approval", variant: "warning" },
   APPROVED: { label: "Approved", variant: "default" },
   REJECTED: { label: "Rejected", variant: "destructive" },
   ORDERED: { label: "Ordered", variant: "outline" },
@@ -53,6 +54,7 @@ const statusConfig = {
 const PurchaseOrderViewPage = () => {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { hasPermission } = usePermissions();
 
   // Queries
   const { data: po, isLoading } = usePurchaseOrder(id);
@@ -61,11 +63,13 @@ const PurchaseOrderViewPage = () => {
   const cancelMutation = useCancelPurchaseOrder();
 
   const status = po?.status;
-  const canEdit = status === "DRAFT";
-  const canSubmit = status === "DRAFT";
-  const canApprove = status === "PENDING";
-  const canReceive = status === "APPROVED" || status === "ORDERED";
-  const canCancel = status === "DRAFT" || status === "PENDING";
+  
+  // Permission checks combined with status checks
+  const canEdit = status === "DRAFT" && hasPermission("purchaseOrders", "edit");
+  const canSubmit = status === "DRAFT" && hasPermission("purchaseOrders", "edit");
+  const canApprove = status === "PENDING_APPROVAL" && hasPermission("purchaseOrders", "approve");
+  const canReceive = (status === "APPROVED" || status === "ORDERED") && hasPermission("grn", "create");
+  const canCancel = (status === "DRAFT" || status === "PENDING_APPROVAL") && hasPermission("purchaseOrders", "edit");
 
   // Calculate totals from items
   const items = po?.items || [];

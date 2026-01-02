@@ -61,15 +61,30 @@ public class SupplierController {
     }
 
     @GetMapping
-    @Operation(summary = "Get all suppliers", description = "Get all suppliers with pagination")
+    @Operation(summary = "Get all suppliers", description = "Get all suppliers with pagination and filtering")
     public ResponseEntity<ApiResponse<PageResponse<SupplierResponse>>> getAllSuppliers(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size,
-            @RequestParam(defaultValue = "supplierName") String sortBy,
-            @RequestParam(defaultValue = "asc") String sortDir) {
-        Sort sort = sortDir.equalsIgnoreCase("desc") ? Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<SupplierResponse> suppliersPage = supplierService.getAllSuppliers(pageable);
+            @RequestParam(required = false) String sort,
+            @RequestParam(required = false) Boolean isActive,
+            @RequestParam(required = false) String search) {
+        
+        // Parse sort parameter (format: "field,direction" or "field")
+        String sortBy = "supplierName";
+        String sortDir = "asc";
+        if (sort != null && !sort.isEmpty()) {
+            String[] sortParts = sort.split(",");
+            sortBy = sortParts[0];
+            if (sortParts.length > 1) {
+                sortDir = sortParts[1];
+            }
+        }
+        
+        Sort sortObj = sortDir.equalsIgnoreCase("desc") ? 
+            Sort.by(sortBy).descending() : Sort.by(sortBy).ascending();
+        Pageable pageable = PageRequest.of(page, size, sortObj);
+        
+        Page<SupplierResponse> suppliersPage = supplierService.getAllSuppliers(pageable, isActive, search);
         return ResponseEntity.ok(ApiResponse.success(PageResponse.of(suppliersPage)));
     }
 
