@@ -24,16 +24,62 @@ import {
 } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useApiQuery } from "@/hooks";
+import { API_ENDPOINTS } from "@/config";
+import { useBranchStore } from "@/store";
+import { formatDate } from "@/utils/formatters";
 
 /**
  * BatchTrackingPage component
  */
 const BatchTrackingPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
+  const selectedBranch = useBranchStore((state) => state.selectedBranch);
 
-  // TODO: Replace with actual API call
-  const isLoading = false;
-  const batches = [];
+  // Fetch inventory data with batches
+  const { data, isLoading } = useApiQuery(
+    ["inventory-batches", selectedBranch?.id],
+    selectedBranch?.id
+      ? API_ENDPOINTS.INVENTORY.BY_BRANCH(selectedBranch.id)
+      : null,
+    {
+      params: { size: 1000 }, // Get all for filtering
+      enabled: !!selectedBranch?.id,
+    }
+  );
+
+  const batches = useMemo(() => {
+    if (!data?.content) return [];
+    
+    // Extract all batches from inventory items
+    const allBatches = [];
+    data.content.forEach((inventory) => {
+      if (inventory.batches && inventory.batches.length > 0) {
+        inventory.batches.forEach((batch) => {
+          allBatches.push({
+            ...batch,
+            productName: inventory.product?.productName || "Unknown Product",
+            productCode: inventory.product?.productCode || "",
+          });
+        });
+      }
+    });
+    
+    return allBatches;
+  }, [data]);
+
+  // Filter batches based on search query
+  const filteredBatches = useMemo(() => {
+    if (!searchQuery) return batches;
+    
+    const query = searchQuery.toLowerCase();
+    return batches.filter(
+      (batch) =>
+        batch.batchNumber?.toLowerCase().includes(query) ||
+        batch.productName?.toLowerCase().includes(query) ||
+        batch.productCode?.toLowerCase().includes(query)
+    );
+  }, [batches, searchQuery]);
 
   const getExpiryStatus = (expiryDate) => {
     const today = new Date();
@@ -48,6 +94,35 @@ const BatchTrackingPage = () => {
     return { label: "Good", variant: "default" };
   };
 
+  // Export function
+  const handleExport = () => {
+    if (filteredBatches.length === 0) return;
+    
+    const csv = [
+      ["Batch Number", "Product", "Quantity", "Manufacturing Date", "Expiry Date", "Status"],
+      ...filteredBatches.map((batch) => {
+        const status = getExpiryStatus(batch.expiryDate);
+        return [
+          batch.batchNumber,
+          batch.productName,
+          batch.quantityAvailable || 0,
+          formatDate(batch.manufacturingDate),
+          formatDate(batch.expiryDate),
+          status.label,
+        ];
+      }),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+    
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `batch-tracking-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
+  };
+
   return (
     <div className="space-y-6">
       <Card>
@@ -58,7 +133,7 @@ const BatchTrackingPage = () => {
               Track product batches, expiry dates, and stock levels
             </CardDescription>
           </div>
-          <Button variant="outline" size="sm">
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading || filteredBatches.length === 0}>
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -111,27 +186,44 @@ const BatchTrackingPage = () => {
                       </TableCell>
                     </TableRow>
                   ))
-                ) : batches.length === 0 ? (
+                ) : filteredBatches.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={6} className="h-24 text-center">
                       <div className="flex flex-col items-center gap-2 text-muted-foreground">
                         <Package2 className="h-8 w-8" />
-                        <p>No batches found</p>
+                        <p>
+                          {searchQuery
+                            ? "No batches match your search"
+                            : "No batches found"}
+                        </p>
                       </div>
                     </TableCell>
                   </TableRow>
                 ) : (
-                  batches.map((batch) => {
+                  filteredBatches.map((batch) => {
                     const status = getExpiryStatus(batch.expiryDate);
                     return (
                       <TableRow key={batch.id}>
                         <TableCell className="font-mono">
                           {batch.batchNumber}
                         </TableCell>
-                        <TableCell>{batch.productName}</TableCell>
-                        <TableCell>{batch.quantity}</TableCell>
-                        <TableCell>{batch.manufacturingDate}</TableCell>
-                        <TableCell>{batch.expiryDate}</TableCell>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{batch.productName}</div>
+                            {batch.productCode && (
+                              <div className="text-xs text-muted-foreground">
+                                {batch.productCode}
+                              </div>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>{batch.quantityAvailable || 0}</TableCell>
+                        <TableCell>
+                          {batch.manufacturingDate
+                            ? formatDate(batch.manufacturingDate)
+                            : "N/A"}
+                        </TableCell>
+                        <TableCell>{formatDate(batch.expiryDate)}</TableCell>
                         <TableCell>
                           <Badge variant={status.variant}>{status.label}</Badge>
                         </TableCell>

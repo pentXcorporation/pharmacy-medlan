@@ -70,4 +70,10 @@ public interface PurchaseOrderRepository extends JpaRepository<PurchaseOrder, Lo
     List<PurchaseOrder> findPendingApprovalOrders();
 
     boolean existsByPoNumber(String poNumber);
+
+    @Query("SELECT COUNT(po) FROM PurchaseOrder po WHERE po.branch.id = :branchId " +
+            "AND CAST(po.status AS string) = :status")
+    int countByBranchIdAndStatus(
+            @Param("branchId") Long branchId,
+            @Param("status") String status);
 }

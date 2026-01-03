@@ -97,4 +97,18 @@ public interface SaleRepository extends JpaRepository<Sale, Long>, JpaSpecificat
             @Param("endDate") LocalDateTime endDate);
 
     boolean existsBySaleNumber(String saleNumber);
+
+    @Query("SELECT s FROM Sale s WHERE s.branch.id = :branchId " +
+            "AND s.saleDate BETWEEN :startDate AND :endDate")
+    List<Sale> findByBranchIdAndSaleDateBetween(
+            @Param("branchId") Long branchId,
+            @Param("startDate") LocalDateTime startDate,
+            @Param("endDate") LocalDateTime endDate);
+
+    @Query("SELECT s FROM Sale s JOIN s.saleItems si " +
+            "WHERE si.product.id = :productId AND s.branch.id = :branchId " +
+            "AND s.status = 'COMPLETED' ORDER BY s.saleDate DESC")
+    Optional<Sale> findLastSaleForProduct(
+            @Param("productId") Long productId,
+            @Param("branchId") Long branchId);
 }

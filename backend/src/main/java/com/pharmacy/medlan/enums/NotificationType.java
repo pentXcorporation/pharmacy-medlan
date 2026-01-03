@@ -36,6 +36,12 @@ public enum NotificationType {
     REPORT_GENERATED("Report Generated"),
     SCHEDULED_REPORT("Scheduled Report"),
     
+    // Purchase & Procurement
+    REORDER_SUGGESTION("Auto-Reorder Suggestion"),
+    PO_APPROVAL_REQUIRED("PO Approval Required"),
+    PO_APPROVED("Purchase Order Approved"),
+    PO_REJECTED("Purchase Order Rejected"),
+    
     // Legacy/General
     LOW_STOCK("Low Stock Alert"),
     RETURN("Return Notification"),

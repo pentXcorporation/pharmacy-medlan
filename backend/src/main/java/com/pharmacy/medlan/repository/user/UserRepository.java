@@ -51,6 +51,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
      */
     @Query("SELECT COUNT(u) FROM User u WHERE u.role = :role AND u.isActive = true")
     Long countByRole(@Param("role") Role role);
+    
+    /**
+     * Find users by branch and multiple roles (for notifications)
+     */
+    @Query("SELECT DISTINCT u FROM User u JOIN u.branchAssignments ba " +
+           "WHERE ba.branch.id = :branchId AND u.role IN :roles AND u.isActive = true")
+    List<User> findByBranchIdAndRoleIn(@Param("branchId") Long branchId, @Param("roles") List<String> roles);
 
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);

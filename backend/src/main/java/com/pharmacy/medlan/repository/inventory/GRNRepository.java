@@ -78,4 +78,22 @@ public interface GRNRepository extends JpaRepository<GRN, Long>, JpaSpecificatio
     boolean existsByGrnNumber(String grnNumber);
 
     boolean existsByPurchaseOrderId(Long purchaseOrderId);
+
+    @Query("SELECT COUNT(g) FROM GRN g WHERE g.branch.id = :branchId " +
+            "AND CAST(g.status AS string) = :status")
+    int countByBranchIdAndStatus(
+            @Param("branchId") Long branchId,
+            @Param("status") String status);
+
+    @Query("SELECT COUNT(g) FROM GRN g WHERE g.branch.id = :branchId " +
+            "AND g.paymentStatus IN ('UNPAID', 'PARTIALLY_PAID')")
+    int countOverduePayments(@Param("branchId") Long branchId);
+
+    @Query("SELECT g FROM GRN g WHERE g.branch.id = :branchId " +
+            "AND (CAST(g.paymentStatus AS string) = :status1 " +
+            "OR CAST(g.paymentStatus AS string) = :status2)")
+    List<GRN> findByBranchIdAndPaymentStatus(
+            @Param("branchId") Long branchId,
+            @Param("status1") String status1,
+            @Param("status2") String status2);
 }

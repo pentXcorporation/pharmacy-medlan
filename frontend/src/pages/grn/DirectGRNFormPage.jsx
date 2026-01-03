@@ -4,7 +4,7 @@
  */
 
 import { useNavigate } from "react-router-dom";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { ArrowLeft, Package, Plus, Trash2 } from "lucide-react";
@@ -117,7 +117,11 @@ const DirectGRNFormPage = () => {
     name: "items",
   });
 
-  const items = form.watch("items");
+  const items = useWatch({
+    control: form.control,
+    name: "items",
+    defaultValue: [],
+  });
 
   // Calculate totals
   const totalAmount = items.reduce((sum, item) => {
@@ -471,18 +475,32 @@ const DirectGRNFormPage = () => {
           </Card>
 
           {/* Actions */}
-          <div className="flex justify-end gap-4">
-            <Button type="button" variant="outline" onClick={handleCancel}>
-              Cancel
-            </Button>
-            <ButtonSpinner
-              type="submit"
-              isLoading={createMutation.isPending}
-              disabled={createMutation.isPending}
-            >
-              Create GRN & Add Stock
-            </ButtonSpinner>
-          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex justify-end gap-4">
+                <Button type="button" variant="outline" onClick={handleCancel}>
+                  Cancel
+                </Button>
+                <Button
+                  type="submit"
+                  disabled={createMutation.isPending}
+                  className="min-w-[200px]"
+                >
+                  {createMutation.isPending ? (
+                    <>
+                      <ButtonSpinner />
+                      <span className="ml-2">Processing...</span>
+                    </>
+                  ) : (
+                    <>
+                      <Package className="mr-2 h-4 w-4" />
+                      Add Stock to Inventory
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </form>
       </Form>
     </div>

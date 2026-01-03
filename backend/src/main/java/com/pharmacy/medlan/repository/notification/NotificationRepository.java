@@ -59,4 +59,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
            "ORDER BY n.createdAt DESC")
     List<Notification> findRecentByType(@Param("type") NotificationType type, 
                                         @Param("since") LocalDateTime since);
+
+    int countByIsRead(Boolean isRead);
 }

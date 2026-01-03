@@ -77,6 +77,14 @@ public interface InventoryBatchRepository extends JpaRepository<InventoryBatch, 
     List<InventoryBatch> findBatchesExpiringWithin(
             @Param("branchId") Long branchId, @Param("maxDate") LocalDate maxDate);
 
+    @Query("SELECT COUNT(ib) FROM InventoryBatch ib WHERE ib.branch.id = :branchId " +
+            "AND ib.expiryDate BETWEEN :startDate AND :endDate " +
+            "AND ib.isActive = true AND ib.quantityAvailable > 0")
+    int countByBranchIdAndExpiryDateBetween(
+            @Param("branchId") Long branchId,
+            @Param("startDate") LocalDate startDate,
+            @Param("endDate") LocalDate endDate);
+
     /**
      * Find already expired batches by branch
      */
@@ -106,4 +114,24 @@ public interface InventoryBatchRepository extends JpaRepository<InventoryBatch, 
             "AND ib.isActive = true AND ib.isExpired = false")
     Integer getTotalAvailableQuantityAtBranch(
             @Param("productId") Long productId, @Param("branchId") Long branchId);
+    
+    /**
+     * Alias method for scheduler - sum available quantity
+     */
+    @Query("SELECT COALESCE(SUM(ib.quantityAvailable), 0) FROM InventoryBatch ib " +
+            "WHERE ib.product.id = :productId AND ib.branch.id = :branchId " +
+            "AND ib.isActive = true AND ib.isExpired = false")
+    Integer sumAvailableQuantityByProductAndBranch(
+            @Param("productId") Long productId, @Param("branchId") Long branchId);
+    
+    /**
+     * Find batches expiring between dates for scheduler
+     */
+    List<InventoryBatch> findByExpiryDateBetweenAndIsActiveAndIsExpired(
+            LocalDate startDate, LocalDate endDate, Boolean isActive, Boolean isExpired);
+    
+    /**
+     * Find expired batches that haven't been marked yet
+     */
+    List<InventoryBatch> findByExpiryDateBeforeAndIsExpiredFalse(LocalDate date);
 }

@@ -6,8 +6,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { grnService, rgrnService } from "@/services";
 import { toast } from "sonner";
-import { useAuthStore } from "@/store";
-import { ROLES } from "@/constants";
 
 // Query keys factory
 export const grnKeys = {
@@ -70,7 +68,6 @@ export const useGRNsByPO = (poId, options = {}) => {
  */
 export const useCreateGRN = () => {
   const queryClient = useQueryClient();
-  const user = useAuthStore((state) => state.user);
 
   return useMutation({
     mutationFn: async (data) => {
@@ -82,7 +79,7 @@ export const useCreateGRN = () => {
       
       return createResponse;
     },
-    onSuccess: (response) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
       // Automatically refresh inventory data after GRN creation
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
