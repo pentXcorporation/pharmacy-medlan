@@ -83,11 +83,12 @@ const GRNFormPage = () => {
         .filter(item => item.receivedQuantity > 0) // Only include items with quantity > 0
         .map(item => ({
           productId: parseInt(item.productId),
-          batchNumber: item.batchNumber || 'BATCH-' + Date.now(),
+          batchNumber: item.batchNumber,
           quantity: parseInt(item.receivedQuantity),
           costPrice: parseFloat(item.unitPrice),
-          sellingPrice: parseFloat(item.unitPrice * 1.2), // 20% markup, should come from product
-          manufacturingDate: null,
+          sellingPrice: parseFloat(item.sellingPrice),
+          mrp: parseFloat(item.mrp),
+          manufacturingDate: item.manufacturingDate,
           expiryDate: item.expiryDate,
           discountAmount: 0,
         }))

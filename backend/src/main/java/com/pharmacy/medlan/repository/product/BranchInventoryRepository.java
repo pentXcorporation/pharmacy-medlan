@@ -35,4 +35,10 @@ public interface BranchInventoryRepository extends JpaRepository<BranchInventory
 
     @Query("SELECT SUM(bi.quantityOnHand) FROM BranchInventory bi WHERE bi.product.id = :productId")
     Integer getTotalStockByProduct(@Param("productId") Long productId);
+
+    @Query("SELECT bi FROM BranchInventory bi WHERE bi.quantityAvailable < bi.reorderLevel AND bi.quantityAvailable > 0")
+    List<BranchInventory> findAllLowStock();
+
+    @Query("SELECT bi FROM BranchInventory bi WHERE bi.quantityAvailable <= 0")
+    List<BranchInventory> findAllOutOfStock();
 }

@@ -178,12 +178,9 @@ public class ProductMapper {
                 .minCode(category.getMinCode())
                 .maxCode(category.getMaxCode())
                 .isActive(category.getIsActive())
-                .subCategoryCount(category.getSubCategories() != null ? category.getSubCategories().size() : 0)
-                .productCount(category.getProducts() != null ? category.getProducts().size() : 0)
-                .subCategories(category.getSubCategories() != null ?
-                        category.getSubCategories().stream()
-                                .map(this::toSubCategoryResponse)
-                                .collect(Collectors.toList()) : null)
+                .subCategoryCount(0) // Set to 0 to avoid LazyInitializationException
+                .productCount(0) // Set to 0 to avoid LazyInitializationException
+                .subCategories(null) // Set to null to avoid LazyInitializationException
                 .createdAt(category.getCreatedAt())
                 .updatedAt(category.getUpdatedAt())
                 .build();

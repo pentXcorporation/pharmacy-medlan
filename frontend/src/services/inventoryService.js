@@ -77,6 +77,36 @@ export const inventoryService = {
       API_ENDPOINTS.INVENTORY.AVAILABLE_QUANTITY(productId, branchId)
     );
   },
+
+  /**
+   * Get all low stock products (across all branches)
+   */
+  getLowStockProducts: (params = {}) => {
+    const { page = 0, size = 20, sort = "quantityAvailable,asc" } = params;
+    return api.get(API_ENDPOINTS.INVENTORY.ALL_LOW_STOCK, {
+      params: { page, size, sort },
+    });
+  },
+
+  /**
+   * Get all expiring products (across all branches)
+   */
+  getExpiringProducts: (params = {}) => {
+    const { days = 30, page = 0, size = 20, sort = "expiryDate,asc" } = params;
+    return api.get(API_ENDPOINTS.INVENTORY.ALL_EXPIRING, {
+      params: { days, page, size, sort },
+    });
+  },
+
+  /**
+   * Get all expired products (across all branches)
+   */
+  getExpiredProducts: (params = {}) => {
+    const { page = 0, size = 20, sort = "expiryDate,desc" } = params;
+    return api.get(API_ENDPOINTS.INVENTORY.ALL_EXPIRED, {
+      params: { page, size, sort },
+    });
+  },
 };
 
 /**

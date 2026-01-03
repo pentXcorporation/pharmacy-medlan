@@ -50,7 +50,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PageHeader, ButtonSpinner } from "@/components/common";
-import { useAuthStore, useBranchStore } from "@/store";
+import { useAuthStore, useBranchStore, useUiStore } from "@/store";
 import {
   authService,
   userService,
@@ -84,71 +84,8 @@ const SettingsPage = () => {
   const location = useLocation();
   const { user, setUser } = useAuthStore();
   const { setSelectedBranch, selectedBranch: currentBranch } = useBranchStore();
+  const { preferences, updatePreference } = useUiStore();
   const [isUpdating, setIsUpdating] = useState(false);
-
-  // Preferences state
-  const [preferences, setPreferences] = useState(() => {
-    const saved = localStorage.getItem("app-preferences");
-    return saved
-      ? JSON.parse(saved)
-      : {
-          themeMode: "system",
-          colorTheme: "blue",
-          dateFormat: "DD/MM/YYYY",
-          currency: "LKR",
-          highContrast: false,
-          reduceMotion: false,
-          largeText: false,
-          screenReader: false,
-          keyboardNav: "standard",
-          tablePageSize: "10",
-          compactTables: false,
-        };
-  });
-
-  // Save preferences to localStorage and apply them
-  const updatePreference = (key, value) => {
-    const newPreferences = { ...preferences, [key]: value };
-    setPreferences(newPreferences);
-    localStorage.setItem("app-preferences", JSON.stringify(newPreferences));
-    applyPreferences(newPreferences);
-    toast.success("Preference updated");
-  };
-
-  // Apply preferences to document
-  const applyPreferences = (prefs) => {
-    const root = document.documentElement;
-
-    // Apply theme mode
-    if (prefs.themeMode === "light") {
-      root.classList.remove("dark");
-    } else if (prefs.themeMode === "dark") {
-      root.classList.add("dark");
-    } else {
-      // System preference
-      if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-        root.classList.add("dark");
-      } else {
-        root.classList.remove("dark");
-      }
-    }
-
-    // Apply color theme
-    root.setAttribute("data-theme", prefs.colorTheme);
-
-    // Apply accessibility settings
-    root.classList.toggle("high-contrast", prefs.highContrast);
-    root.classList.toggle("reduce-motion", prefs.reduceMotion);
-    root.classList.toggle("large-text", prefs.largeText);
-    root.classList.toggle("screen-reader", prefs.screenReader);
-    root.setAttribute("data-keyboard-nav", prefs.keyboardNav);
-    root.classList.toggle("compact-tables", prefs.compactTables);
-  };
-
-  // Apply preferences on mount
-  useEffect(() => {
-    applyPreferences(preferences);
-  }, []);
 
   // Determine active tab from URL
   const getTabFromPath = (pathname) => {
@@ -955,9 +892,10 @@ const SettingsPage = () => {
                   <Label>Theme Mode</Label>
                   <Select
                     value={preferences.themeMode}
-                    onValueChange={(value) =>
-                      updatePreference("themeMode", value)
-                    }
+                    onValueChange={(value) => {
+                      updatePreference("themeMode", value);
+                      toast.success("Theme updated");
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -973,9 +911,10 @@ const SettingsPage = () => {
                   <Label>Color Theme</Label>
                   <Select
                     value={preferences.colorTheme}
-                    onValueChange={(value) =>
-                      updatePreference("colorTheme", value)
-                    }
+                    onValueChange={(value) => {
+                      updatePreference("colorTheme", value);
+                      toast.success("Color theme updated");
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -997,9 +936,10 @@ const SettingsPage = () => {
                   <Label>Date Format</Label>
                   <Select
                     value={preferences.dateFormat}
-                    onValueChange={(value) =>
-                      updatePreference("dateFormat", value)
-                    }
+                    onValueChange={(value) => {
+                      updatePreference("dateFormat", value);
+                      toast.success("Date format updated");
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -1015,9 +955,10 @@ const SettingsPage = () => {
                   <Label>Currency</Label>
                   <Select
                     value={preferences.currency}
-                    onValueChange={(value) =>
-                      updatePreference("currency", value)
-                    }
+                    onValueChange={(value) => {
+                      updatePreference("currency", value);
+                      toast.success("Currency updated");
+                    }}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -1050,9 +991,10 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   checked={preferences.highContrast}
-                  onCheckedChange={(checked) =>
-                    updatePreference("highContrast", checked)
-                  }
+                  onCheckedChange={(checked) => {
+                    updatePreference("highContrast", checked);
+                    toast.success(checked ? "High contrast enabled" : "High contrast disabled");
+                  }}
                 />
               </div>
               <Separator />
@@ -1065,9 +1007,10 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   checked={preferences.reduceMotion}
-                  onCheckedChange={(checked) =>
-                    updatePreference("reduceMotion", checked)
-                  }
+                  onCheckedChange={(checked) => {
+                    updatePreference("reduceMotion", checked);
+                    toast.success(checked ? "Reduce motion enabled" : "Reduce motion disabled");
+                  }}
                 />
               </div>
               <Separator />
@@ -1080,9 +1023,10 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   checked={preferences.largeText}
-                  onCheckedChange={(checked) =>
-                    updatePreference("largeText", checked)
-                  }
+                  onCheckedChange={(checked) => {
+                    updatePreference("largeText", checked);
+                    toast.success(checked ? "Large text enabled" : "Large text disabled");
+                  }}
                 />
               </div>
               <Separator />
@@ -1095,9 +1039,10 @@ const SettingsPage = () => {
                 </div>
                 <Switch
                   checked={preferences.screenReader}
-                  onCheckedChange={(checked) =>
-                    updatePreference("screenReader", checked)
-                  }
+                  onCheckedChange={(checked) => {
+                    updatePreference("screenReader", checked);
+                    toast.success(checked ? "Screen reader support enabled" : "Screen reader support disabled");
+                  }}
                 />
               </div>
               <Separator />

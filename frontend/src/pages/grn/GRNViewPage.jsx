@@ -21,8 +21,9 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { PageHeader, LoadingSpinner } from "@/components/common";
-import { useGRN, useVerifyGRN, useCompleteGRN } from "@/features/grn";
+import { useGRN, useCompleteGRN } from "@/features/grn";
 import { formatDate, formatCurrency } from "@/utils/formatters";
+import { toast } from "sonner";
 
 // Status badge configuration
 const statusConfig = {
@@ -39,12 +40,10 @@ const GRNViewPage = () => {
 
   // Queries
   const { data: grn, isLoading } = useGRN(id);
-  const verifyMutation = useVerifyGRN();
   const completeMutation = useCompleteGRN();
 
   const status = grn?.status;
-  const canVerify = status === "PENDING";
-  const canComplete = status === "VERIFIED";
+  const canComplete = status === "DRAFT" || status === "PENDING" || status === "VERIFIED";
   const canReturn = status === "COMPLETED";
 
   // Calculate totals from items
@@ -54,11 +53,22 @@ const GRNViewPage = () => {
     0
   );
 
-  const handleVerify = () => {
-    verifyMutation.mutate(id);
-  };
+  // Check if GRN has complete data for all items
+  const hasCompleteData = items.every(item => 
+    item.batchNumber && 
+    item.manufacturingDate && 
+    item.expiryDate && 
+    item.sellingPrice && 
+    item.mrp
+  );
 
   const handleComplete = () => {
+    // Validate that all items have required fields
+    if (!hasCompleteData) {
+      toast.error("Cannot complete GRN: Some items are missing required fields (batch number, dates, selling price, or MRP). Please edit the GRN to add missing information.");
+      return;
+    }
+    
     completeMutation.mutate(id);
   };
 
@@ -106,19 +116,11 @@ const GRNViewPage = () => {
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
-            {canVerify && (
-              <Button
-                onClick={handleVerify}
-                disabled={verifyMutation.isPending}
-              >
-                <CheckCircle className="mr-2 h-4 w-4" />
-                Verify
-              </Button>
-            )}
             {canComplete && (
               <Button
                 onClick={handleComplete}
-                disabled={completeMutation.isPending}
+                disabled={completeMutation.isPending || !hasCompleteData}
+                title={!hasCompleteData ? "Cannot complete: some items have missing data" : ""}
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
                 Complete & Update Stock
@@ -217,6 +219,14 @@ const GRNViewPage = () => {
           <CardTitle>Received Items</CardTitle>
         </CardHeader>
         <CardContent>
+          {!hasCompleteData && (
+            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-800">
+                <strong>⚠️ Warning:</strong> Some items are missing required information (batch number, manufacturing date, expiry date, selling price, or MRP). 
+                The GRN cannot be completed until all items have complete data.
+              </p>
+            </div>
+          )}
           <Table>
             <TableHeader>
               <TableRow>
@@ -237,11 +247,12 @@ const GRNViewPage = () => {
                   (item.receivedQuantity || 0) * (item.unitPrice || 0);
                 const hasDiscrepancy =
                   item.receivedQuantity !== item.orderedQuantity;
+                const isIncomplete = !item.batchNumber || !item.manufacturingDate || !item.expiryDate || !item.sellingPrice || !item.mrp;
 
                 return (
                   <TableRow
                     key={item.id || index}
-                    className={hasDiscrepancy ? "bg-yellow-50" : ""}
+                    className={isIncomplete ? "bg-red-50" : hasDiscrepancy ? "bg-yellow-50" : ""}
                   >
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>
@@ -252,6 +263,11 @@ const GRNViewPage = () => {
                         {item.product?.sku && (
                           <p className="text-sm text-muted-foreground">
                             {item.product.sku}
+                          </p>
+                        )}
+                        {isIncomplete && (
+                          <p className="text-xs text-destructive mt-1">
+                            ⚠️ Missing required data
                           </p>
                         )}
                       </div>

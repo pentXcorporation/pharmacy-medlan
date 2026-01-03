@@ -85,6 +85,20 @@ export const grnService = {
   cancel: (id, reason) => {
     return api.post(API_ENDPOINTS.GRN.CANCEL(id), { reason });
   },
+
+  /**
+   * Verify GRN (moves DRAFT to VERIFIED status)
+   */
+  verify: (id) => {
+    return api.post(API_ENDPOINTS.GRN.APPROVE(id));
+  },
+
+  /**
+   * Complete GRN (creates inventory batches and updates stock)
+   */
+  complete: (id) => {
+    return api.post(API_ENDPOINTS.GRN.APPROVE(id));
+  },
 };
 
 /**

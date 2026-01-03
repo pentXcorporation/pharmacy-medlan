@@ -49,7 +49,10 @@ const lineItemSchema = z.object({
   rejectedQuantity: z.number().min(0).default(0),
   unitPrice: z.number().min(0.01, "Unit price must be greater than 0"),
   batchNumber: z.string().min(1, "Batch number is required"),
+  manufacturingDate: z.string().min(1, "Manufacturing date is required"),
   expiryDate: z.string().min(1, "Expiry date is required"),
+  sellingPrice: z.number().min(0.01, "Selling price is required"),
+  mrp: z.number().min(0.01, "MRP is required"),
   notes: z.string().optional(),
 });
 
@@ -102,7 +105,10 @@ const GRNForm = ({
         rejectedQuantity: 0,
         unitPrice: item.unitPrice || 0,
         batchNumber: "",
-        expiryDate: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // Default to 1 year from now
+        manufacturingDate: "",
+        expiryDate: "",
+        sellingPrice: 0,
+        mrp: 0,
         notes: "",
       }));
 
@@ -225,8 +231,7 @@ const GRNForm = ({
           <CardHeader>
             <CardTitle>Received Items</CardTitle>
             <CardDescription>
-              Enter the quantity received for each item. Add batch numbers and
-              expiry dates for tracking.
+              All fields marked with * are required. You must enter batch number, manufacturing date, expiry date, selling price, and MRP for each item before saving.
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -234,19 +239,19 @@ const GRNForm = ({
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-[25%]">Product</TableHead>
-                    <TableHead className="text-right w-[10%]">
+                    <TableHead className="w-[20%]">Product</TableHead>
+                    <TableHead className="text-right w-[8%]">
                       Ordered
                     </TableHead>
-                    <TableHead className="text-right w-[12%]">
+                    <TableHead className="text-right w-[8%]">
                       Received
                     </TableHead>
-                    <TableHead className="text-right w-[12%]">
-                      Rejected
-                    </TableHead>
-                    <TableHead className="w-[15%]">Batch No.</TableHead>
-                    <TableHead className="w-[12%]">Expiry</TableHead>
-                    <TableHead className="text-right w-[14%]">Amount</TableHead>
+                    <TableHead className="w-[12%]">Batch No. *</TableHead>
+                    <TableHead className="w-[10%]">Mfg Date *</TableHead>
+                    <TableHead className="w-[10%]">Expiry *</TableHead>
+                    <TableHead className="text-right w-[10%]">Selling Price *</TableHead>
+                    <TableHead className="text-right w-[10%]">MRP *</TableHead>
+                    <TableHead className="text-right w-[12%]">Amount</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -283,26 +288,75 @@ const GRNForm = ({
                         </TableCell>
                         <TableCell>
                           <Input
-                            type="number"
-                            min={0}
-                            className="w-full text-right"
-                            {...form.register(
-                              `items.${index}.rejectedQuantity`,
-                              { valueAsNumber: true }
-                            )}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Input
                             placeholder="LOT123"
+                            className="w-full"
                             {...form.register(`items.${index}.batchNumber`)}
                           />
+                          {form.formState.errors.items?.[index]?.batchNumber && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {form.formState.errors.items[index].batchNumber.message}
+                            </p>
+                          )}
                         </TableCell>
                         <TableCell>
                           <Input
                             type="date"
+                            className="w-full"
+                            {...form.register(`items.${index}.manufacturingDate`)}
+                          />
+                          {form.formState.errors.items?.[index]?.manufacturingDate && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {form.formState.errors.items[index].manufacturingDate.message}
+                            </p>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="date"
+                            className="w-full"
                             {...form.register(`items.${index}.expiryDate`)}
                           />
+                          {form.formState.errors.items?.[index]?.expiryDate && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {form.formState.errors.items[index].expiryDate.message}
+                            </p>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            className="w-full text-right"
+                            placeholder="0.00"
+                            {...form.register(
+                              `items.${index}.sellingPrice`,
+                              { valueAsNumber: true }
+                            )}
+                          />
+                          {form.formState.errors.items?.[index]?.sellingPrice && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {form.formState.errors.items[index].sellingPrice.message}
+                            </p>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Input
+                            type="number"
+                            min={0}
+                            step="0.01"
+                            className="w-full text-right"
+                            placeholder="0.00"
+                            {...form.register(
+                              `items.${index}.mrp`,
+                              { valueAsNumber: true }
+                            )}
+                          />
+                          {form.formState.errors.items?.[index]?.mrp && (
+                            <p className="text-xs text-red-500 mt-1">
+                              {form.formState.errors.items[index].mrp.message}
+                            </p>
+                          )}
                         </TableCell>
                         <TableCell className="text-right font-medium">
                           {formatCurrency(lineTotal)}

@@ -7,7 +7,20 @@ import { persist } from "zustand/middleware";
 const initialState = {
   sidebarCollapsed: false,
   sidebarMobileOpen: false,
-  theme: "light",
+  theme: "system",
+  preferences: {
+    themeMode: "system",
+    colorTheme: "blue",
+    dateFormat: "DD/MM/YYYY",
+    currency: "LKR",
+    highContrast: false,
+    reduceMotion: false,
+    largeText: false,
+    screenReader: false,
+    keyboardNav: "standard",
+    tablePageSize: "10",
+    compactTables: false,
+  },
   confirmDialog: {
     open: false,
     title: "",
@@ -48,12 +61,52 @@ export const useUiStore = create(
       // Set theme
       setTheme: (theme) => {
         set({ theme });
+        // Also update preferences.themeMode
+        set((state) => ({
+          preferences: { ...state.preferences, themeMode: theme }
+        }));
         // Apply theme to document
-        if (theme === "dark") {
-          document.documentElement.classList.add("dark");
+        const root = document.documentElement;
+        root.classList.remove("light", "dark");
+        
+        if (theme === "system") {
+          const systemTheme = window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+          root.classList.add(systemTheme);
+        } else if (theme === "dark") {
+          root.classList.add("dark");
         } else {
-          document.documentElement.classList.remove("dark");
+          root.classList.add("light");
         }
+      },
+
+      // Update preference
+      updatePreference: (key, value) => {
+        set((state) => ({
+          preferences: { ...state.preferences, [key]: value }
+        }));
+        
+        // If updating themeMode, also update theme
+        if (key === "themeMode") {
+          const { setTheme } = get();
+          setTheme(value);
+          return; // setTheme already handles application
+        }
+        
+        // Apply other preferences immediately
+        const root = document.documentElement;
+        
+        // Apply color theme
+        if (key === "colorTheme") {
+          root.setAttribute("data-theme", value);
+        }
+        
+        // Apply accessibility settings
+        if (key === "highContrast") root.classList.toggle("high-contrast", value);
+        if (key === "reduceMotion") root.classList.toggle("reduce-motion", value);
+        if (key === "largeText") root.classList.toggle("large-text", value);
+        if (key === "screenReader") root.classList.toggle("screen-reader", value);
+        if (key === "keyboardNav") root.setAttribute("data-keyboard-nav", value);
+        if (key === "compactTables") root.classList.toggle("compact-tables", value);
       },
 
       // Toggle theme

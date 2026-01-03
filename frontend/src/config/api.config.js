@@ -130,6 +130,10 @@ export const API_ENDPOINTS = {
       `/inventory/product/${productId}/branch/${branchId}/batches`,
     AVAILABLE_QUANTITY: (productId, branchId) =>
       `/inventory/product/${productId}/branch/${branchId}/available`,
+    ALL_LOW_STOCK: "/inventory/low-stock",
+    ALL_OUT_OF_STOCK: "/inventory/out-of-stock",
+    ALL_EXPIRING: "/inventory/expiring",
+    ALL_EXPIRED: "/inventory/expired",
   },
 
   // Inventory Transactions

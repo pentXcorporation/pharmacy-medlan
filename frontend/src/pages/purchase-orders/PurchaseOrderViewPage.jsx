@@ -65,6 +65,7 @@ const PurchaseOrderViewPage = () => {
   const status = po?.status;
   
   // Permission checks combined with status checks
+  // Note: SUPER_ADMIN creates orders directly as APPROVED, so they won't see DRAFT status
   const canEdit = status === "DRAFT" && hasPermission("purchaseOrders", "edit");
   const canSubmit = status === "DRAFT" && hasPermission("purchaseOrders", "edit");
   const canApprove = status === "PENDING_APPROVAL" && hasPermission("purchaseOrders", "approve");

@@ -71,9 +71,16 @@ export const useCreatePurchaseOrder = () => {
 
   return useMutation({
     mutationFn: (data) => purchaseOrderService.create(data),
-    onSuccess: () => {
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: purchaseOrderKeys.all });
-      toast.success("Purchase order created successfully");
+      
+      // Check if the order was auto-approved (SUPER_ADMIN creates orders as APPROVED)
+      const orderStatus = response.data?.data?.status || response.data?.status;
+      if (orderStatus === "APPROVED") {
+        toast.success("Purchase order created and automatically approved");
+      } else {
+        toast.success("Purchase order created successfully");
+      }
     },
     onError: (error) => {
       toast.error(

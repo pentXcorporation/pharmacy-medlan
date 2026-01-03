@@ -32,7 +32,7 @@ const queryClient = new QueryClient({
  * Theme Provider - applies theme class to document
  */
 const ThemeProvider = ({ children }) => {
-  const { theme } = useUiStore();
+  const { theme, preferences } = useUiStore();
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -47,7 +47,18 @@ const ThemeProvider = ({ children }) => {
     } else {
       root.classList.add(theme);
     }
-  }, [theme]);
+
+    // Apply color theme
+    root.setAttribute("data-theme", preferences.colorTheme);
+
+    // Apply accessibility settings
+    root.classList.toggle("high-contrast", preferences.highContrast);
+    root.classList.toggle("reduce-motion", preferences.reduceMotion);
+    root.classList.toggle("large-text", preferences.largeText);
+    root.classList.toggle("screen-reader", preferences.screenReader);
+    root.setAttribute("data-keyboard-nav", preferences.keyboardNav);
+    root.classList.toggle("compact-tables", preferences.compactTables);
+  }, [theme, preferences]);
 
   return children;
 };

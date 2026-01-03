@@ -30,7 +30,6 @@ const statusConfig = {
  */
 export const getGRNColumns = ({
   onView,
-  onVerify,
   onComplete,
   onCreateReturn,
 } = {}) => [
@@ -107,11 +106,25 @@ export const getGRNColumns = ({
     header: "Status",
     cell: ({ row }) => {
       const status = row.getValue("status");
+      const grn = row.original;
+      const items = grn.items || [];
+      const hasIncompleteData = items.some(item => 
+        !item.batchNumber || !item.manufacturingDate || !item.expiryDate || !item.sellingPrice || !item.mrp
+      );
+      
       const config = statusConfig[status] || {
         label: status,
         variant: "secondary",
       };
-      return <Badge variant={config.variant}>{config.label}</Badge>;
+      
+      return (
+        <div className="flex items-center gap-2">
+          <Badge variant={config.variant}>{config.label}</Badge>
+          {hasIncompleteData && status !== "COMPLETED" && (
+            <span className="text-destructive text-xs" title="Missing required data">⚠️</span>
+          )}
+        </div>
+      );
     },
   },
   {
@@ -121,8 +134,7 @@ export const getGRNColumns = ({
       const grn = row.original;
       const status = grn.status;
 
-      const canVerify = status === "PENDING";
-      const canComplete = status === "VERIFIED";
+      const canComplete = status === "DRAFT" || status === "PENDING" || status === "VERIFIED";
       const canReturn = status === "COMPLETED";
 
       return (
@@ -138,15 +150,6 @@ export const getGRNColumns = ({
               <Eye className="mr-2 h-4 w-4" />
               View Details
             </DropdownMenuItem>
-            {canVerify && (
-              <>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => onVerify?.(grn)}>
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  Verify
-                </DropdownMenuItem>
-              </>
-            )}
             {canComplete && (
               <>
                 <DropdownMenuSeparator />

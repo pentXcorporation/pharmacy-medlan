@@ -6,6 +6,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { grnService, rgrnService } from "@/services";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store";
+import { ROLES } from "@/constants";
 
 // Query keys factory
 export const grnKeys = {
@@ -68,11 +70,25 @@ export const useGRNsByPO = (poId, options = {}) => {
  */
 export const useCreateGRN = () => {
   const queryClient = useQueryClient();
+  const user = useAuthStore((state) => state.user);
 
   return useMutation({
-    mutationFn: (data) => grnService.create(data),
-    onSuccess: () => {
+    mutationFn: async (data) => {
+      // Create GRN (will be DRAFT status in backend)
+      const createResponse = await grnService.create(data);
+      
+      // Note: SUPER_ADMIN created GRNs remain in DRAFT status like all others
+      // They can directly verify and complete without additional approval
+      
+      return createResponse;
+    },
+    onSuccess: (response) => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
+      // Automatically refresh inventory data after GRN creation
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      // Refresh purchase orders as GRN affects PO status (partially/fully received)
+      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
+      
       toast.success("GRN created successfully");
     },
     onError: (error) => {
@@ -92,6 +108,8 @@ export const useUpdateGRN = () => {
     onSuccess: (data, { id }) => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
       queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
+      // Automatically refresh inventory data after GRN update
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
       toast.success("GRN updated successfully");
     },
     onError: (error) => {
@@ -129,6 +147,8 @@ export const useVerifyGRN = () => {
     onSuccess: (data, id) => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
       queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
+      // Automatically refresh inventory data after GRN verification
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
       toast.success("GRN verified successfully");
     },
     onError: (error) => {
@@ -148,6 +168,10 @@ export const useCompleteGRN = () => {
     onSuccess: (data, id) => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
       queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
+      // Automatically refresh inventory data after GRN completion
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      // Refresh purchase orders as completing GRN affects PO status
+      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
       toast.success("GRN completed - stock updated");
     },
     onError: (error) => {
@@ -213,6 +237,8 @@ export const useApproveRGRN = () => {
     onSuccess: (data, id) => {
       queryClient.invalidateQueries({ queryKey: rgrnKeys.all });
       queryClient.invalidateQueries({ queryKey: rgrnKeys.detail(id) });
+      // Automatically refresh inventory data after RGRN approval (returns reduce stock)
+      queryClient.invalidateQueries({ queryKey: ["inventory"] });
       toast.success("Return GRN approved");
     },
     onError: (error) => {

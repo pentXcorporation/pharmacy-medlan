@@ -20,10 +20,10 @@ import {
 import { DataTable, PageHeader, ConfirmDialog } from "@/components/common";
 import {
   useGRNs,
-  useVerifyGRN,
   useCompleteGRN,
   getGRNColumns,
 } from "@/features/grn";
+import { toast } from "sonner";
 
 const GRNListPage = () => {
   const navigate = useNavigate();
@@ -46,7 +46,6 @@ const GRNListPage = () => {
 
   // Queries and mutations
   const { data: grnsData, isLoading } = useGRNs(params);
-  const verifyMutation = useVerifyGRN();
   const completeMutation = useCompleteGRN();
 
   // Debug: Log GRN data
@@ -63,11 +62,22 @@ const GRNListPage = () => {
     [navigate]
   );
 
-  const handleVerify = useCallback((grn) => {
-    setActionDialog({ open: true, grn, action: "verify" });
-  }, []);
-
   const handleComplete = useCallback((grn) => {
+    // Check if GRN has complete data for all items
+    const items = grn.items || [];
+    const hasCompleteData = items.every(item => 
+      item.batchNumber && 
+      item.manufacturingDate && 
+      item.expiryDate && 
+      item.sellingPrice && 
+      item.mrp
+    );
+
+    if (!hasCompleteData) {
+      toast.error("Cannot complete GRN: Some items are missing required fields (batch number, dates, selling price, or MRP).");
+      return;
+    }
+
     setActionDialog({ open: true, grn, action: "complete" });
   }, []);
 
@@ -81,35 +91,28 @@ const GRNListPage = () => {
   const handleActionConfirm = useCallback(() => {
     if (!actionDialog.grn) return;
 
-    const mutation =
-      actionDialog.action === "verify" ? verifyMutation : completeMutation;
-    mutation.mutate(actionDialog.grn.id, {
+    completeMutation.mutate(actionDialog.grn.id, {
       onSuccess: () => setActionDialog({ open: false, grn: null, action: "" }),
     });
-  }, [actionDialog, verifyMutation, completeMutation]);
+  }, [actionDialog, completeMutation]);
 
   // Columns
   const columns = useMemo(
     () =>
       getGRNColumns({
         onView: handleView,
-        onVerify: handleVerify,
         onComplete: handleComplete,
         onCreateReturn: handleCreateReturn,
       }),
-    [handleView, handleVerify, handleComplete, handleCreateReturn]
+    [handleView, handleComplete, handleCreateReturn]
   );
 
   const getDialogTitle = () => {
-    if (actionDialog.action === "verify") return "Verify GRN";
     if (actionDialog.action === "complete") return "Complete GRN";
     return "";
   };
 
   const getDialogDescription = () => {
-    if (actionDialog.action === "verify") {
-      return `Are you sure you want to verify GRN "${actionDialog.grn?.grnNumber}"?`;
-    }
     if (actionDialog.action === "complete") {
       return `This will complete GRN "${actionDialog.grn?.grnNumber}" and update inventory stock levels. This action cannot be undone.`;
     }
@@ -186,7 +189,7 @@ const GRNListPage = () => {
         cancelText="Cancel"
         variant={actionDialog.action === "complete" ? "default" : "default"}
         onConfirm={handleActionConfirm}
-        isLoading={verifyMutation.isPending || completeMutation.isPending}
+        isLoading={completeMutation.isPending}
       />
     </div>
   );

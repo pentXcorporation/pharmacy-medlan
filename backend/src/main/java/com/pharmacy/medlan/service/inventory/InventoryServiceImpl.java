@@ -58,6 +58,32 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public List<InventoryResponse> getAllLowStockInventory() {
+        List<BranchInventory> allLowStock = branchInventoryRepository.findAllLowStock();
+
+        return allLowStock.stream()
+                .map(inv -> {
+                    List<InventoryBatch> batches = inventoryBatchRepository
+                            .findByProductIdAndBranchId(inv.getProduct().getId(), inv.getBranch().getId());
+                    return inventoryMapper.toInventoryResponse(inv, batches);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<InventoryResponse> getAllOutOfStockInventory() {
+        List<BranchInventory> allOutOfStock = branchInventoryRepository.findAllOutOfStock();
+
+        return allOutOfStock.stream()
+                .map(inv -> {
+                    List<InventoryBatch> batches = inventoryBatchRepository
+                            .findByProductIdAndBranchId(inv.getProduct().getId(), inv.getBranch().getId());
+                    return inventoryMapper.toInventoryResponse(inv, batches);
+                })
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public List<InventoryResponse> getLowStockInventory(Long branchId) {
         List<BranchInventory> lowStock = branchInventoryRepository.findLowStockByBranch(branchId);
 

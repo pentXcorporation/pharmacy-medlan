@@ -24,6 +24,20 @@ public class InventoryController {
 
     private final InventoryService inventoryService;
 
+    @GetMapping("/low-stock")
+    @Operation(summary = "Get all low stock inventory across all branches")
+    public ResponseEntity<ApiResponse<List<InventoryResponse>>> getAllLowStockInventory() {
+        return ResponseEntity.ok(ApiResponse.success(
+                inventoryService.getAllLowStockInventory()));
+    }
+
+    @GetMapping("/out-of-stock")
+    @Operation(summary = "Get all out of stock inventory across all branches")
+    public ResponseEntity<ApiResponse<List<InventoryResponse>>> getAllOutOfStockInventory() {
+        return ResponseEntity.ok(ApiResponse.success(
+                inventoryService.getAllOutOfStockInventory()));
+    }
+
     @GetMapping("/product/{productId}/branch/{branchId}")
     @Operation(summary = "Get inventory by product and branch")
     public ResponseEntity<ApiResponse<InventoryResponse>> getInventoryByProductAndBranch(

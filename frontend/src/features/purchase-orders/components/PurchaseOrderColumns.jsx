@@ -150,6 +150,7 @@ export const getPurchaseOrderColumns = ({
       const status = po.status;
 
       // Combine status checks with permission checks
+      // Note: SUPER_ADMIN creates orders directly as APPROVED, bypassing DRAFT/PENDING_APPROVAL states
       const canEdit = status === "DRAFT" && (!hasPermission || hasPermission("purchaseOrders", "edit"));
       const canSubmit = status === "DRAFT" && (!hasPermission || hasPermission("purchaseOrders", "edit"));
       const canApprove = status === "PENDING_APPROVAL" && (!hasPermission || hasPermission("purchaseOrders", "approve"));

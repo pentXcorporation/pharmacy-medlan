@@ -53,18 +53,28 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
 
         User currentUser = SecurityUtils.getCurrentUser(userRepository);
 
+        // SUPER_ADMIN doesn't need approval - auto-approve
+        boolean isSuperAdmin = currentUser.getRole().name().equals("SUPER_ADMIN");
+        PurchaseOrderStatus initialStatus = isSuperAdmin ? PurchaseOrderStatus.APPROVED : PurchaseOrderStatus.DRAFT;
+
         PurchaseOrder po = PurchaseOrder.builder()
                 .poNumber(generatePoNumber())
                 .supplier(supplier)
                 .branch(branch)
                 .orderDate(LocalDate.now())
                 .expectedDeliveryDate(request.getExpectedDeliveryDate())
-                .status(PurchaseOrderStatus.DRAFT)
+                .status(initialStatus)
                 .createdByUser(currentUser)
                 .remarks(request.getRemarks())
                 .supplierReference(request.getSupplierReference())
                 .discountAmount(request.getDiscountAmount() != null ? request.getDiscountAmount() : BigDecimal.ZERO)
                 .build();
+
+        // If SUPER_ADMIN, set approval details immediately
+        if (isSuperAdmin) {
+            po.setApprovedByUser(currentUser);
+            po.setApprovedAt(LocalDateTime.now());
+        }
 
         BigDecimal totalAmount = BigDecimal.ZERO;
         BigDecimal totalTax = BigDecimal.ZERO;
@@ -110,7 +120,11 @@ public class PurchaseOrderServiceImpl implements PurchaseOrderService {
         po.setNetAmount(totalAmount.subtract(po.getDiscountAmount()).add(totalTax));
 
         po = purchaseOrderRepository.save(po);
-        log.info("Purchase order created: {}", po.getPoNumber());
+        if (isSuperAdmin) {
+            log.info("Purchase order created and auto-approved by SUPER_ADMIN: {}", po.getPoNumber());
+        } else {
+            log.info("Purchase order created: {}", po.getPoNumber());
+        }
 
         return purchaseOrderMapper.toResponse(po);
     }

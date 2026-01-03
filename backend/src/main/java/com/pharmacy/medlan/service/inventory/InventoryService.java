@@ -14,6 +14,10 @@ public interface InventoryService {
 
     Page<InventoryResponse> getInventoryByBranch(Long branchId, Pageable pageable);
 
+    List<InventoryResponse> getAllLowStockInventory();
+
+    List<InventoryResponse> getAllOutOfStockInventory();
+
     List<InventoryResponse> getLowStockInventory(Long branchId);
 
     List<InventoryResponse> getOutOfStockInventory(Long branchId);
