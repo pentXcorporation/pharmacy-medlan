@@ -48,6 +48,7 @@ export const ROUTES = {
     ROOT: "/inventory",
     STOCK: "/inventory",
     LIST: "/inventory",
+    AVAILABLE: "/inventory/available",
     MOVEMENTS: "/inventory/movements",
     TRANSFERS: {
       LIST: "/inventory/transfers",
@@ -82,6 +83,7 @@ export const ROUTES = {
     LIST: "/grn",
     CREATE: "/grn/new",
     DIRECT: "/grn/direct",
+    EDIT: (id = ":id") => `/grn/${id}/edit`,
     VIEW: (id = ":id") => `/grn/${id}`,
   },
 

@@ -105,4 +105,21 @@ public class InventoryController {
         return ResponseEntity.ok(ApiResponse.success(
                 inventoryService.getAvailableQuantity(productId, branchId)));
     }
+
+    @GetMapping("/expiring")
+    @Operation(summary = "Get all expiring batches across all branches")
+    public ResponseEntity<ApiResponse<Page<InventoryBatchResponse>>> getAllExpiringBatches(
+            @RequestParam(defaultValue = "90") int days,
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(
+                inventoryService.getAllExpiringBatches(days, pageable)));
+    }
+
+    @GetMapping("/expired")
+    @Operation(summary = "Get all expired batches across all branches")
+    public ResponseEntity<ApiResponse<Page<InventoryBatchResponse>>> getAllExpiredBatches(
+            Pageable pageable) {
+        return ResponseEntity.ok(ApiResponse.success(
+                inventoryService.getAllExpiredBatches(pageable)));
+    }
 }

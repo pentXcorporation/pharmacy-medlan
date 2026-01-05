@@ -139,4 +139,27 @@ public class InventoryServiceImpl implements InventoryService {
                 .map(BranchInventory::getQuantityAvailable)
                 .orElse(0);
     }
+
+    @Override
+    public Page<InventoryBatchResponse> getAllExpiringBatches(int days, Pageable pageable) {
+        LocalDate alertDate = LocalDate.now().plusDays(days);
+        Page<InventoryBatch> batchesPage = inventoryBatchRepository
+                .findAllExpiringBatches(alertDate, pageable);
+        
+        List<InventoryBatchResponse> responses = inventoryMapper.toBatchResponseList(
+                batchesPage.getContent());
+        
+        return new PageImpl<>(responses, pageable, batchesPage.getTotalElements());
+    }
+
+    @Override
+    public Page<InventoryBatchResponse> getAllExpiredBatches(Pageable pageable) {
+        Page<InventoryBatch> batchesPage = inventoryBatchRepository
+                .findAllExpiredBatches(LocalDate.now(), pageable);
+        
+        List<InventoryBatchResponse> responses = inventoryMapper.toBatchResponseList(
+                batchesPage.getContent());
+        
+        return new PageImpl<>(responses, pageable, batchesPage.getTotalElements());
+    }
 }

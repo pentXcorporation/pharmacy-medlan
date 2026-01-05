@@ -128,8 +128,24 @@ const errorInterceptor = async (error) => {
 
   // Handle other errors
   if (error.response?.status === 403) {
-    // Forbidden - don't redirect, just reject with error
-    // Let the component handle it via onError callback
+    // Check if it's an authentication issue (expired/invalid token)
+    const errorMessage = error.response?.data?.message || "";
+    const isAuthError = 
+      errorMessage.includes("Access Denied") || 
+      errorMessage.includes("token") ||
+      errorMessage.includes("authentication");
+    
+    if (isAuthError && getAccessToken()) {
+      // Clear tokens and redirect to login
+      console.error("Authentication expired. Redirecting to login...");
+      localStorage.removeItem(API_CONFIG.TOKEN.ACCESS_KEY);
+      localStorage.removeItem(API_CONFIG.TOKEN.REFRESH_KEY);
+      localStorage.removeItem(API_CONFIG.TOKEN.USER_KEY);
+      window.location.href = "/login";
+      return Promise.reject(error);
+    }
+    
+    // Other forbidden errors - let component handle
     console.error("Forbidden (403):", error.response?.data);
   }
 

@@ -100,6 +100,24 @@ public interface InventoryBatchRepository extends JpaRepository<InventoryBatch, 
     Long countExpiredBatchesByBranch(@Param("branchId") Long branchId);
 
     /**
+     * Find all expiring batches across all branches (paginated)
+     */
+    @Query("SELECT ib FROM InventoryBatch ib WHERE ib.expiryDate BETWEEN CURRENT_DATE AND :alertDate " +
+            "AND ib.isActive = true AND ib.quantityAvailable > 0 ORDER BY ib.expiryDate ASC")
+    org.springframework.data.domain.Page<InventoryBatch> findAllExpiringBatches(
+            @Param("alertDate") LocalDate alertDate, 
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
+     * Find all expired batches across all branches (paginated)
+     */
+    @Query("SELECT ib FROM InventoryBatch ib WHERE ib.expiryDate < :date " +
+            "AND ib.isActive = true AND ib.quantityAvailable > 0 ORDER BY ib.expiryDate ASC")
+    org.springframework.data.domain.Page<InventoryBatch> findAllExpiredBatches(
+            @Param("date") LocalDate date, 
+            org.springframework.data.domain.Pageable pageable);
+
+    /**
      * Get total available quantity for a product across all branches
      */
     @Query("SELECT COALESCE(SUM(ib.quantityAvailable), 0) FROM InventoryBatch ib " +

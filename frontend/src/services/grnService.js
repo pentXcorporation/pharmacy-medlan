@@ -66,6 +66,13 @@ export const grnService = {
   },
 
   /**
+   * Update existing GRN (only for PENDING/DRAFT status)
+   */
+  update: (id, data) => {
+    return api.put(API_ENDPOINTS.GRN.BY_ID(id), data);
+  },
+
+  /**
    * Approve GRN
    */
   approve: (id) => {

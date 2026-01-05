@@ -54,6 +54,24 @@ const lineItemSchema = z.object({
   sellingPrice: z.number().min(0.01, "Selling price is required"),
   mrp: z.number().min(0.01, "MRP is required"),
   notes: z.string().optional(),
+}).refine((data) => {
+  // Validate expiry date is after manufacturing date
+  if (data.manufacturingDate && data.expiryDate) {
+    return new Date(data.expiryDate) > new Date(data.manufacturingDate);
+  }
+  return true;
+}, {
+  message: "Expiry date must be after manufacturing date",
+  path: ["expiryDate"],
+}).refine((data) => {
+  // Validate MRP is greater than or equal to selling price
+  if (data.mrp && data.sellingPrice) {
+    return data.mrp >= data.sellingPrice;
+  }
+  return true;
+}, {
+  message: "MRP must be greater than or equal to selling price",
+  path: ["mrp"],
 });
 
 // Validation schema
@@ -71,13 +89,15 @@ const grnSchema = z.object({
  */
 const GRNForm = ({
   purchaseOrder,
+  initialData,
   onSubmit,
   onCancel,
   isSubmitting = false,
+  isEditMode = false,
 }) => {
   const form = useForm({
     resolver: zodResolver(grnSchema),
-    defaultValues: {
+    defaultValues: initialData || {
       purchaseOrderId: purchaseOrder?.id?.toString() || "",
       receivedDate: new Date().toISOString().split("T")[0],
       invoiceNumber: "",
@@ -94,9 +114,9 @@ const GRNForm = ({
 
   const items = form.watch("items");
 
-  // Populate form from PO items
+  // Populate form from PO items (only if not in edit mode)
   useEffect(() => {
-    if (purchaseOrder?.items) {
+    if (purchaseOrder?.items && !isEditMode) {
       const grnItems = purchaseOrder.items.map((item) => ({
         productId: item.productId?.toString() || "",
         productName: item.product?.name || item.productName || "",
@@ -121,7 +141,7 @@ const GRNForm = ({
         items: grnItems,
       });
     }
-  }, [purchaseOrder, form]);
+  }, [purchaseOrder, form, isEditMode]);
 
   // Calculate totals
   const totalReceived = items.reduce(
@@ -226,12 +246,34 @@ const GRNForm = ({
           </Alert>
         )}
 
+        {/* Edit Mode - Incomplete Data Warning */}
+        {isEditMode && items.some(item => 
+          !item.batchNumber || !item.manufacturingDate || !item.expiryDate || 
+          !item.sellingPrice || item.sellingPrice === 0 || !item.mrp || item.mrp === 0
+        ) && (
+          <Alert variant="warning" className="bg-amber-50 border-amber-300">
+            <AlertTriangle className="h-4 w-4 text-amber-600" />
+            <AlertDescription className="text-amber-900">
+              <strong>Action Required:</strong> Items highlighted in red are missing required information. 
+              Please fill in all required fields (Batch Number, Manufacturing Date, Expiry Date, Selling Price, and MRP) before saving.
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Items Table */}
         <Card>
           <CardHeader>
             <CardTitle>Received Items</CardTitle>
             <CardDescription>
-              All fields marked with * are required. You must enter batch number, manufacturing date, expiry date, selling price, and MRP for each item before saving.
+              {isEditMode ? (
+                <span className="text-amber-700 font-medium">
+                  ⚠️ Please complete all missing fields marked with * before saving. Incomplete items are highlighted.
+                </span>
+              ) : (
+                <span>
+                  All fields marked with * are required. You must enter batch number, manufacturing date, expiry date, selling price, and MRP for each item before saving.
+                </span>
+              )}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -260,16 +302,40 @@ const GRNForm = ({
                     const lineTotal = item.receivedQuantity * item.unitPrice;
                     const hasQtyMismatch =
                       item.receivedQuantity !== item.orderedQuantity;
+                    
+                    // Check for missing required fields
+                    const isMissingData = isEditMode && (
+                      !item.batchNumber || 
+                      !item.manufacturingDate || 
+                      !item.expiryDate || 
+                      !item.sellingPrice || 
+                      item.sellingPrice === 0 ||
+                      !item.mrp || 
+                      item.mrp === 0
+                    );
 
                     return (
                       <TableRow
                         key={field.id}
-                        className={hasQtyMismatch ? "bg-yellow-50" : ""}
+                        className={
+                          isMissingData 
+                            ? "bg-red-50 border-l-4 border-red-500" 
+                            : hasQtyMismatch 
+                            ? "bg-yellow-50" 
+                            : ""
+                        }
                       >
                         <TableCell>
-                          <span className="font-medium">
-                            {item.productName}
-                          </span>
+                          <div>
+                            <span className="font-medium">
+                              {item.productName}
+                            </span>
+                            {isMissingData && (
+                              <p className="text-xs text-red-600 mt-1 font-medium">
+                                ⚠️ Complete all required fields
+                              </p>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
                           {item.orderedQuantity}
@@ -415,7 +481,7 @@ const GRNForm = ({
           </Button>
           <Button type="submit" disabled={isSubmitting}>
             {isSubmitting && <ButtonSpinner />}
-            Create GRN
+            {isEditMode ? "Save Changes" : "Create GRN"}
           </Button>
         </div>
       </form>

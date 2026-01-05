@@ -4,7 +4,15 @@
  */
 
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Package, CheckCircle, Printer, Undo2 } from "lucide-react";
+import { 
+  ArrowLeft, 
+  Package, 
+  CheckCircle, 
+  Printer, 
+  Undo2, 
+  Edit, 
+  AlertTriangle 
+} from "lucide-react";
 
 import { ROUTES } from "@/config/routes.config";
 import { Button } from "@/components/ui/button";
@@ -45,6 +53,7 @@ const GRNViewPage = () => {
   const status = grn?.status;
   const canComplete = status === "DRAFT" || status === "PENDING" || status === "VERIFIED";
   const canReturn = status === "COMPLETED";
+  const canEdit = status === "DRAFT" || status === "PENDING" || status === "RECEIVED";
 
   // Calculate totals from items
   const items = grn?.items || [];
@@ -70,6 +79,10 @@ const GRNViewPage = () => {
     }
     
     completeMutation.mutate(id);
+  };
+
+  const handleEdit = () => {
+    navigate(ROUTES.GRN.EDIT(id));
   };
 
   const handleCreateReturn = () => {
@@ -116,6 +129,12 @@ const GRNViewPage = () => {
               <Printer className="mr-2 h-4 w-4" />
               Print
             </Button>
+            {canEdit && (
+              <Button variant="outline" onClick={handleEdit}>
+                <Edit className="mr-2 h-4 w-4" />
+                Edit GRN
+              </Button>
+            )}
             {canComplete && (
               <Button
                 onClick={handleComplete}
@@ -220,11 +239,29 @@ const GRNViewPage = () => {
         </CardHeader>
         <CardContent>
           {!hasCompleteData && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
-              <p className="text-sm text-red-800">
-                <strong>⚠️ Warning:</strong> Some items are missing required information (batch number, manufacturing date, expiry date, selling price, or MRP). 
-                The GRN cannot be completed until all items have complete data.
-              </p>
+            <div className="mb-4 p-4 bg-amber-50 border border-amber-300 rounded-lg">
+              <div className="flex items-start gap-3">
+                <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+                <div className="flex-1">
+                  <p className="font-semibold text-amber-900 mb-2">
+                    ⚠️ Incomplete GRN Data
+                  </p>
+                  <p className="text-sm text-amber-800 mb-3">
+                    Some items are missing required information. Items with missing data are highlighted in red below.
+                  </p>
+                  {canEdit && (
+                    <Button 
+                      size="sm" 
+                      variant="default" 
+                      onClick={handleEdit}
+                      className="bg-amber-600 hover:bg-amber-700"
+                    >
+                      <Edit className="mr-2 h-3 w-3" />
+                      Edit GRN to Complete Missing Data
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
           )}
           <Table>
@@ -247,12 +284,20 @@ const GRNViewPage = () => {
                   (item.receivedQuantity || 0) * (item.unitPrice || 0);
                 const hasDiscrepancy =
                   item.receivedQuantity !== item.orderedQuantity;
-                const isIncomplete = !item.batchNumber || !item.manufacturingDate || !item.expiryDate || !item.sellingPrice || !item.mrp;
+                
+                // Check which fields are missing
+                const missingFields = [];
+                if (!item.batchNumber) missingFields.push("Batch #");
+                if (!item.manufacturingDate) missingFields.push("Mfg Date");
+                if (!item.expiryDate) missingFields.push("Expiry");
+                if (!item.sellingPrice || item.sellingPrice === 0) missingFields.push("Selling Price");
+                if (!item.mrp || item.mrp === 0) missingFields.push("MRP");
+                const isIncomplete = missingFields.length > 0;
 
                 return (
                   <TableRow
                     key={item.id || index}
-                    className={isIncomplete ? "bg-red-50" : hasDiscrepancy ? "bg-yellow-50" : ""}
+                    className={isIncomplete ? "bg-red-50 border-l-4 border-red-500" : hasDiscrepancy ? "bg-yellow-50" : ""}
                   >
                     <TableCell>{index + 1}</TableCell>
                     <TableCell>
@@ -266,9 +311,14 @@ const GRNViewPage = () => {
                           </p>
                         )}
                         {isIncomplete && (
-                          <p className="text-xs text-destructive mt-1">
-                            ⚠️ Missing required data
-                          </p>
+                          <div className="mt-2 p-2 bg-red-100 border border-red-300 rounded">
+                            <p className="text-xs font-semibold text-red-900">
+                              ⚠️ Missing required data
+                            </p>
+                            <p className="text-xs text-red-700 mt-1">
+                              Please add: {missingFields.join(", ")}
+                            </p>
+                          </div>
                         )}
                       </div>
                     </TableCell>
@@ -287,9 +337,19 @@ const GRNViewPage = () => {
                         "-"
                       )}
                     </TableCell>
-                    <TableCell>{item.batchNumber || "-"}</TableCell>
                     <TableCell>
-                      {item.expiryDate ? formatDate(item.expiryDate) : "-"}
+                      {item.batchNumber ? (
+                        item.batchNumber
+                      ) : (
+                        <span className="text-red-600 font-medium">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {item.expiryDate ? (
+                        formatDate(item.expiryDate)
+                      ) : (
+                        <span className="text-red-600 font-medium">-</span>
+                      )}
                     </TableCell>
                     <TableCell className="text-right">
                       {formatCurrency(item.unitPrice)}

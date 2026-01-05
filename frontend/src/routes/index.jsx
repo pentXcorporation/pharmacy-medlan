@@ -26,6 +26,9 @@ const CategoriesPage = lazy(() => import("@/pages/categories/CategoriesPage"));
 
 // Inventory Pages
 const InventoryPage = lazy(() => import("@/pages/inventory/InventoryPage"));
+const AvailableStockPage = lazy(() =>
+  import("@/pages/inventory/AvailableStockPage")
+);
 const StockTransfersPage = lazy(() =>
   import("@/pages/inventory/StockTransfersPage")
 );
@@ -87,6 +90,7 @@ const GRNListPage = lazy(() => import("@/pages/grn/GRNListPage"));
 const GRNFormPage = lazy(() => import("@/pages/grn/GRNFormPage"));
 const DirectGRNFormPage = lazy(() => import("@/pages/grn/DirectGRNFormPage"));
 const GRNViewPage = lazy(() => import("@/pages/grn/GRNViewPage"));
+const GRNEditPage = lazy(() => import("@/pages/grn/GRNEditPage"));
 
 // Reports Pages
 const ReportsPage = lazy(() => import("@/pages/reports/ReportsPage"));
@@ -450,6 +454,14 @@ const router = createBrowserRouter([
         element: (
           <SuspenseWrapper>
             <InventoryPage />
+          </SuspenseWrapper>
+        ),
+      },
+      {
+        path: ROUTES.INVENTORY.AVAILABLE,
+        element: (
+          <SuspenseWrapper>
+            <AvailableStockPage />
           </SuspenseWrapper>
         ),
       },
@@ -1016,6 +1028,16 @@ const router = createBrowserRouter([
           <RoleGuard feature="grn" action="create">
             <SuspenseWrapper>
               <DirectGRNFormPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.GRN.EDIT(":id"),
+        element: (
+          <RoleGuard feature="grn" action="update">
+            <SuspenseWrapper>
+              <GRNEditPage />
             </SuspenseWrapper>
           </RoleGuard>
         ),

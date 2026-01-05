@@ -39,6 +39,18 @@ export const useStockByBranch = (branchId, options = {}) => {
 };
 
 /**
+ * Hook to fetch inventory by branch (paginated)
+ */
+export const useInventory = (branchId, params = {}, options = {}) => {
+  return useQuery({
+    queryKey: [...inventoryKeys.stockByBranch(branchId), params],
+    queryFn: () => inventoryService.getByBranch(branchId, params),
+    enabled: Boolean(branchId),
+    ...options,
+  });
+};
+
+/**
  * Hook to fetch low stock products
  */
 export const useLowStockProducts = (params = {}, options = {}) => {

@@ -67,20 +67,17 @@ export const getGRNColumns = ({
     ),
   },
   {
-    accessorKey: "poNumber",
+    accessorKey: "purchaseOrderNumber",
     header: "PO Number",
     cell: ({ row }) => {
-      const po = row.original.purchaseOrder;
-      return po?.poNumber || row.getValue("poNumber") || "-";
+      return row.original.purchaseOrderNumber || "-";
     },
   },
   {
-    accessorKey: "supplier",
+    accessorKey: "supplierName",
     header: "Supplier",
     cell: ({ row }) => {
-      const supplier =
-        row.original.supplier || row.original.purchaseOrder?.supplier;
-      return supplier?.name || "-";
+      return row.original.supplierName || "-";
     },
   },
   {

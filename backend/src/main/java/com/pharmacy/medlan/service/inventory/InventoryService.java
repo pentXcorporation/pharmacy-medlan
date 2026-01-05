@@ -29,4 +29,8 @@ public interface InventoryService {
     List<InventoryBatchResponse> getExpiredBatches(Long branchId);
 
     Integer getAvailableQuantity(Long productId, Long branchId);
+
+    Page<InventoryBatchResponse> getAllExpiringBatches(int days, Pageable pageable);
+
+    Page<InventoryBatchResponse> getAllExpiredBatches(Pageable pageable);
 }

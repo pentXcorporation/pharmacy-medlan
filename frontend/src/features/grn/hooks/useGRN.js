@@ -81,8 +81,12 @@ export const useCreateGRN = () => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
-      // Automatically refresh inventory data after GRN creation
-      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      // Automatically refresh ALL inventory data after GRN creation (using partial matching)
+      queryClient.invalidateQueries({ 
+        queryKey: ["inventory"],
+        exact: false,
+        refetchType: 'active'
+      });
       // Refresh purchase orders as GRN affects PO status (partially/fully received)
       queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
       
@@ -106,7 +110,11 @@ export const useUpdateGRN = () => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
       queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
       // Automatically refresh inventory data after GRN update
-      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["inventory"],
+        exact: false,
+        refetchType: 'active'
+      });
       toast.success("GRN updated successfully");
     },
     onError: (error) => {
@@ -145,7 +153,11 @@ export const useVerifyGRN = () => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
       queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
       // Automatically refresh inventory data after GRN verification
-      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["inventory"],
+        exact: false,
+        refetchType: 'active'
+      });
       toast.success("GRN verified successfully");
     },
     onError: (error) => {
@@ -166,7 +178,11 @@ export const useCompleteGRN = () => {
       queryClient.invalidateQueries({ queryKey: grnKeys.all });
       queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
       // Automatically refresh inventory data after GRN completion
-      queryClient.invalidateQueries({ queryKey: ["inventory"] });
+      queryClient.invalidateQueries({ 
+        queryKey: ["inventory"],
+        exact: false,
+        refetchType: 'active'
+      });
       // Refresh purchase orders as completing GRN affects PO status
       queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
       toast.success("GRN completed - stock updated");
