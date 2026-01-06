@@ -46,6 +46,8 @@ export const useGRN = (id, options = {}) => {
     queryFn: () => grnService.getById(id),
     select: (response) => response.data?.data || response.data || response,
     enabled: Boolean(id),
+    staleTime: 30 * 60 * 1000, // 30 minutes - prevent unnecessary refetches
+    refetchOnMount: false, // Don't refetch on mount if data is already in cache
     ...options,
   });
 };
@@ -80,7 +82,7 @@ export const useCreateGRN = () => {
       return createResponse;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: grnKeys.all });
+      queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
       // Automatically refresh ALL inventory data after GRN creation (using partial matching)
       queryClient.invalidateQueries({ 
         queryKey: ["inventory"],
@@ -107,8 +109,7 @@ export const useUpdateGRN = () => {
   return useMutation({
     mutationFn: ({ id, data }) => grnService.update(id, data),
     onSuccess: (data, { id }) => {
-      queryClient.invalidateQueries({ queryKey: grnKeys.all });
-      queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
       // Automatically refresh inventory data after GRN update
       queryClient.invalidateQueries({ 
         queryKey: ["inventory"],
@@ -132,7 +133,7 @@ export const useDeleteGRN = () => {
   return useMutation({
     mutationFn: (id) => grnService.delete(id),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: grnKeys.all });
+      queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
       toast.success("GRN deleted successfully");
     },
     onError: (error) => {
@@ -150,8 +151,7 @@ export const useVerifyGRN = () => {
   return useMutation({
     mutationFn: (id) => grnService.verify(id),
     onSuccess: (data, id) => {
-      queryClient.invalidateQueries({ queryKey: grnKeys.all });
-      queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
       // Automatically refresh inventory data after GRN verification
       queryClient.invalidateQueries({ 
         queryKey: ["inventory"],
@@ -175,8 +175,7 @@ export const useCompleteGRN = () => {
   return useMutation({
     mutationFn: (id) => grnService.complete(id),
     onSuccess: (data, id) => {
-      queryClient.invalidateQueries({ queryKey: grnKeys.all });
-      queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
       // Automatically refresh inventory data after GRN completion
       queryClient.invalidateQueries({ 
         queryKey: ["inventory"],
@@ -214,6 +213,8 @@ export const useRGRN = (id, options = {}) => {
     queryKey: rgrnKeys.detail(id),
     queryFn: () => rgrnService.getById(id),
     enabled: Boolean(id),
+    staleTime: 30 * 60 * 1000, // 30 minutes - prevent unnecessary refetches
+    refetchOnMount: false, // Don't refetch on mount if data is already in cache
     ...options,
   });
 };
@@ -227,8 +228,8 @@ export const useCreateRGRN = () => {
   return useMutation({
     mutationFn: (data) => rgrnService.create(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: rgrnKeys.all });
-      queryClient.invalidateQueries({ queryKey: grnKeys.all });
+      queryClient.invalidateQueries({ queryKey: rgrnKeys.lists() });
+      queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
       toast.success("Return GRN created successfully");
     },
     onError: (error) => {
@@ -248,8 +249,7 @@ export const useApproveRGRN = () => {
   return useMutation({
     mutationFn: (id) => rgrnService.approve(id),
     onSuccess: (data, id) => {
-      queryClient.invalidateQueries({ queryKey: rgrnKeys.all });
-      queryClient.invalidateQueries({ queryKey: rgrnKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: rgrnKeys.lists() });
       // Automatically refresh inventory data after RGRN approval (returns reduce stock)
       queryClient.invalidateQueries({ queryKey: ["inventory"] });
       toast.success("Return GRN approved");
@@ -271,8 +271,7 @@ export const useRejectRGRN = () => {
   return useMutation({
     mutationFn: ({ id, reason }) => rgrnService.reject(id, reason),
     onSuccess: (data, { id }) => {
-      queryClient.invalidateQueries({ queryKey: rgrnKeys.all });
-      queryClient.invalidateQueries({ queryKey: rgrnKeys.detail(id) });
+      queryClient.invalidateQueries({ queryKey: rgrnKeys.lists() });
       toast.success("Return GRN rejected");
     },
     onError: (error) => {
