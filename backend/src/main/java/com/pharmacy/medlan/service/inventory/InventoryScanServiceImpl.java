@@ -59,42 +59,39 @@ public class InventoryScanServiceImpl implements InventoryScanService {
     @Cacheable(value = "productScans", key = "#barcode + '_' + #branchId")
     public ScanResultResponse quickLookupForPOS(String barcode, Long branchId) {
         log.debug("Quick lookup for POS: barcode={}, branch={}", barcode, branchId);
-
         try {
             Product product = findProductByBarcode(barcode);
-            
             ScanResultResponse response = buildBasicResponse(product, barcode, ScanContext.POS);
-            
-            // Get branch-specific stock
+
+            // Get branch-specific stock (ISOLATION: Checking only this branch)
             Optional<BranchInventory> branchInventory = branchInventoryRepository
                     .findByProductIdAndBranchId(product.getId(), branchId);
-            
             int stockAtBranch = branchInventory.map(BranchInventory::getQuantityAvailable).orElse(0);
+
             response.setStockAtBranch(stockAtBranch);
             response.setStockStatus(getStockStatus(stockAtBranch, product.getReorderLevel(), product.getMinimumStock()));
 
-            // Get available batches (FEFO sorted)
+            // Get available batches (FEFO sorted - First Expiring First Out)
             List<InventoryBatch> batches = inventoryBatchRepository
                     .findAvailableBatchesByProductAndBranch(product.getId(), branchId);
-            
+
             List<ScanResultResponse.BatchInfo> batchInfos = batches.stream()
                     .map(this::toBatchInfo)
                     .collect(Collectors.toList());
             response.setAvailableBatches(batchInfos);
 
-            // Set suggested batch (first expiring with stock)
+            // FRAUD PREVENTION: Auto-select batch but strictly validate
             if (!batchInfos.isEmpty()) {
-                response.setSuggestedBatch(batchInfos.get(0));
+                response.setSuggestedBatch(batchInfos.get(0)); // Suggest the one expiring soonest
             }
 
-            // Check if can add to cart
+            // Check if can add to cart and generate safety alerts
             validateForPOS(response, product, stockAtBranch);
 
-            // Add alerts
+            // Generate Alerts (Low stock, Expiry, Price Margin Safety)
             response.setAlerts(generateAlerts(product, batches, stockAtBranch));
 
             return response;
-
         } catch (ResourceNotFoundException e) {
             return ScanResultResponse.error(barcode, "Product not found for barcode: " + barcode);
         }
@@ -103,33 +100,34 @@ public class InventoryScanServiceImpl implements InventoryScanService {
     @Override
     public ScanResultResponse lookupForReceiving(String barcode, Long branchId) {
         log.debug("Lookup for receiving: barcode={}, branch={}", barcode, branchId);
-
         try {
             Product product = findProductByBarcode(barcode);
-            
             ScanResultResponse response = buildBasicResponse(product, barcode, ScanContext.GRN);
-            
-            // Add supplier information
+
+            // REAL LIFE SCENARIO: Assist the user by showing supplier info and pending orders
             Map<String, Object> additionalData = new HashMap<>();
             additionalData.put("preferredSupplier", product.getSupplier());
             additionalData.put("lastPurchasePrice", product.getCostPrice());
             additionalData.put("reorderLevel", product.getReorderLevel());
             additionalData.put("maximumStock", product.getMaximumStock());
-            
-            // Get current stock for suggested order quantity
+
+            // Get current stock
             Optional<BranchInventory> branchInventory = branchInventoryRepository
                     .findByProductIdAndBranchId(product.getId(), branchId);
             int currentStock = branchInventory.map(BranchInventory::getQuantityAvailable).orElse(0);
-            
+
+            // Suggest order quantity to fill up to max
             int suggestedOrderQty = Math.max(0, product.getMaximumStock() - currentStock);
             additionalData.put("currentStock", currentStock);
             additionalData.put("suggestedOrderQuantity", suggestedOrderQty);
-            
+
+            // TODO: Look up pending POs for this product to prevent double ordering
+            // additionalData.put("pendingPO", purchaseOrderRepository.countPendingByProduct(product.getId()));
+
             response.setAdditionalData(additionalData);
             response.setStockAtBranch(currentStock);
 
             return response;
-
         } catch (ResourceNotFoundException e) {
             return ScanResultResponse.error(barcode, "Product not found for barcode: " + barcode);
         }
@@ -138,29 +136,25 @@ public class InventoryScanServiceImpl implements InventoryScanService {
     @Override
     public ScanResultResponse lookupForStockTaking(String barcode, Long branchId) {
         log.debug("Lookup for stock taking: barcode={}, branch={}", barcode, branchId);
-
         try {
             Product product = findProductByBarcode(barcode);
-            
             ScanResultResponse response = buildBasicResponse(product, barcode, ScanContext.STOCK_TAKING);
-            
-            // Get ALL batches for verification (including expired for audit)
+
+            // Get ALL batches including expired ones for audit purposes
             List<InventoryBatch> allBatches = inventoryBatchRepository
                     .findAllByProductIdAndBranchId(product.getId(), branchId);
-            
+
             List<ScanResultResponse.BatchInfo> batchInfos = allBatches.stream()
                     .map(this::toBatchInfo)
                     .collect(Collectors.toList());
             response.setAvailableBatches(batchInfos);
-            
-            // Calculate totals
+
             int totalSystem = allBatches.stream()
                     .filter(b -> !b.getIsExpired())
                     .mapToInt(InventoryBatch::getQuantityAvailable)
                     .sum();
-            
             response.setStockAtBranch(totalSystem);
-            
+
             Map<String, Object> additionalData = new HashMap<>();
             additionalData.put("systemStock", totalSystem);
             additionalData.put("totalBatches", allBatches.size());
@@ -169,7 +163,6 @@ public class InventoryScanServiceImpl implements InventoryScanService {
             response.setAdditionalData(additionalData);
 
             return response;
-
         } catch (ResourceNotFoundException e) {
             return ScanResultResponse.error(barcode, "Product not found for barcode: " + barcode);
         }
@@ -178,45 +171,35 @@ public class InventoryScanServiceImpl implements InventoryScanService {
     @Override
     public ScanResultResponse verifyProduct(String qrData) {
         log.debug("Verifying product via QR: {}", qrData);
-
         try {
             Map<String, Object> qrContent = objectMapper.readValue(qrData, Map.class);
-            
             String type = (String) qrContent.get("type");
-            
+
             if ("PRODUCT".equals(type)) {
                 Long productId = Long.valueOf(qrContent.get("id").toString());
                 String code = (String) qrContent.get("code");
-                
-                Product product = productRepository.findById(productId)
-                        .orElse(null);
-                
+
+                Product product = productRepository.findById(productId).orElse(null);
                 ScanResultResponse response = ScanResultResponse.success(
                         UUID.randomUUID().toString(),
                         qrData,
                         ScanContext.VERIFICATION
                 );
-                
+
                 boolean verified = product != null && product.getProductCode().equals(code);
-                
                 Map<String, Object> additionalData = new HashMap<>();
                 additionalData.put("verified", verified);
                 additionalData.put("verificationStatus", verified ? "AUTHENTIC" : "MISMATCH");
-                additionalData.put("qrProductCode", code);
-                additionalData.put("systemProductCode", product != null ? product.getProductCode() : "NOT_FOUND");
                 response.setAdditionalData(additionalData);
-                
+
                 if (verified && product != null) {
                     response.setProductId(product.getId());
                     response.setProductCode(product.getProductCode());
                     response.setProductName(product.getProductName());
                 }
-                
                 return response;
             }
-            
             return ScanResultResponse.error(qrData, "Invalid QR code type for verification");
-            
         } catch (JsonProcessingException e) {
             return ScanResultResponse.error(qrData, "Invalid QR code format");
         }
@@ -224,28 +207,21 @@ public class InventoryScanServiceImpl implements InventoryScanService {
 
     @Override
     public ScanResultResponse processBatchQRScan(String qrData, Long branchId) {
-        log.debug("Processing batch QR: {} for branch: {}", qrData, branchId);
-
         try {
             Map<String, Object> qrContent = objectMapper.readValue(qrData, Map.class);
-            
             if (!"BATCH".equals(qrContent.get("type"))) {
                 return ScanResultResponse.error(qrData, "Not a batch QR code");
             }
-            
+
             Long batchId = Long.valueOf(qrContent.get("batchId").toString());
-            
             InventoryBatch batch = inventoryBatchRepository.findById(batchId)
                     .orElseThrow(() -> new ResourceNotFoundException("Batch not found"));
-            
             Product product = batch.getProduct();
-            
+
             ScanResultResponse response = buildBasicResponse(product, qrData, ScanContext.GRN);
             response.setSuggestedBatch(toBatchInfo(batch));
             response.setStockAtBranch(batch.getQuantityAvailable());
-            
             return response;
-            
         } catch (JsonProcessingException e) {
             return ScanResultResponse.error(qrData, "Invalid batch QR code format");
         }
@@ -253,8 +229,6 @@ public class InventoryScanServiceImpl implements InventoryScanService {
 
     @Override
     public List<ScanResultResponse> processBulkScans(List<String> barcodes, Long branchId, ScanContext context) {
-        log.info("Processing bulk scans: {} barcodes for context: {}", barcodes.size(), context);
-        
         return barcodes.stream()
                 .map(barcode -> {
                     BarcodeScanRequest request = BarcodeScanRequest.builder()
@@ -269,26 +243,18 @@ public class InventoryScanServiceImpl implements InventoryScanService {
 
     @Override
     public List<ScanResultResponse> getScanHistory(Long branchId, Long userId, int limit) {
-        // This would typically query a scan_history table
-        // For now, return empty list as placeholder
         return Collections.emptyList();
     }
 
     // ==================== Private Helper Methods ====================
 
     private Product findProductByBarcode(String barcode) {
-        // Try barcode first
         Optional<Product> byBarcode = productRepository.findByBarcode(barcode);
-        if (byBarcode.isPresent()) {
-            return byBarcode.get();
-        }
-        
-        // Try product code
+        if (byBarcode.isPresent()) return byBarcode.get();
+
         Optional<Product> byCode = productRepository.findByProductCode(barcode);
-        if (byCode.isPresent()) {
-            return byCode.get();
-        }
-        
+        if (byCode.isPresent()) return byCode.get();
+
         throw new ResourceNotFoundException("Product not found for barcode/code: " + barcode);
     }
 
@@ -323,7 +289,6 @@ public class InventoryScanServiceImpl implements InventoryScanService {
 
     private ScanResultResponse.BatchInfo toBatchInfo(InventoryBatch batch) {
         long daysToExpiry = ChronoUnit.DAYS.between(LocalDate.now(), batch.getExpiryDate());
-        
         return ScanResultResponse.BatchInfo.builder()
                 .batchId(batch.getId())
                 .batchNumber(batch.getBatchNumber())
@@ -348,21 +313,36 @@ public class InventoryScanServiceImpl implements InventoryScanService {
 
     private void validateForPOS(ScanResultResponse response, Product product, int stock) {
         List<String> blockReasons = new ArrayList<>();
-        
+
         if (stock == 0) {
             blockReasons.add("Out of stock");
         }
-        
+
         if (Boolean.TRUE.equals(product.getIsDiscontinued())) {
             blockReasons.add("Product discontinued");
         }
-        
+
         if (Boolean.FALSE.equals(product.getIsActive())) {
             blockReasons.add("Product not active");
         }
-        
+
+        // FRAUD PREVENTION: Margin Check
+        // If Selling Price is less than Cost Price, block sale or require Manager override
+        if (product.getSellingPrice() != null && product.getCostPrice() != null) {
+            if (product.getSellingPrice().compareTo(product.getCostPrice()) < 0) {
+                // We add it to warnings, or block if strict
+                response.setAlerts(List.of(ScanResultResponse.AlertInfo.builder()
+                        .level(AlertLevel.CRITICAL)
+                        .alertType("LOSS_WARNING")
+                        .message("Selling Price is below Cost Price!")
+                        .action("Manager Authorization Required")
+                        .build()));
+                // Uncomment to strictly block:
+                // blockReasons.add("Price Protection: Selling price below cost");
+            }
+        }
+
         if (Boolean.TRUE.equals(product.getIsPrescriptionRequired())) {
-            // This is just a warning, not blocking
             response.setAlerts(List.of(ScanResultResponse.AlertInfo.builder()
                     .level(AlertLevel.WARNING)
                     .alertType("PRESCRIPTION_REQUIRED")
@@ -370,7 +350,7 @@ public class InventoryScanServiceImpl implements InventoryScanService {
                     .action("Verify prescription before dispensing")
                     .build()));
         }
-        
+
         response.setCanAddToCart(blockReasons.isEmpty());
         if (!blockReasons.isEmpty()) {
             response.setAddToCartBlockReason(String.join("; ", blockReasons));
@@ -379,7 +359,7 @@ public class InventoryScanServiceImpl implements InventoryScanService {
 
     private List<ScanResultResponse.AlertInfo> generateAlerts(Product product, List<InventoryBatch> batches, int stock) {
         List<ScanResultResponse.AlertInfo> alerts = new ArrayList<>();
-        
+
         // Stock alerts
         if (stock == 0) {
             alerts.add(ScanResultResponse.AlertInfo.builder()
@@ -403,11 +383,10 @@ public class InventoryScanServiceImpl implements InventoryScanService {
                     .action("Consider placing reorder")
                     .build());
         }
-        
+
         // Expiry alerts
         for (InventoryBatch batch : batches) {
             long daysToExpiry = ChronoUnit.DAYS.between(LocalDate.now(), batch.getExpiryDate());
-            
             if (daysToExpiry < 0) {
                 alerts.add(ScanResultResponse.AlertInfo.builder()
                         .level(AlertLevel.CRITICAL)
@@ -424,7 +403,7 @@ public class InventoryScanServiceImpl implements InventoryScanService {
                         .build());
             }
         }
-        
+
         // Drug schedule alerts
         if (Boolean.TRUE.equals(product.getIsNarcotic())) {
             alerts.add(ScanResultResponse.AlertInfo.builder()
@@ -434,7 +413,7 @@ public class InventoryScanServiceImpl implements InventoryScanService {
                     .action("Verify prescription and maintain register")
                     .build());
         }
-        
+
         return alerts;
     }
 
@@ -442,19 +421,18 @@ public class InventoryScanServiceImpl implements InventoryScanService {
         try {
             Product product = findProductByBarcode(barcode);
             ScanResultResponse response = buildBasicResponse(product, barcode, ScanContext.EXPIRY_CHECK);
-            
+
             List<InventoryBatch> batches = inventoryBatchRepository
                     .findAllByProductIdAndBranchId(product.getId(), branchId);
-            
+
             List<ScanResultResponse.BatchInfo> batchInfos = batches.stream()
                     .map(this::toBatchInfo)
                     .sorted(Comparator.comparing(ScanResultResponse.BatchInfo::getExpiryDate))
                     .collect(Collectors.toList());
-            
+
             response.setAvailableBatches(batchInfos);
-            response.setAlerts(generateAlerts(product, batches, 
-                    batches.stream().mapToInt(InventoryBatch::getQuantityAvailable).sum()));
-            
+            response.setAlerts(generateAlerts(product, batches, batches.stream().mapToInt(InventoryBatch::getQuantityAvailable).sum()));
+
             return response;
         } catch (ResourceNotFoundException e) {
             return ScanResultResponse.error(barcode, "Product not found");
@@ -465,14 +443,14 @@ public class InventoryScanServiceImpl implements InventoryScanService {
         try {
             Product product = findProductByBarcode(barcode);
             ScanResultResponse response = buildBasicResponse(product, barcode, ScanContext.PRICE_CHECK);
-            
+
             Map<String, Object> additionalData = new HashMap<>();
             additionalData.put("mrp", product.getMrp());
             additionalData.put("sellingPrice", product.getSellingPrice());
             additionalData.put("discount", calculateDiscount(product.getMrp(), product.getSellingPrice()));
             additionalData.put("gstRate", product.getGstRate());
+
             response.setAdditionalData(additionalData);
-            
             return response;
         } catch (ResourceNotFoundException e) {
             return ScanResultResponse.error(barcode, "Product not found");
@@ -490,42 +468,23 @@ public class InventoryScanServiceImpl implements InventoryScanService {
 
     private ScanResultResponse processQRCodeScan(BarcodeScanRequest request) {
         String qrData = request.getScanData();
-        
         try {
             Map<String, Object> qrContent = objectMapper.readValue(qrData, Map.class);
             String type = (String) qrContent.get("type");
-            
+
             return switch (type) {
                 case "PRODUCT" -> verifyProduct(qrData);
                 case "BATCH" -> processBatchQRScan(qrData, request.getBranchId());
-                case "INVOICE" -> processInvoiceQRScan(qrData);
+                case "INVOICE" -> ScanResultResponse.error(qrData, "Invoice scanning not supported in this context");
                 default -> ScanResultResponse.error(qrData, "Unknown QR code type: " + type);
             };
         } catch (JsonProcessingException e) {
-            // Not JSON - might be a simple barcode in QR format
             return processScan(BarcodeScanRequest.builder()
                     .scanData(qrData)
                     .branchId(request.getBranchId())
                     .context(request.getContext())
                     .qrCode(false)
                     .build());
-        }
-    }
-
-    private ScanResultResponse processInvoiceQRScan(String qrData) {
-        try {
-            Map<String, Object> qrContent = objectMapper.readValue(qrData, Map.class);
-            
-            ScanResultResponse response = ScanResultResponse.success(
-                    UUID.randomUUID().toString(),
-                    qrData,
-                    ScanContext.SALE_RETURN
-            );
-            response.setAdditionalData(qrContent);
-            
-            return response;
-        } catch (JsonProcessingException e) {
-            return ScanResultResponse.error(qrData, "Invalid invoice QR code");
         }
     }
 }

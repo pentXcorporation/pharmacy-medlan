@@ -13,6 +13,7 @@ export { default as DashboardRouter } from "./components/DashboardRouter";
 
 // Components - Role-specific Dashboards
 export {
+  SuperAdminDashboard,
   AdminDashboard,
   CashierDashboard,
   PharmacistDashboard,

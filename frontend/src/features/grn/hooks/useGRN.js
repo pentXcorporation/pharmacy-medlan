@@ -143,53 +143,57 @@ export const useDeleteGRN = () => {
 };
 
 /**
- * Hook to verify GRN
+ * Hook to approve GRN
+ * IMPORTANT: This is the method that actually updates inventory in the database!
+ * 
+ * Backend behavior when this is called:
+ * 1. Creates InventoryBatch records for each GRN line item
+ * 2. Updates product stock quantities (quantityAvailable)
+ * 3. Changes GRN status from DRAFT/PENDING_APPROVAL → RECEIVED
+ * 4. Records approval user and timestamp
+ * 
+ * Use this hook for: verify, complete, or approve actions in the UI
  */
-export const useVerifyGRN = () => {
+export const useApproveGRN = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (id) => grnService.verify(id),
+    mutationFn: (id) => grnService.approve(id),
     onSuccess: (data, id) => {
       queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
-      // Automatically refresh inventory data after GRN verification
+      queryClient.invalidateQueries({ queryKey: grnKeys.detail(id) });
+      // Automatically refresh inventory data after GRN approval
       queryClient.invalidateQueries({ 
         queryKey: ["inventory"],
         exact: false,
         refetchType: 'active'
       });
-      toast.success("GRN verified successfully");
+      // Refresh purchase orders as approving GRN affects PO status
+      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
+      toast.success("GRN approved - inventory updated successfully");
     },
     onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to verify GRN");
+      toast.error(error.response?.data?.message || "Failed to approve GRN");
     },
   });
 };
 
 /**
- * Hook to complete GRN
+ * @deprecated Use useApproveGRN instead - verify is an alias for approve
+ * Kept for backwards compatibility
+ */
+export const useVerifyGRN = () => {
+  console.warn('useVerifyGRN is deprecated. Use useApproveGRN instead.');
+  return useApproveGRN();
+};
+
+/**
+ * @deprecated Use useApproveGRN instead - complete is an alias for approve
+ * Kept for backwards compatibility
  */
 export const useCompleteGRN = () => {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id) => grnService.complete(id),
-    onSuccess: (data, id) => {
-      queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
-      // Automatically refresh inventory data after GRN completion
-      queryClient.invalidateQueries({ 
-        queryKey: ["inventory"],
-        exact: false,
-        refetchType: 'active'
-      });
-      // Refresh purchase orders as completing GRN affects PO status
-      queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
-      toast.success("GRN completed - stock updated");
-    },
-    onError: (error) => {
-      toast.error(error.response?.data?.message || "Failed to complete GRN");
-    },
-  });
+  console.warn('useCompleteGRN is deprecated. Use useApproveGRN instead.');
+  return useApproveGRN();
 };
 
 // ===== RGRN Hooks =====

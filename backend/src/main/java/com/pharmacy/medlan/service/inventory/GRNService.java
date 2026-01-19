@@ -13,6 +13,8 @@ public interface GRNService {
 
     GRNResponse createGRN(CreateGRNRequest request);
 
+    GRNResponse updateGRN(Long id, CreateGRNRequest request);
+
     GRNResponse getGRNById(Long id);
 
     GRNResponse getGRNByNumber(String grnNumber);

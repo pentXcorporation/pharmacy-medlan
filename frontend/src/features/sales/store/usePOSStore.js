@@ -32,9 +32,22 @@ const usePOSStore = create(
       // Add item to cart
       addItem: (product, quantity = 1) => {
         const items = get().items;
+        // Handle both product objects (id) and inventory objects (productId)
+        const prodId = product.productId || product.id;
+        
+        // Log warning if productId is missing
+        if (!prodId) {
+          console.error("addItem: Product missing ID!", {
+            product,
+            hasProductId: !!product.productId,
+            hasId: !!product.id,
+            keys: Object.keys(product),
+          });
+        }
+        
         const existingIndex = items.findIndex(
           (item) =>
-            item.productId === product.id && item.batchId === product.batchId
+            item.productId === prodId && item.batchId === product.batchId
         );
 
         if (existingIndex >= 0) {
@@ -48,7 +61,7 @@ const usePOSStore = create(
             items: [
               ...items,
               {
-                productId: product.id,
+                productId: prodId,
                 batchId: product.batchId,
                 productName: product.name || product.productName,
                 productCode: product.productCode || product.sku,
@@ -62,10 +75,10 @@ const usePOSStore = create(
                 batchNumber: product.batchNumber,
                 expiryDate: product.expiryDate,
                 unitPrice: product.sellingPrice || product.unitPrice || product.price,
-                costPrice: product.costPrice,
+                costPrice: product.costPrice || product.averageCostPrice,
                 mrp: product.mrp,
                 quantity,
-                maxQuantity: product.stockQuantity || product.quantity || 999,
+                maxQuantity: product.quantityAvailable || product.stockQuantity || product.quantity || 999,
                 discount: 0,
                 taxRate: product.taxRate || product.gstRate || 0,
                 isPrescriptionRequired: product.isPrescriptionRequired,

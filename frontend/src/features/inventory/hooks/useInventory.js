@@ -44,7 +44,14 @@ export const useStockByBranch = (branchId, options = {}) => {
 export const useInventory = (branchId, params = {}, options = {}) => {
   return useQuery({
     queryKey: [...inventoryKeys.stockByBranch(branchId), params],
-    queryFn: () => inventoryService.getByBranch(branchId, params),
+    queryFn: async () => {
+      const response = await inventoryService.getByBranch(branchId, params);
+      console.log('useInventory - full axios response:', response);
+      console.log('useInventory - response.data:', response.data);
+      console.log('useInventory - response.data.data:', response.data?.data);
+      // Extract the data from the ApiResponse wrapper
+      return response.data?.data || response.data;
+    },
     enabled: Boolean(branchId),
     ...options,
   });

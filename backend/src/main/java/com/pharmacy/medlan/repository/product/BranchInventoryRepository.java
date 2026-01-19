@@ -17,7 +17,11 @@ public interface BranchInventoryRepository extends JpaRepository<BranchInventory
 
     List<BranchInventory> findByBranchId(Long branchId);
 
-    Page<BranchInventory> findByBranchId(Long branchId, Pageable pageable);
+    @Query("SELECT bi FROM BranchInventory bi " +
+           "JOIN FETCH bi.product p " +
+           "JOIN FETCH bi.branch b " +
+           "WHERE bi.branch.id = :branchId")
+    Page<BranchInventory> findByBranchId(@Param("branchId") Long branchId, Pageable pageable);
 
     List<BranchInventory> findByProductId(Long productId);
 

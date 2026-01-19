@@ -12,8 +12,16 @@ export const inventoryService = {
    */
   getByBranch: (branchId, params = {}) => {
     const { page = 0, size = 10, sort = "product.productName,asc" } = params;
+    console.log('inventoryService.getByBranch - calling API with:', { branchId, page, size, sort });
     return api.get(API_ENDPOINTS.INVENTORY.BY_BRANCH(branchId), {
       params: { page, size, sort },
+    }).then(response => {
+      console.log('inventoryService.getByBranch - raw response:', response);
+      console.log('inventoryService.getByBranch - response.data:', response.data);
+      console.log('inventoryService.getByBranch - response.data.data:', response.data?.data);
+      console.log('inventoryService.getByBranch - response.data.data.content:', response.data?.data?.content);
+      console.log('inventoryService.getByBranch - response.data.data.content[0]:', response.data?.data?.content?.[0]);
+      return response;
     });
   },
 

@@ -61,6 +61,10 @@ public class CreateGRNRequest {
         @DecimalMin(value = "0.01", message = "Selling price must be greater than 0")
         private BigDecimal sellingPrice;
 
+        @NotNull(message = "MRP is required")
+        @DecimalMin(value = "0.01", message = "MRP must be greater than 0")
+        private BigDecimal mrp;
+
         private LocalDate manufacturingDate;
 
         @NotNull(message = "Expiry date is required")

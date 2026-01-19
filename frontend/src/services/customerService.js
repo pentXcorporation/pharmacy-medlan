@@ -10,81 +10,92 @@ export const customerService = {
   /**
    * Get all customers (paginated)
    */
-  getAll: (params = {}) => {
+  getAll: async (params = {}) => {
     const {
       page = 0,
       size = 10,
-      sort = "customerName,asc",
+      sortBy = "customerName",
+      sortDir = "asc",
       ...filters
     } = params;
-    return api.get(API_ENDPOINTS.CUSTOMERS.BASE, {
-      params: { page, size, sort, ...filters },
+    const response = await api.get(API_ENDPOINTS.CUSTOMERS.BASE, {
+      params: { page, size, sortBy, sortDir, ...filters },
     });
+    return response.data.data;
   },
 
   /**
    * Get customer by ID
    */
-  getById: (id) => {
-    return api.get(API_ENDPOINTS.CUSTOMERS.BY_ID(id));
+  getById: async (id) => {
+    const response = await api.get(API_ENDPOINTS.CUSTOMERS.BY_ID(id));
+    return response.data.data;
   },
 
   /**
    * Get customer by code
    */
-  getByCode: (code) => {
-    return api.get(API_ENDPOINTS.CUSTOMERS.BY_CODE(code));
+  getByCode: async (code) => {
+    const response = await api.get(API_ENDPOINTS.CUSTOMERS.BY_CODE(code));
+    return response.data.data;
   },
 
   /**
    * Search customers
    */
-  search: (query, params = {}) => {
-    return api.get(API_ENDPOINTS.CUSTOMERS.SEARCH, {
+  search: async (query, params = {}) => {
+    const response = await api.get(API_ENDPOINTS.CUSTOMERS.SEARCH, {
       params: { query, ...params },
     });
+    return response.data.data;
   },
 
   /**
    * Get active customers
    */
-  getActive: () => {
-    return api.get(API_ENDPOINTS.CUSTOMERS.ACTIVE);
+  getActive: async () => {
+    const response = await api.get(API_ENDPOINTS.CUSTOMERS.ACTIVE);
+    return response.data.data;
   },
 
   /**
    * Create new customer
    */
-  create: (data) => {
-    return api.post(API_ENDPOINTS.CUSTOMERS.BASE, data);
+  create: async (data) => {
+    const response = await api.post(API_ENDPOINTS.CUSTOMERS.BASE, data);
+    return response.data.data;
   },
 
   /**
    * Update customer
    */
-  update: (id, data) => {
-    return api.put(API_ENDPOINTS.CUSTOMERS.BY_ID(id), data);
+  update: async (id, data) => {
+    const response = await api.put(API_ENDPOINTS.CUSTOMERS.BY_ID(id), data);
+    return response.data.data;
   },
 
   /**
    * Delete customer (soft delete)
    */
-  delete: (id) => {
-    return api.delete(API_ENDPOINTS.CUSTOMERS.BY_ID(id));
+  delete: async (id) => {
+    const response = await api.delete(API_ENDPOINTS.CUSTOMERS.BY_ID(id));
+    return response.data.data;
   },
 
   /**
    * Activate customer
    */
-  activate: (id) => {
-    return api.patch(API_ENDPOINTS.CUSTOMERS.ACTIVATE(id));
+  activate: async (id) => {
+    const response = await api.patch(API_ENDPOINTS.CUSTOMERS.ACTIVATE(id));
+    return response.data.data;
   },
 
   /**
    * Deactivate customer
    */
-  deactivate: (id) => {
-    return api.patch(API_ENDPOINTS.CUSTOMERS.DEACTIVATE(id));
+  deactivate: async (id) => {
+    const response = await api.patch(API_ENDPOINTS.CUSTOMERS.DEACTIVATE(id));
+    return response.data.data;
   },
 };
 

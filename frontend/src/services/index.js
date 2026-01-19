@@ -16,3 +16,4 @@ export * from "./branchService";
 export * from "./reportService";
 export * from "./dashboardService";
 export * from "./systemConfigService";
+export * from "./chequeService";

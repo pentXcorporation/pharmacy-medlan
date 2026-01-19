@@ -82,6 +82,13 @@ export const API_ENDPOINTS = {
     BY_BRANCH: (branchId) => `/branch-staff/branch/${branchId}`,
   },
 
+  // Smart Scanning
+  SCAN: {
+    PROCESS: "/inventory/scan",
+    VERIFY_QR: "/inventory/scan/verify",
+    HISTORY: "/inventory/scan/history",
+  },
+
   // Products
   PRODUCTS: {
     BASE: "/products",
@@ -143,7 +150,7 @@ export const API_ENDPOINTS = {
     BY_BRANCH: (branchId) => `/inventory-transactions/branch/${branchId}`,
   },
 
-  // GRN
+  // GRN (Goods Received Note)
   GRN: {
     BASE: "/grn",
     BY_ID: (id) => `/grn/${id}`,
@@ -204,8 +211,9 @@ export const API_ENDPOINTS = {
     BY_SUPPLIER: (supplierId) => `/purchase-orders/supplier/${supplierId}`,
     BY_STATUS: (status) => `/purchase-orders/status/${status}`,
     PENDING: (branchId) => `/purchase-orders/branch/${branchId}/pending`,
+    DRAFTS: (branchId) => `/purchase-orders/branch/${branchId}/drafts`,
     UPDATE_STATUS: (id) => `/purchase-orders/${id}/status`,
-    SUBMIT: (id) => `/purchase-orders/${id}/status`,
+    SUBMIT: (id) => `/purchase-orders/${id}/submit`,
     APPROVE: (id) => `/purchase-orders/${id}/approve`,
     REJECT: (id) => `/purchase-orders/${id}/reject`,
     CANCEL: (id) => `/purchase-orders/${id}/cancel`,
@@ -368,6 +376,7 @@ export const API_ENDPOINTS = {
     UNREAD: "/notifications/unread",
     MARK_READ: (id) => `/notifications/${id}/read`,
     MARK_ALL_READ: "/notifications/read-all",
+    ACTION: (id, action) => `/notifications/${id}/action/${action}`,
   },
 
   // System Config

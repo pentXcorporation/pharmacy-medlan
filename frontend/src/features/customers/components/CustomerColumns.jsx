@@ -66,13 +66,12 @@ export const getCustomerColumns = ({
     ),
   },
   {
-    id: "name",
+    accessorKey: "customerName",
     header: "Customer Name",
-    accessorFn: (row) => `${row.firstName} ${row.lastName}`,
     cell: ({ row }) => (
       <div>
         <div className="font-medium text-sm">
-          {row.original.firstName} {row.original.lastName}
+          {row.getValue("customerName")}
         </div>
         {row.original.email && (
           <div className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-none">
@@ -83,10 +82,10 @@ export const getCustomerColumns = ({
     ),
   },
   {
-    accessorKey: "phone",
+    accessorKey: "phoneNumber",
     header: "Phone",
     meta: { className: "hidden sm:table-cell" },
-    cell: ({ row }) => row.getValue("phone") || "-",
+    cell: ({ row }) => row.getValue("phoneNumber") || "-",
   },
   {
     accessorKey: "city",
@@ -101,11 +100,11 @@ export const getCustomerColumns = ({
     cell: ({ row }) => formatCurrency(row.getValue("creditLimit") || 0),
   },
   {
-    accessorKey: "outstandingBalance",
+    accessorKey: "currentBalance",
     header: "Outstanding",
     meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => {
-      const balance = row.getValue("outstandingBalance") || 0;
+      const balance = row.getValue("currentBalance") || 0;
       return (
         <span className={balance > 0 ? "text-red-600 font-medium" : ""}>
           {formatCurrency(balance)}
@@ -114,10 +113,11 @@ export const getCustomerColumns = ({
     },
   },
   {
-    accessorKey: "isActive",
+    accessorKey: "status",
     header: "Status",
     cell: ({ row }) => {
-      const isActive = row.getValue("isActive");
+      const status = row.getValue("status");
+      const isActive = status === "ACTIVE";
       return (
         <Badge variant={isActive ? "default" : "secondary"}>
           {isActive ? "Active" : "Inactive"}

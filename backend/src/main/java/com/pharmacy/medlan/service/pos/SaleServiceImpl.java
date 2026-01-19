@@ -16,6 +16,7 @@ import com.pharmacy.medlan.model.product.Product;
 import com.pharmacy.medlan.model.user.User;
 import com.pharmacy.medlan.repository.organization.BranchRepository;
 import com.pharmacy.medlan.repository.pos.*;
+import com.pharmacy.medlan.repository.product.BranchInventoryRepository;
 import com.pharmacy.medlan.repository.product.InventoryBatchRepository;
 import com.pharmacy.medlan.repository.product.ProductRepository;
 import com.pharmacy.medlan.repository.user.UserRepository;
@@ -47,6 +48,7 @@ public class SaleServiceImpl implements SaleService {
     private final CustomerRepository customerRepository;
     private final ProductRepository productRepository;
     private final InventoryBatchRepository inventoryBatchRepository;
+    private final BranchInventoryRepository branchInventoryRepository;
     private final BranchRepository branchRepository;
     private final UserRepository userRepository;
     private final SaleMapper saleMapper;
@@ -130,10 +132,35 @@ public class SaleServiceImpl implements SaleService {
 
             sale.getSaleItems().add(saleItem);
 
-            // Reduce inventory
+            // Reduce inventory batch
             batch.setQuantityAvailable(batch.getQuantityAvailable() - itemRequest.getQuantity());
             batch.setQuantitySold(batch.getQuantitySold() + itemRequest.getQuantity());
             inventoryBatchRepository.save(batch);
+
+            // Update branch inventory
+            branchInventoryRepository.findByProductIdAndBranchId(product.getId(), branch.getId())
+                    .ifPresent(branchInventory -> {
+                        // Handle null values - default to 0 if null
+                        Integer currentAvailable = branchInventory.getQuantityAvailable() != null 
+                            ? branchInventory.getQuantityAvailable() : 0;
+                        Integer currentOnHand = branchInventory.getQuantityOnHand() != null 
+                            ? branchInventory.getQuantityOnHand() : 0;
+                        
+                        // Initialize version if null (for existing records)
+                        if (branchInventory.getVersion() == null) {
+                            branchInventory.setVersion(0L);
+                        }
+                        
+                        branchInventory.setQuantityAvailable(
+                            Math.max(0, currentAvailable - itemRequest.getQuantity())
+                        );
+                        branchInventory.setQuantityOnHand(
+                            Math.max(0, currentOnHand - itemRequest.getQuantity())
+                        );
+                        branchInventoryRepository.save(branchInventory);
+                        log.debug("Updated branch inventory for product: {} in branch: {}. New available: {}", 
+                            product.getProductName(), branch.getBranchName(), branchInventory.getQuantityAvailable());
+                    });
 
             subtotal = subtotal.add(itemSubtotal);
             totalTax = totalTax.add(itemTax);

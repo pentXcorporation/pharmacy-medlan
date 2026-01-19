@@ -3,7 +3,7 @@
  * Manages cheque payments and collections
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { Plus, Download } from "lucide-react";
 import { PageHeader, DataTable } from "@/components/common";
 import { Button } from "@/components/ui/button";
@@ -21,6 +21,7 @@ import { formatCurrency, formatDate } from "@/utils/formatters";
 import { CHEQUE_STATUS } from "@/constants";
 import ChequeFormDialog from "./ChequeFormDialog";
 import { toast } from "sonner";
+import { chequeService } from "@/services";
 
 const ChequesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -31,12 +32,25 @@ const ChequesPage = () => {
     pageSize: 10,
   });
   const [sorting, setSorting] = useState([{ id: "chequeDate", desc: true }]);
+  const [data, setData] = useState({ content: [], total: 0, pageCount: 0 });
+  const [stats, setStats] = useState({
+    totalCheques: 0,
+    pendingAmount: 0,
+    clearedAmount: 0,
+    bouncedCount: 0,
+  });
+  const [isLoading, setIsLoading] = useState(false);
 
-  const mockData = {
-    content: [],
-    total: 0,
-    pageCount: 0,
-  };
+  // NOTE: Backend cheques endpoints are not yet implemented
+  // Using empty data until backend is ready
+  const fetchCheques = useCallback(async () => {
+    // Placeholder - backend not ready yet
+    setIsLoading(false);
+  }, []);
+
+  const fetchStats = useCallback(async () => {
+    // Placeholder - backend not ready yet
+  }, []);
 
   const columns = useMemo(
     () => [
@@ -102,26 +116,20 @@ const ChequesPage = () => {
     []
   );
 
-  const stats = {
-    totalCheques: 0,
-    pendingAmount: 0,
-    clearedAmount: 0,
-    bouncedCount: 0,
-  };
-
-  const handleCreateCheque = useCallback(async (data) => {
+  const handleCreateCheque = useCallback(async (chequeData) => {
     try {
-      // TODO: Call API to create cheque
-      console.log("Creating cheque:", data);
+      // TODO: Enable when backend is ready
+      // await chequeService.create(chequeData);
 
-      toast.success("Cheque Created", {
-        description: "The cheque has been successfully recorded.",
+      toast.info("Backend Not Ready", {
+        description: "The cheque feature is under development. Backend endpoints are not yet available.",
       });
 
-      // TODO: Refresh data after creation
+      setIsFormOpen(false);
     } catch (error) {
+      console.error("Error creating cheque:", error);
       toast.error("Error", {
-        description: "Failed to create cheque. Please try again.",
+        description: error.response?.data?.message || "Failed to create cheque. Please try again.",
       });
     }
   }, []);
@@ -223,13 +231,13 @@ const ChequesPage = () => {
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={mockData.content}
-        isLoading={false}
+        data={data.content}
+        isLoading={isLoading}
         pagination={{
           pageIndex: pagination.pageIndex,
           pageSize: pagination.pageSize,
-          total: mockData.total,
-          pageCount: mockData.pageCount,
+          total: data.total,
+          pageCount: data.pageCount,
         }}
         onPaginationChange={setPagination}
         sorting={sorting}

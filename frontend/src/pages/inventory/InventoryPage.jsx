@@ -143,10 +143,9 @@ const InventoryPage = () => {
       const searchLower = debouncedSearch.toLowerCase();
       filtered = filtered.filter(
         (item) =>
-          item.product?.productName?.toLowerCase().includes(searchLower) ||
-          item.product?.productCode?.toLowerCase().includes(searchLower) ||
-          item.product?.genericName?.toLowerCase().includes(searchLower) ||
-          item.product?.barcode?.toLowerCase().includes(searchLower)
+          item.productName?.toLowerCase().includes(searchLower) ||
+          item.productCode?.toLowerCase().includes(searchLower) ||
+          item.branchName?.toLowerCase().includes(searchLower)
       );
     }
 
@@ -196,7 +195,7 @@ const InventoryPage = () => {
         .length,
       totalValue: inventory.reduce(
         (sum, item) =>
-          sum + (item.quantityAvailable || 0) * (item.product?.costPrice || 0),
+          sum + (item.quantityAvailable || 0) * (item.averageCostPrice || 0),
         0
       ),
     };
@@ -240,17 +239,17 @@ const InventoryPage = () => {
     }
 
     const exportData = filteredInventory.map((item) => ({
-      "Product Code": item.product?.productCode || "",
-      "Product Name": item.product?.productName || "",
-      "Generic Name": item.product?.genericName || "",
-      Category: item.product?.categoryName || "",
+      "Product Code": item.productCode || "",
+      "Product Name": item.productName || "",
+      Branch: item.branchName || "",
       "Available Quantity": item.quantityAvailable || 0,
-      "Reserved Quantity": item.quantityReserved || 0,
+      "On Hand": item.quantityOnHand || 0,
+      "Allocated": item.quantityAllocated || 0,
       "Reorder Level": item.reorderLevel || 0,
-      Status: getStockStatus(item).label,
-      "Unit Price": item.product?.costPrice || 0,
+      Status: item.stockStatus || getStockStatus(item).label,
+      "Avg Cost": item.averageCostPrice || 0,
       "Total Value":
-        (item.quantityAvailable || 0) * (item.product?.costPrice || 0),
+        (item.quantityAvailable || 0) * (item.averageCostPrice || 0),
     }));
 
     const csv = [
@@ -486,7 +485,7 @@ const InventoryPage = () => {
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">
-                      In Stock
+                      Available Stock
                     </CardTitle>
                     <CheckCircle className="h-4 w-4 text-green-500" />
                   </CardHeader>
@@ -494,6 +493,7 @@ const InventoryPage = () => {
                     <div className="text-2xl font-bold text-green-600">
                       {stats.inStock}
                     </div>
+                    <p className="text-xs text-muted-foreground mt-1">Items in stock</p>
                   </CardContent>
                 </Card>
 
@@ -545,9 +545,9 @@ const InventoryPage = () => {
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <div>
-                      <CardTitle>Inventory List</CardTitle>
+                      <CardTitle>Available Stock Inventory</CardTitle>
                       <CardDescription>
-                        Search and filter available stock items
+                        View available quantities for all products in stock
                       </CardDescription>
                     </div>
                     <div className="flex items-center gap-2">
@@ -778,33 +778,34 @@ const InventoryPage = () => {
                             const StatusIcon = status.icon;
                             const stockValue =
                               (item.quantityAvailable || 0) *
-                              (item.product?.costPrice || 0);
+                              (item.averageCostPrice || 0);
 
                             return (
-                              <TableRow key={item.id}>
+                              <TableRow key={item.productId || item.id}>
                                 <TableCell className="font-medium">
-                                  {item.product?.productCode || "N/A"}
+                                  {item.productCode || "N/A"}
                                 </TableCell>
                                 <TableCell>
                                   <div>
                                     <div className="font-medium">
-                                      {item.product?.productName || "Unknown"}
+                                      {item.productName || "Unknown"}
                                     </div>
-                                    {item.product?.genericName && (
-                                      <div className="text-sm text-muted-foreground">
-                                        {item.product.genericName}
-                                      </div>
-                                    )}
                                   </div>
                                 </TableCell>
                                 <TableCell>
                                   <span className="text-sm">
-                                    {item.product?.categoryName || "N/A"}
+                                    N/A
                                   </span>
                                 </TableCell>
-                                <TableCell className="text-right font-medium">
-                                  {item.quantityAvailable || 0}{" "}
-                                  {item.product?.unitName || ""}
+                                <TableCell className="text-right">
+                                  <div className="flex flex-col items-end">
+                                    <span className="text-lg font-bold text-primary">
+                                      {item.quantityAvailable || 0}
+                                    </span>
+                                    <span className="text-xs text-muted-foreground">
+                                      units
+                                    </span>
+                                  </div>
                                 </TableCell>
                                 <TableCell className="text-right">
                                   {item.quantityReserved || 0}
@@ -910,7 +911,10 @@ const LoadingSkeleton = () => (
           <Skeleton className="h-4 w-24" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-16" />
+          <div className="flex flex-col items-end gap-1">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-3 w-12" />
+          </div>
         </TableCell>
         <TableCell>
           <Skeleton className="h-4 w-16" />

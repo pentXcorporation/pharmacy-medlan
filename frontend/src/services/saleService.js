@@ -10,34 +10,39 @@ export const saleService = {
   /**
    * Get all sales (paginated)
    */
-  getAll: (params = {}) => {
+  getAll: async (params = {}) => {
     const { page = 0, size = 10, sort = "createdAt,desc", ...filters } = params;
-    return api.get(API_ENDPOINTS.SALES.BASE, {
+    const response = await api.get(API_ENDPOINTS.SALES.BASE, {
       params: { page, size, sort, ...filters },
     });
+    // Extract data from ApiResponse wrapper: { success, message, data, timestamp }
+    return response.data?.data || response.data || response;
   },
 
   /**
    * Get sale by ID
    */
-  getById: (id) => {
-    return api.get(API_ENDPOINTS.SALES.BY_ID(id));
+  getById: async (id) => {
+    const response = await api.get(API_ENDPOINTS.SALES.BY_ID(id));
+    return response.data?.data || response.data || response;
   },
 
   /**
    * Get sale by sale number
    */
-  getBySaleNumber: (saleNumber) => {
-    return api.get(API_ENDPOINTS.SALES.BY_NUMBER(saleNumber));
+  getBySaleNumber: async (saleNumber) => {
+    const response = await api.get(API_ENDPOINTS.SALES.BY_NUMBER(saleNumber));
+    return response.data?.data || response.data || response;
   },
 
   /**
    * Get sales by branch
    */
-  getByBranch: (branchId, params = {}) => {
-    return api.get(API_ENDPOINTS.SALES.BY_BRANCH(branchId), {
+  getByBranch: async (branchId, params = {}) => {
+    const response = await api.get(API_ENDPOINTS.SALES.BY_BRANCH(branchId), {
       params: { ...params },
     });
+    return response.data?.data || response.data || response;
   },
 
   /**
@@ -61,8 +66,9 @@ export const saleService = {
   /**
    * Create new sale
    */
-  create: (data) => {
-    return api.post(API_ENDPOINTS.SALES.BASE, data);
+  create: async (data) => {
+    const response = await api.post(API_ENDPOINTS.SALES.BASE, data);
+    return response.data?.data || response.data || response;
   },
 
   /**

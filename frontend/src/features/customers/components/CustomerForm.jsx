@@ -33,23 +33,27 @@ import { GENDER, GENDER_LABELS } from "@/constants";
 
 // Validation schema
 const customerSchema = z.object({
-  firstName: z.string().min(1, "First name is required").max(50),
-  lastName: z.string().min(1, "Last name is required").max(50),
-  email: z.string().email("Invalid email").optional().or(z.literal("")),
-  phone: z
+  customerName: z.string().min(1, "Customer name is required").max(200),
+  phoneNumber: z
     .string()
     .min(10, "Phone must be at least 10 digits")
     .max(15)
     .optional()
     .or(z.literal("")),
+  email: z.string().email("Invalid email").optional().or(z.literal("")),
   gender: z.string().optional().nullable(),
   dateOfBirth: z.string().optional().nullable(),
   address: z.string().max(200).optional().nullable(),
   city: z.string().max(50).optional().nullable(),
-  nic: z.string().max(20).optional().nullable(),
-  notes: z.string().max(500).optional().nullable(),
+  state: z.string().max(100).optional().nullable(),
+  pincode: z.string().max(20).optional().nullable(),
+  fax: z.string().max(50).optional().nullable(),
+  description: z.string().max(500).optional().nullable(),
+  medicalHistory: z.string().optional().nullable(),
+  allergies: z.string().optional().nullable(),
+  insuranceProvider: z.string().max(100).optional().nullable(),
+  insurancePolicyNumber: z.string().max(100).optional().nullable(),
   creditLimit: z.coerce.number().min(0).optional().nullable(),
-  isActive: z.boolean().default(true),
 });
 
 /**
@@ -71,18 +75,22 @@ const CustomerForm = ({
   const form = useForm({
     resolver: zodResolver(customerSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      customerName: "",
+      phoneNumber: "",
       email: "",
-      phone: "",
       gender: "",
       dateOfBirth: "",
       address: "",
       city: "",
-      nic: "",
-      notes: "",
+      state: "",
+      pincode: "",
+      fax: "",
+      description: "",
+      medicalHistory: "",
+      allergies: "",
+      insuranceProvider: "",
+      insurancePolicyNumber: "",
       creditLimit: 0,
-      isActive: true,
     },
   });
 
@@ -90,18 +98,22 @@ const CustomerForm = ({
   useEffect(() => {
     if (customer) {
       form.reset({
-        firstName: customer.firstName || "",
-        lastName: customer.lastName || "",
+        customerName: customer.customerName || "",
+        phoneNumber: customer.phoneNumber || "",
         email: customer.email || "",
-        phone: customer.phone || "",
         gender: customer.gender || "",
         dateOfBirth: customer.dateOfBirth?.split("T")[0] || "",
         address: customer.address || "",
         city: customer.city || "",
-        nic: customer.nic || "",
-        notes: customer.notes || "",
+        state: customer.state || "",
+        pincode: customer.pincode || "",
+        fax: customer.fax || "",
+        description: customer.description || "",
+        medicalHistory: customer.medicalHistory || "",
+        allergies: customer.allergies || "",
+        insuranceProvider: customer.insuranceProvider || "",
+        insurancePolicyNumber: customer.insurancePolicyNumber || "",
         creditLimit: customer.creditLimit || 0,
-        isActive: customer.isActive ?? true,
       });
     }
   }, [customer, form]);
@@ -125,26 +137,12 @@ const CustomerForm = ({
           <CardContent className="grid gap-4 md:grid-cols-2">
             <FormField
               control={form.control}
-              name="firstName"
+              name="customerName"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>First Name *</FormLabel>
+                <FormItem className="md:col-span-2">
+                  <FormLabel>Customer Name *</FormLabel>
                   <FormControl>
-                    <Input placeholder="John" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
-            <FormField
-              control={form.control}
-              name="lastName"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Last Name *</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Doe" {...field} />
+                    <Input placeholder="John Doe" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -171,7 +169,7 @@ const CustomerForm = ({
 
             <FormField
               control={form.control}
-              name="phone"
+              name="phoneNumber"
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Phone</FormLabel>
@@ -227,13 +225,13 @@ const CustomerForm = ({
 
             <FormField
               control={form.control}
-              name="nic"
+              name="fax"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>NIC Number</FormLabel>
+                  <FormLabel>Fax</FormLabel>
                   <FormControl>
                     <Input
-                      placeholder="National ID"
+                      placeholder="Fax number"
                       {...field}
                       value={field.value || ""}
                     />
@@ -287,6 +285,42 @@ const CustomerForm = ({
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="state"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>State</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="Western"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="pincode"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Pincode</FormLabel>
+                  <FormControl>
+                    <Input
+                      placeholder="10100"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
           </CardContent>
         </Card>
 
@@ -317,10 +351,10 @@ const CustomerForm = ({
 
             <FormField
               control={form.control}
-              name="notes"
+              name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Notes</FormLabel>
+                  <FormLabel>Description</FormLabel>
                   <FormControl>
                     <Textarea
                       placeholder="Any additional notes about this customer..."
@@ -336,24 +370,79 @@ const CustomerForm = ({
 
             <FormField
               control={form.control}
-              name="isActive"
+              name="medicalHistory"
               render={({ field }) => (
-                <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3">
-                  <div className="space-y-0.5">
-                    <FormLabel>Active Status</FormLabel>
-                    <FormDescription>
-                      Inactive customers cannot make purchases
-                    </FormDescription>
-                  </div>
+                <FormItem>
+                  <FormLabel>Medical History</FormLabel>
                   <FormControl>
-                    <Switch
-                      checked={field.value}
-                      onCheckedChange={field.onChange}
+                    <Textarea
+                      placeholder="Medical history..."
+                      className="resize-none"
+                      {...field}
+                      value={field.value || ""}
                     />
                   </FormControl>
+                  <FormMessage />
                 </FormItem>
               )}
             />
+
+            <FormField
+              control={form.control}
+              name="allergies"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Allergies</FormLabel>
+                  <FormControl>
+                    <Textarea
+                      placeholder="Known allergies..."
+                      className="resize-none"
+                      {...field}
+                      value={field.value || ""}
+                    />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="insuranceProvider"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Insurance Provider</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Insurance company"
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="insurancePolicyNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Policy Number</FormLabel>
+                    <FormControl>
+                      <Input
+                        placeholder="Policy number"
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
           </CardContent>
         </Card>
 

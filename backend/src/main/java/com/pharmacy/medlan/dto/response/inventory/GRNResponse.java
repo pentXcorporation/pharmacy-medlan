@@ -53,6 +53,7 @@ public class GRNResponse {
         private Integer quantity;
         private BigDecimal costPrice;
         private BigDecimal sellingPrice;
+        private BigDecimal mrp;
         private LocalDate manufacturingDate;
         private LocalDate expiryDate;
         private BigDecimal discountAmount;

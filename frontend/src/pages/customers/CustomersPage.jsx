@@ -51,10 +51,14 @@ const CustomersPage = () => {
     () => ({
       page: pagination.pageIndex,
       size: pagination.pageSize,
-      sort:
+      sortBy:
         sorting.length > 0
-          ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
-          : "firstName,asc",
+          ? sorting[0].id
+          : "customerName",
+      sortDir:
+        sorting.length > 0
+          ? (sorting[0].desc ? "desc" : "asc")
+          : "asc",
       ...(searchQuery && { search: searchQuery }),
       ...(statusFilter &&
         statusFilter !== "all" && { isActive: statusFilter === "active" }),
@@ -87,7 +91,7 @@ const CustomersPage = () => {
     async (customer) => {
       const confirmed = await confirm({
         title: "Delete Customer",
-        description: `Are you sure you want to delete "${customer.firstName} ${customer.lastName}"? This action cannot be undone.`,
+        description: `Are you sure you want to delete "${customer.customerName}"? This action cannot be undone.`,
         confirmText: "Delete",
         cancelText: "Cancel",
         variant: "destructive",

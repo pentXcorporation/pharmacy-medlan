@@ -20,7 +20,7 @@ import {
 import { DataTable, PageHeader, ConfirmDialog } from "@/components/common";
 import {
   useGRNs,
-  useCompleteGRN,
+  useApproveGRN,
   getGRNColumns,
 } from "@/features/grn";
 import { toast } from "sonner";
@@ -46,11 +46,7 @@ const GRNListPage = () => {
 
   // Queries and mutations
   const { data: grnsData, isLoading } = useGRNs(params);
-  const completeMutation = useCompleteGRN();
-
-  // Debug: Log GRN data
-  console.log('GRN List - Raw data:', grnsData);
-  console.log('GRN List - Is loading:', isLoading);
+  const approveMutation = useApproveGRN();
 
   const grns = grnsData?.content || grnsData || [];
 
@@ -62,7 +58,7 @@ const GRNListPage = () => {
     [navigate]
   );
 
-  const handleComplete = useCallback((grn) => {
+  const handleApprove = useCallback((grn) => {
     // Check if GRN has complete data for all items
     const items = grn.items || [];
     const hasCompleteData = items.every(item => 
@@ -74,12 +70,18 @@ const GRNListPage = () => {
     );
 
     if (!hasCompleteData) {
-      toast.error("Cannot complete GRN: Some items are missing required fields (batch number, dates, selling price, or MRP).");
+      toast.error("This GRN has missing required fields. Redirecting to edit page...", {
+        description: "Please fill in batch number, dates, selling price, and MRP for all items."
+      });
+      // Redirect to edit page after a short delay
+      setTimeout(() => {
+        navigate(`${ROUTES.GRN.EDIT}/${grn.id}`);
+      }, 1500);
       return;
     }
 
-    setActionDialog({ open: true, grn, action: "complete" });
-  }, []);
+    setActionDialog({ open: true, grn, action: "approve" });
+  }, [navigate]);
 
   const handleCreateReturn = useCallback(
     (grn) => {
@@ -91,30 +93,30 @@ const GRNListPage = () => {
   const handleActionConfirm = useCallback(() => {
     if (!actionDialog.grn) return;
 
-    completeMutation.mutate(actionDialog.grn.id, {
+    approveMutation.mutate(actionDialog.grn.id, {
       onSuccess: () => setActionDialog({ open: false, grn: null, action: "" }),
     });
-  }, [actionDialog, completeMutation]);
+  }, [actionDialog, approveMutation]);
 
   // Columns
   const columns = useMemo(
     () =>
       getGRNColumns({
         onView: handleView,
-        onComplete: handleComplete,
+        onComplete: handleApprove, // Note: onComplete callback still used but calls handleApprove
         onCreateReturn: handleCreateReturn,
       }),
-    [handleView, handleComplete, handleCreateReturn]
+    [handleView, handleApprove, handleCreateReturn]
   );
 
   const getDialogTitle = () => {
-    if (actionDialog.action === "complete") return "Complete GRN";
+    if (actionDialog.action === "approve") return "Approve GRN";
     return "";
   };
 
   const getDialogDescription = () => {
-    if (actionDialog.action === "complete") {
-      return `This will complete GRN "${actionDialog.grn?.grnNumber}" and update inventory stock levels. This action cannot be undone.`;
+    if (actionDialog.action === "approve") {
+      return `This will approve GRN "${actionDialog.grn?.grnNumber}", create inventory batches, and update stock levels. This action cannot be undone.`;
     }
     return "";
   };
@@ -182,14 +184,14 @@ const GRNListPage = () => {
         title={getDialogTitle()}
         description={getDialogDescription()}
         confirmText={
-          actionDialog.action === "complete"
-            ? "Complete & Update Stock"
-            : "Verify"
+          actionDialog.action === "approve"
+            ? "Approve & Update Inventory"
+            : "Approve"
         }
         cancelText="Cancel"
-        variant={actionDialog.action === "complete" ? "default" : "default"}
+        variant={actionDialog.action === "approve" ? "default" : "default"}
         onConfirm={handleActionConfirm}
-        isLoading={completeMutation.isPending}
+        isLoading={approveMutation.isPending}
       />
     </div>
   );

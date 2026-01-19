@@ -3,6 +3,7 @@
  * Exports all role-specific dashboards
  */
 
+export { default as SuperAdminDashboard } from "./SuperAdminDashboard";
 export { default as AdminDashboard } from "./AdminDashboard";
 export { default as CashierDashboard } from "./CashierDashboard";
 export { default as PharmacistDashboard } from "./PharmacistDashboard";

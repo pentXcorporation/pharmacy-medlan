@@ -10,6 +10,7 @@ import com.pharmacy.medlan.mapper.GRNMapper;
 import com.pharmacy.medlan.model.inventory.GRN;
 import com.pharmacy.medlan.model.inventory.GRNLine;
 import com.pharmacy.medlan.model.organization.Branch;
+import com.pharmacy.medlan.model.product.BranchInventory;
 import com.pharmacy.medlan.model.product.InventoryBatch;
 import com.pharmacy.medlan.model.product.Product;
 import com.pharmacy.medlan.model.supplier.PurchaseOrder;
@@ -17,6 +18,7 @@ import com.pharmacy.medlan.model.supplier.Supplier;
 import com.pharmacy.medlan.model.user.User;
 import com.pharmacy.medlan.repository.inventory.GRNRepository;
 import com.pharmacy.medlan.repository.organization.BranchRepository;
+import com.pharmacy.medlan.repository.product.BranchInventoryRepository;
 import com.pharmacy.medlan.repository.product.InventoryBatchRepository;
 import com.pharmacy.medlan.repository.product.ProductRepository;
 import com.pharmacy.medlan.repository.supplier.PurchaseOrderRepository;
@@ -49,6 +51,7 @@ public class GRNServiceImpl implements GRNService {
     private final ProductRepository productRepository;
     private final PurchaseOrderRepository purchaseOrderRepository;
     private final InventoryBatchRepository inventoryBatchRepository;
+    private final BranchInventoryRepository branchInventoryRepository;
     private final UserRepository userRepository;
     private final GRNMapper grnMapper;
 
@@ -118,6 +121,7 @@ public class GRNServiceImpl implements GRNService {
                     .gstAmount(BigDecimal.ZERO)
                     .totalAmount(lineTotal.subtract(lineDiscount))
                     .sellingPrice(lineRequest.getSellingPrice())
+                    .mrp(lineRequest.getMrp())
                     .build();
 
             grn.getGrnLines().add(grnLine);
@@ -134,6 +138,76 @@ public class GRNServiceImpl implements GRNService {
         log.info("GRN created successfully with number: {}", savedGRN.getGrnNumber());
 
         return grnMapper.toResponse(savedGRN);
+    }
+
+    @Override
+    public GRNResponse updateGRN(Long id, CreateGRNRequest request) {
+        log.info("Updating GRN with id: {}", id);
+
+        GRN grn = grnRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("GRN not found with id: " + id));
+
+        // Only allow updating DRAFT, PENDING, or RECEIVED status GRNs
+        if (grn.getStatus() != GRNStatus.DRAFT && 
+            grn.getStatus() != GRNStatus.PENDING_APPROVAL && 
+            grn.getStatus() != GRNStatus.RECEIVED) {
+            throw new BusinessRuleViolationException("Only DRAFT, PENDING_APPROVAL, or RECEIVED GRN can be updated");
+        }
+
+        // Update basic fields
+        grn.setReceivedDate(request.getReceivedDate());
+        grn.setSupplierInvoiceNumber(request.getSupplierInvoiceNumber());
+        grn.setSupplierInvoiceDate(request.getSupplierInvoiceDate());
+        grn.setRemarks(request.getRemarks());
+
+        // Clear existing lines
+        grn.getGrnLines().clear();
+
+        BigDecimal totalAmount = BigDecimal.ZERO;
+        BigDecimal totalDiscount = BigDecimal.ZERO;
+
+        // Add updated lines
+        for (CreateGRNRequest.GRNLineRequest lineRequest : request.getItems()) {
+            Product product = productRepository.findById(lineRequest.getProductId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Product not found with id: " + lineRequest.getProductId()));
+
+            BigDecimal lineTotal = lineRequest.getCostPrice()
+                    .multiply(BigDecimal.valueOf(lineRequest.getQuantity()));
+            BigDecimal lineDiscount = lineRequest.getDiscountAmount() != null ? 
+                    lineRequest.getDiscountAmount() : BigDecimal.ZERO;
+
+            GRNLine grnLine = GRNLine.builder()
+                    .grn(grn)
+                    .product(product)
+                    .batchNumber(lineRequest.getBatchNumber())
+                    .manufacturingDate(lineRequest.getManufacturingDate())
+                    .expiryDate(lineRequest.getExpiryDate())
+                    .quantityReceived(lineRequest.getQuantity())
+                    .freeQuantity(0)
+                    .unitPrice(lineRequest.getCostPrice())
+                    .discountAmount(lineDiscount)
+                    .discountPercent(BigDecimal.ZERO)
+                    .gstRate(BigDecimal.ZERO)
+                    .gstAmount(BigDecimal.ZERO)
+                    .totalAmount(lineTotal.subtract(lineDiscount))
+                    .sellingPrice(lineRequest.getSellingPrice())
+                    .mrp(lineRequest.getMrp())
+                    .build();
+
+            grn.getGrnLines().add(grnLine);
+            totalAmount = totalAmount.add(lineTotal);
+            totalDiscount = totalDiscount.add(lineDiscount);
+        }
+
+        grn.setTotalAmount(totalAmount);
+        grn.setDiscountAmount(totalDiscount);
+        grn.setNetAmount(totalAmount.subtract(totalDiscount));
+        grn.setBalanceAmount(totalAmount.subtract(totalDiscount));
+
+        GRN updatedGRN = grnRepository.save(grn);
+        log.info("GRN {} updated successfully", updatedGRN.getGrnNumber());
+
+        return grnMapper.toResponse(updatedGRN);
     }
 
     @Override
@@ -193,8 +267,9 @@ public class GRNServiceImpl implements GRNService {
 
         User currentUser = SecurityUtils.getCurrentUser(userRepository);
 
-        // Create inventory batches
+        // Create inventory batches AND update branch inventory
         for (GRNLine line : grn.getGrnLines()) {
+            // 1. Create inventory batch (detailed tracking)
             InventoryBatch batch = InventoryBatch.builder()
                     .product(line.getProduct())
                     .branch(grn.getBranch())
@@ -204,6 +279,8 @@ public class GRNServiceImpl implements GRNService {
                     .quantityReceived(line.getQuantityReceived())
                     .quantityAvailable(line.getQuantityReceived())
                     .quantitySold(0)
+                    .quantityDamaged(0)
+                    .quantityReturned(0)
                     .purchasePrice(line.getUnitPrice())
                     .sellingPrice(line.getSellingPrice())
                     .mrp(line.getMrp())
@@ -212,13 +289,44 @@ public class GRNServiceImpl implements GRNService {
                     .grnLine(line)
                     .build();
             inventoryBatchRepository.save(batch);
+
+            // 2. Update or create branch inventory (aggregated quantities)
+            BranchInventory branchInventory = branchInventoryRepository
+                    .findByProductIdAndBranchId(line.getProduct().getId(), grn.getBranch().getId())
+                    .orElse(BranchInventory.builder()
+                            .product(line.getProduct())
+                            .branch(grn.getBranch())
+                            .quantityOnHand(0)
+                            .quantityAllocated(0)
+                            .quantityAvailable(0)
+                            .reorderLevel(line.getProduct().getReorderLevel())
+                            .minimumStock(line.getProduct().getMinimumStock())
+                            .maximumStock(line.getProduct().getMaximumStock())
+                            .build());
+
+            // Add received quantity to inventory
+            int newQuantityOnHand = branchInventory.getQuantityOnHand() + line.getQuantityReceived();
+            int newQuantityAvailable = newQuantityOnHand - branchInventory.getQuantityAllocated();
+
+            branchInventory.setQuantityOnHand(newQuantityOnHand);
+            branchInventory.setQuantityAvailable(newQuantityAvailable);
+
+            branchInventoryRepository.save(branchInventory);
+
+            log.info("Updated branch inventory for product {} at branch {}: OnHand={}, Available={}",
+                    line.getProduct().getProductCode(),
+                    grn.getBranch().getBranchCode(),
+                    newQuantityOnHand,
+                    newQuantityAvailable);
         }
 
         grn.setStatus(GRNStatus.RECEIVED);
         grn.setApprovedBy(currentUser);
         grn.setApprovedAt(LocalDateTime.now());
 
-        log.info("GRN {} approved by {}", grn.getGrnNumber(), currentUser != null ? currentUser.getUsername() : "system");
+        log.info("GRN {} approved by {} - Inventory batches and branch inventory updated",
+                grn.getGrnNumber(),
+                currentUser != null ? currentUser.getUsername() : "system");
         return grnMapper.toResponse(grnRepository.save(grn));
     }
 

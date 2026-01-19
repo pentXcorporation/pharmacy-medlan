@@ -3,7 +3,7 @@
  * Main point of sale terminal interface
  */
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { User, Clock, PauseCircle, Receipt, Menu, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -30,7 +30,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { PageHeader } from "@/components/common";
-import { useProducts } from "@/features/products";
+import { useInventory } from "@/features/inventory";
 import { useCustomers } from "@/features/customers";
 import {
   POSProductSearch,
@@ -65,15 +65,38 @@ const POSPage = () => {
   const removeHeldSale = usePOSStore((state) => state.removeHeldSale);
   const clearCart = usePOSStore((state) => state.clearCart);
 
-  // Queries
-  const { data: productsData, isLoading: productsLoading } = useProducts({
-    inStock: true,
-  });
+  // Queries - fetch inventory data with real-time stock quantities
+  const { data: inventoryData, isLoading: inventoryLoading } = useInventory(
+    selectedBranch?.id,
+    { page: 0, size: 1000 } // Fetch all inventory items for POS
+  );
   const { data: customersData } = useCustomers();
   const createSaleMutation = useCreateSale();
 
-  const products = productsData?.content || productsData || [];
+  // Transform products to ensure productId is always present
+  const products = useMemo(() => {
+    const rawProducts = inventoryData?.content || [];
+    return rawProducts.map(product => ({
+      ...product,
+      // Ensure productId is present (use id as fallback, or extract from product object)
+      productId: product.productId || product.id || product.product?.id,
+      id: product.productId || product.id || product.product?.id,
+    }));
+  }, [inventoryData]);
+  
   const customers = customersData?.content || customersData || [];
+  
+  // Debug log to check product structure
+  useEffect(() => {
+    if (products.length > 0) {
+      console.log("POS Products loaded:", {
+        count: products.length,
+        firstProduct: products[0],
+        hasProductId: !!products[0].productId,
+        hasId: !!products[0].id,
+      });
+    }
+  }, [products]);
 
   // Update time every second
   useEffect(() => {
@@ -132,8 +155,25 @@ const POSPage = () => {
       ? Math.min(Number(saleData.discount.value) || 0, afterItemDiscount)
       : 0;
 
+    // Validate all items have productId
+    const invalidItems = saleData.items.filter(item => !item.productId);
+    if (invalidItems.length > 0) {
+      console.error("Items without productId:", invalidItems);
+      toast.error("Invalid Cart Items", {
+        description: "Some items in the cart are missing product information. Please remove and re-add them.",
+      });
+      return;
+    }
+
     // Ensure paidAmount is valid
     const paidAmount = Number(saleData.payment?.amountTendered) || Number(saleData.grandTotal) || 0;
+
+    if (paidAmount <= 0) {
+      toast.error("Invalid Payment Amount", {
+        description: "Please enter a valid payment amount.",
+      });
+      return;
+    }
 
     const payload = {
       customerId: saleData.customer?.id || null,
@@ -142,25 +182,34 @@ const POSPage = () => {
         const itemTotal = item.unitPrice * item.quantity;
         const itemDiscount = item.discount || 0;
         return {
-          productId: item.productId,
-          inventoryBatchId: item.batchId || null,
-          quantity: Number(item.quantity),
-          discountAmount: Number((itemTotal * itemDiscount / 100).toFixed(2)),
+          productId: Number(item.productId),
+          inventoryBatchId: item.batchId ? Number(item.batchId) : null,
+          quantity: parseInt(item.quantity, 10),
+          discountAmount: parseFloat((itemTotal * itemDiscount / 100).toFixed(2)),
         };
       }),
-      discountAmount: Number(cartDiscountAmount.toFixed(2)),
-      discountPercent: Number(cartDiscountPercent.toFixed(2)),
+      discountAmount: parseFloat(cartDiscountAmount.toFixed(2)),
+      discountPercent: parseFloat(cartDiscountPercent.toFixed(2)),
       paymentMethod: saleData.payment?.method || "CASH",
-      paidAmount: Number(paidAmount.toFixed(2)),
+      paidAmount: parseFloat(paidAmount.toFixed(2)),
       patientName: saleData.customer?.name || null,
+      doctorName: null,
       remarks: saleData.payment?.reference || null,
     };
 
-    // Log payload for debugging
-    console.log("Sale Payload:", JSON.stringify(payload, null, 2));
+    // Log simplified payload info for debugging
+    console.log("Submitting sale:", {
+      branchId: payload.branchId,
+      itemCount: payload.items.length,
+      totalAmount: payload.paidAmount,
+      paymentMethod: payload.paymentMethod,
+      items: payload.items.map(i => ({ productId: i.productId, quantity: i.quantity })),
+    });
 
     try {
       const result = await createSaleMutation.mutateAsync(payload);
+      console.log("Sale created successfully:", result);
+      
       if (result) {
         setLastSale(result);
         setShowReceiptDialog(true);
@@ -174,6 +223,19 @@ const POSPage = () => {
       const errorData = error.response?.data;
       const errorStatus = errorData?.error || errorData?.status;
       const errorMessage = errorData?.message || "Failed to complete sale. Please try again.";
+      
+      // Handle field validation errors
+      if (errorData?.fieldErrors) {
+        const fieldErrorMessages = Object.entries(errorData.fieldErrors)
+          .map(([field, msg]) => `${field}: ${msg}`)
+          .join(", ");
+        
+        toast.error("Validation Error", {
+          description: `Please check the following fields: ${fieldErrorMessages}`,
+          duration: 8000,
+        });
+        return;
+      }
       
       // Handle specific error types
       if (errorStatus === "Insufficient Stock" || errorMessage.includes("No available stock")) {
@@ -327,7 +389,7 @@ const POSPage = () => {
           )}
 
           {/* Product Search */}
-          <POSProductSearch products={products} isLoading={productsLoading} />
+          <POSProductSearch products={products} isLoading={inventoryLoading} />
 
           {/* Customer Selection */}
           <div className="mt-2 sm:mt-4 flex flex-wrap items-center gap-2">
@@ -431,46 +493,216 @@ const POSPage = () => {
 
       {/* Receipt Dialog */}
       <Dialog open={showReceiptDialog} onOpenChange={setShowReceiptDialog}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-[400px] max-h-[90vh] overflow-auto">
           <DialogHeader>
             <DialogTitle className="text-center text-green-600">
               Sale Complete!
             </DialogTitle>
           </DialogHeader>
+          
           {lastSale && (
-            <div className="text-center space-y-4 py-4">
-              <Receipt className="h-16 w-16 mx-auto text-muted-foreground" />
-              <div>
-                <p className="text-sm text-muted-foreground">Invoice Number</p>
-                <p className="text-xl font-bold">{lastSale.invoiceNumber}</p>
+            <div id="thermal-receipt" className="thermal-receipt">
+              {/* Pharmacy Header */}
+              <div className="text-center mb-4 border-b-2 border-dashed border-gray-400 pb-3">
+                <h1 className="text-lg font-bold uppercase">{selectedBranch?.name || "MEDLAN PHARMACY"}</h1>
+                <p className="text-xs mt-1">{selectedBranch?.address || "Address Line 1"}</p>
+                <p className="text-xs">{selectedBranch?.city || "City"}, {selectedBranch?.state || "State"}</p>
+                <p className="text-xs">Phone: {selectedBranch?.phone || "044-12345678"}</p>
+                {selectedBranch?.gstNumber && (
+                  <p className="text-xs">GSTIN: {selectedBranch.gstNumber}</p>
+                )}
               </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Total Amount</p>
-                <p className="text-3xl font-bold">
-                  {formatCurrency(lastSale.totalAmount)}
-                </p>
+
+              {/* Invoice Details */}
+              <div className="mb-3 text-center">
+                <h2 className="text-base font-bold">RETAIL INVOICE</h2>
               </div>
-              {lastSale.change > 0 && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Change</p>
-                  <p className="text-xl font-bold text-green-600">
-                    {formatCurrency(lastSale.change)}
-                  </p>
+              
+              <div className="text-xs mb-3 space-y-1">
+                <div className="flex justify-between">
+                  <span>Date:</span>
+                  <span>{formatDateTime(lastSale.saleDate || new Date())}</span>
                 </div>
-              )}
+                {lastSale.customer?.name && (
+                  <div className="flex justify-between">
+                    <span>Customer:</span>
+                    <span>{lastSale.customer.name}</span>
+                  </div>
+                )}
+                <div className="flex justify-between">
+                  <span>Bill No:</span>
+                  <span className="font-bold">{lastSale.saleNumber || lastSale.invoiceNumber}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Payment:</span>
+                  <span>{lastSale.paymentMethod || "Cash"}</span>
+                </div>
+                {user?.username && (
+                  <div className="flex justify-between">
+                    <span>Cashier:</span>
+                    <span>{user.username}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Items Table */}
+              <div className="border-t-2 border-b-2 border-dashed border-gray-400 py-2 mb-3">
+                <div className="flex justify-between text-xs font-bold mb-2">
+                  <span className="flex-1">Item</span>
+                  <span className="w-12 text-center">Qty</span>
+                  <span className="w-20 text-right">Amt</span>
+                </div>
+                {lastSale.items?.map((item, index) => (
+                  <div key={index} className="mb-2">
+                    <div className="flex justify-between text-xs">
+                      <span className="flex-1 font-medium">
+                        {item.productName || item.product?.productName}
+                      </span>
+                      <span className="w-12 text-center">{item.quantity}</span>
+                      <span className="w-20 text-right">
+                        {formatCurrency(item.totalAmount || (item.unitPrice * item.quantity))}
+                      </span>
+                    </div>
+                    {item.batchNumber && (
+                      <div className="text-xs text-gray-600 ml-1">
+                        Batch: {item.batchNumber}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+
+              {/* Totals */}
+              <div className="text-xs space-y-1 mb-3">
+                <div className="flex justify-between">
+                  <span>Sub Total:</span>
+                  <span className="font-medium">
+                    {formatCurrency(lastSale.subtotal || lastSale.totalAmount)}
+                  </span>
+                </div>
+                
+                {lastSale.itemDiscountTotal > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>(-) Item Discount:</span>
+                    <span>{formatCurrency(lastSale.itemDiscountTotal)}</span>
+                  </div>
+                )}
+                
+                {lastSale.discountAmount > 0 && (
+                  <div className="flex justify-between text-red-600">
+                    <span>(-) Discount {lastSale.discountPercent > 0 ? `@ ${lastSale.discountPercent}%` : ''}:</span>
+                    <span>{formatCurrency(lastSale.discountAmount)}</span>
+                  </div>
+                )}
+                
+                {lastSale.cgstAmount > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span>CGST @ {lastSale.cgstPercent || 0}%:</span>
+                    <span>{formatCurrency(lastSale.cgstAmount)}</span>
+                  </div>
+                )}
+                
+                {lastSale.sgstAmount > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span>SGST @ {lastSale.sgstPercent || 0}%:</span>
+                    <span>{formatCurrency(lastSale.sgstAmount)}</span>
+                  </div>
+                )}
+                
+                {lastSale.igstAmount > 0 && (
+                  <div className="flex justify-between text-xs">
+                    <span>IGST @ {lastSale.igstPercent || 0}%:</span>
+                    <span>{formatCurrency(lastSale.igstAmount)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Grand Total */}
+              <div className="border-t-2 border-dashed border-gray-400 pt-2 mb-3">
+                <div className="flex justify-between text-base font-bold">
+                  <span>TOTAL:</span>
+                  <span>Rs {formatCurrency(lastSale.totalAmount)}</span>
+                </div>
+              </div>
+
+              {/* Payment Details */}
+              <div className="text-xs space-y-1 mb-3">
+                <div className="flex justify-between">
+                  <span>{lastSale.paymentMethod || "Cash"}:</span>
+                  <span>Rs {formatCurrency(lastSale.totalAmount)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Cash tendered:</span>
+                  <span>Rs {formatCurrency(lastSale.paidAmount || lastSale.totalAmount)}</span>
+                </div>
+                {lastSale.change > 0 && (
+                  <div className="flex justify-between font-bold text-green-600">
+                    <span>Change:</span>
+                    <span>Rs {formatCurrency(lastSale.change)}</span>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="text-center text-xs border-t-2 border-dashed border-gray-400 pt-3 mt-3">
+                <p className="font-medium">Thank you for your purchase!</p>
+                <p className="mt-1">Please visit again</p>
+                {lastSale.remarks && (
+                  <p className="mt-2 text-gray-600">{lastSale.remarks}</p>
+                )}
+              </div>
             </div>
           )}
-          <DialogFooter className="gap-2 sm:gap-0">
+          
+          <DialogFooter className="gap-2 sm:gap-0 print:hidden">
             <Button
               variant="outline"
               onClick={() => setShowReceiptDialog(false)}
             >
               New Sale
             </Button>
-            <Button onClick={() => window.print()}>Print Receipt</Button>
+            <Button onClick={() => window.print()}>
+              <Receipt className="mr-2 h-4 w-4" />
+              Print Receipt
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Print Styles */}
+      <style jsx>{`
+        @media print {
+          body * {
+            visibility: hidden;
+          }
+          #thermal-receipt,
+          #thermal-receipt * {
+            visibility: visible;
+          }
+          #thermal-receipt {
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 80mm;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            line-height: 1.4;
+            color: #000;
+          }
+          .print\\:hidden {
+            display: none !important;
+          }
+        }
+        
+        .thermal-receipt {
+          font-family: 'Courier New', monospace;
+          max-width: 80mm;
+          margin: 0 auto;
+          padding: 10px;
+          background: white;
+          color: black;
+        }
+      `}</style>
     </div>
   );
 };

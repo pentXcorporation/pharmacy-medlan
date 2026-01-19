@@ -65,6 +65,7 @@ public class GRNMapper {
                 .quantity(line.getQuantityReceived())
                 .costPrice(line.getUnitPrice())
                 .sellingPrice(line.getSellingPrice())
+                .mrp(line.getMrp())
                 .manufacturingDate(line.getManufacturingDate())
                 .expiryDate(line.getExpiryDate())
                 .discountAmount(line.getDiscountAmount())

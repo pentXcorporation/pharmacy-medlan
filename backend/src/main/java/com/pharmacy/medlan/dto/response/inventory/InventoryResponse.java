@@ -16,6 +16,9 @@ public class InventoryResponse {
     private Long branchId;
     private String branchName;
     private Integer totalQuantity;
+    private Integer quantityAvailable;
+    private Integer quantityOnHand;
+    private Integer quantityAllocated;
     private Integer minimumStock;
     private Integer reorderLevel;
     private BigDecimal averageCostPrice;

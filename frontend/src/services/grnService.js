@@ -74,6 +74,13 @@ export const grnService = {
 
   /**
    * Approve GRN
+   * IMPORTANT: This is the ONLY method that triggers inventory update in the backend!
+   * - Creates inventory batches for all GRN items
+   * - Updates product stock quantities
+   * - Changes GRN status to RECEIVED
+   * - Marks approval timestamp and user
+   * 
+   * Use this for: verify, complete, or approve actions in the UI
    */
   approve: (id) => {
     return api.post(API_ENDPOINTS.GRN.APPROVE(id));
@@ -91,20 +98,6 @@ export const grnService = {
    */
   cancel: (id, reason) => {
     return api.post(API_ENDPOINTS.GRN.CANCEL(id), { reason });
-  },
-
-  /**
-   * Verify GRN (moves DRAFT to VERIFIED status)
-   */
-  verify: (id) => {
-    return api.post(API_ENDPOINTS.GRN.APPROVE(id));
-  },
-
-  /**
-   * Complete GRN (creates inventory batches and updates stock)
-   */
-  complete: (id) => {
-    return api.post(API_ENDPOINTS.GRN.APPROVE(id));
   },
 };
 

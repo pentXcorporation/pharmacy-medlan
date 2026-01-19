@@ -98,9 +98,9 @@ const AvailableStockPage = () => {
       case "quantity-desc":
         return "quantityAvailable,desc";
       case "value-asc":
-        return "product.costPrice,asc";
+        return "quantityAvailable,asc"; // Sort by quantity as proxy for value
       case "value-desc":
-        return "product.costPrice,desc";
+        return "quantityAvailable,desc";
       default:
         return "product.productName,asc";
     }
@@ -116,9 +116,26 @@ const AvailableStockPage = () => {
     }
   );
 
+  // Debug logging
+  console.log('AvailableStockPage - selectedBranch:', selectedBranch);
+  console.log('AvailableStockPage - branchId:', selectedBranch?.id);
+  console.log('AvailableStockPage - API data:', data);
+  console.log('AvailableStockPage - isLoading:', isLoading);
+  console.log('AvailableStockPage - error:', error);
+
   const inventory = data?.content || [];
   const totalElements = data?.totalElements || 0;
   const totalPages = data?.totalPages || 0;
+
+  console.log('AvailableStockPage - inventory array:', inventory);
+  console.log('AvailableStockPage - inventory length:', inventory.length);
+  console.log('AvailableStockPage - first item:', inventory[0]);
+  console.log('AvailableStockPage - first item keys:', inventory[0] ? Object.keys(inventory[0]) : 'no items');
+  console.log('AvailableStockPage - first item productCode:', inventory[0]?.productCode);
+  console.log('AvailableStockPage - first item productName:', inventory[0]?.productName);
+  console.log('AvailableStockPage - first item product:', inventory[0]?.product);
+  console.log('AvailableStockPage - first item product.productCode:', inventory[0]?.product?.productCode);
+  console.log('AvailableStockPage - first item product.productName:', inventory[0]?.product?.productName);
 
   // Filter inventory based on search and filters
   const filteredInventory = useMemo(() => {
@@ -131,17 +148,9 @@ const AvailableStockPage = () => {
       const query = debouncedSearch.toLowerCase();
       filtered = filtered.filter(
         (item) =>
-          item.product?.productName?.toLowerCase().includes(query) ||
-          item.product?.productCode?.toLowerCase().includes(query) ||
-          item.product?.genericName?.toLowerCase().includes(query) ||
-          item.product?.barcode?.toLowerCase().includes(query)
-      );
-    }
-
-    // Apply category filter
-    if (categoryFilter !== "all") {
-      filtered = filtered.filter(
-        (item) => item.product?.category?.id === parseInt(categoryFilter)
+          item.productName?.toLowerCase().includes(query) ||
+          item.productCode?.toLowerCase().includes(query) ||
+          item.branchName?.toLowerCase().includes(query)
       );
     }
 
@@ -152,14 +161,14 @@ const AvailableStockPage = () => {
       filtered = filtered.filter(
         (item) =>
           item.quantityAvailable > 0 &&
-          item.quantityAvailable <= (item.product?.reorderLevel || 10)
+          item.quantityAvailable <= (item.reorderLevel || 10)
       );
     } else if (stockFilter === "out-of-stock") {
       filtered = filtered.filter((item) => item.quantityAvailable === 0);
     }
 
     return filtered;
-  }, [inventory, debouncedSearch, categoryFilter, stockFilter]);
+  }, [inventory, debouncedSearch, stockFilter]);
 
   // Clear all filters
   const clearFilters = () => {
@@ -177,7 +186,7 @@ const AvailableStockPage = () => {
     if (item.quantityAvailable === 0) {
       return { label: "Out of Stock", variant: "destructive", icon: AlertCircle };
     } else if (
-      item.quantityAvailable <= (item.product?.reorderLevel || 10)
+      item.quantityAvailable <= (item.reorderLevel || 10)
     ) {
       return { label: "Low Stock", variant: "warning", icon: TrendingDown };
     } else {
@@ -193,18 +202,17 @@ const AvailableStockPage = () => {
     }
 
     const exportData = filteredInventory.map((item) => ({
-      "Product Code": item.product?.productCode || "",
-      "Product Name": item.product?.productName || "",
-      "Generic Name": item.product?.genericName || "",
-      Category: item.product?.categoryName || "",
+      "Product Code": item.productCode || "",
+      "Product Name": item.productName || "",
+      Branch: item.branchName || "",
       "Available Quantity": item.quantityAvailable || 0,
-      "Reserved Quantity": item.quantityReserved || 0,
-      "Reorder Level": item.product?.reorderLevel || 0,
-      "Unit": item.product?.unitName || "",
-      "Selling Price": item.product?.sellingPrice || 0,
-      "Cost Price": item.product?.costPrice || 0,
-      "Total Value": (item.quantityAvailable || 0) * (item.product?.costPrice || 0),
-      Status: getStockStatus(item).label,
+      "On Hand": item.quantityOnHand || 0,
+      "Allocated": item.quantityAllocated || 0,
+      "Reorder Level": item.reorderLevel || 0,
+      "Selling Price": item.sellingPrice || 0,
+      "Avg Cost Price": item.averageCostPrice || 0,
+      "Total Value": (item.quantityAvailable || 0) * (item.averageCostPrice || 0),
+      Status: item.stockStatus || getStockStatus(item).label,
     }));
 
     const timestamp = new Date().toISOString().split("T")[0];
@@ -218,6 +226,12 @@ const AvailableStockPage = () => {
     navigate(ROUTES.PRODUCTS.VIEW(productId));
   };
 
+  // View inventory details
+  const handleViewInventory = (item) => {
+    // You can navigate to inventory details page if needed
+    console.log('View inventory:', item);
+  };
+
   // Calculate summary stats
   const stats = useMemo(() => {
     return {
@@ -226,12 +240,12 @@ const AvailableStockPage = () => {
       lowStock: inventory.filter(
         (item) =>
           item.quantityAvailable > 0 &&
-          item.quantityAvailable <= (item.product?.reorderLevel || 10)
+          item.quantityAvailable <= (item.reorderLevel || 10)
       ).length,
       outOfStock: inventory.filter((item) => item.quantityAvailable === 0).length,
       totalValue: inventory.reduce(
         (sum, item) =>
-          sum + (item.quantityAvailable || 0) * (item.product?.costPrice || 0),
+          sum + (item.quantityAvailable || 0) * (item.averageCostPrice || 0),
         0
       ),
     };
@@ -305,11 +319,12 @@ const AvailableStockPage = () => {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">In Stock</CardTitle>
+            <CardTitle className="text-sm font-medium">Available Stock</CardTitle>
             <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{stats.inStock}</div>
+            <p className="text-xs text-muted-foreground mt-1">Items in stock</p>
           </CardContent>
         </Card>
 
@@ -349,9 +364,9 @@ const AvailableStockPage = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle>Inventory List</CardTitle>
+              <CardTitle>Available Stock Inventory</CardTitle>
               <CardDescription>
-                Search and filter available stock items
+                View available quantities for all products in stock
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
@@ -534,38 +549,40 @@ const AvailableStockPage = () => {
                     const StatusIcon = status.icon;
                     const stockValue =
                       (item.quantityAvailable || 0) *
-                      (item.product?.costPrice || 0);
+                      (item.averageCostPrice || 0);
 
                     return (
-                      <TableRow key={item.id}>
+                      <TableRow key={item.productId || item.id}>
                         <TableCell className="font-medium">
-                          {item.product?.productCode || "N/A"}
+                          {item.productCode || "N/A"}
                         </TableCell>
                         <TableCell>
                           <div>
                             <div className="font-medium">
-                              {item.product?.productName || "Unknown"}
+                              {item.productName || "Unknown"}
                             </div>
-                            {item.product?.genericName && (
-                              <div className="text-sm text-muted-foreground">
-                                {item.product.genericName}
-                              </div>
-                            )}
                           </div>
                         </TableCell>
                         <TableCell>
                           <span className="text-sm">
-                            {item.product?.categoryName || "N/A"}
+                            N/A
                           </span>
                         </TableCell>
-                        <TableCell className="text-right font-medium">
-                          {item.quantityAvailable || 0} {item.product?.unitName || ""}
+                        <TableCell className="text-right">
+                          <div className="flex flex-col items-end">
+                            <span className="text-lg font-bold text-primary">
+                              {item.quantityAvailable || 0}
+                            </span>
+                            <span className="text-xs text-muted-foreground">
+                              units
+                            </span>
+                          </div>
                         </TableCell>
                         <TableCell className="text-right">
-                          {item.quantityReserved || 0}
+                          {item.quantityAllocated || 0}
                         </TableCell>
                         <TableCell className="text-right">
-                          {item.product?.reorderLevel || 0}
+                          {item.reorderLevel || 0}
                         </TableCell>
                         <TableCell>
                           <Badge variant={status.variant} className="gap-1">
@@ -644,7 +661,10 @@ const LoadingSkeleton = () => (
           <Skeleton className="h-4 w-24" />
         </TableCell>
         <TableCell>
-          <Skeleton className="h-4 w-16" />
+          <div className="flex flex-col items-end gap-1">
+            <Skeleton className="h-5 w-16" />
+            <Skeleton className="h-3 w-12" />
+          </div>
         </TableCell>
         <TableCell>
           <Skeleton className="h-4 w-16" />

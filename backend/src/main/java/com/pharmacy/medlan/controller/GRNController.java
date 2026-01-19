@@ -36,6 +36,16 @@ public class GRNController {
         return ResponseEntity.ok(ApiResponse.success("GRN created successfully", grn));
     }
 
+    @PutMapping("/{id}")
+    @Operation(summary = "Update an existing GRN")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'INVENTORY_MANAGER')")
+    public ResponseEntity<ApiResponse<GRNResponse>> updateGRN(
+            @PathVariable Long id,
+            @Valid @RequestBody CreateGRNRequest request) {
+        GRNResponse grn = grnService.updateGRN(id, request);
+        return ResponseEntity.ok(ApiResponse.success("GRN updated successfully", grn));
+    }
+
     @GetMapping("/{id}")
     @Operation(summary = "Get GRN by ID")
     public ResponseEntity<ApiResponse<GRNResponse>> getGRNById(@PathVariable Long id) {

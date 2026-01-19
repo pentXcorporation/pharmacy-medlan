@@ -1,0 +1,485 @@
+Folder PATH listing for volume New Volume
+Volume serial number is C422-C9D8
+D:.
+|   all_frnt.txt
+|   API_TESTING_GUIDE.md
+|   App.css
+|   App.jsx
+|   index.css
+|   main.jsx
+|   str.txt
+|   
++---assets
+|       react.svg
+|       
++---components
+|   |   index.js
+|   |   
+|   +---common
+|   |       AccessibilityWidget.jsx
+|   |       ConfirmDialog.jsx
+|   |       DataTable.jsx
+|   |       EmptyState.jsx
+|   |       ErrorBoundary.jsx
+|   |       index.js
+|   |       LoadingSpinner.jsx
+|   |       PageHeader.jsx
+|   |       SearchInput.jsx
+|   |       StatCard.jsx
+|   |       StatusBadge.jsx
+|   |       
+|   +---layout
+|   |       AppSidebar.jsx
+|   |       AuthLayout.jsx
+|   |       BranchSelector.jsx
+|   |       Header.jsx
+|   |       index.js
+|   |       MainLayout.jsx
+|   |       MobileNav.jsx
+|   |       navigation.config.js
+|   |       NotificationDropdown.jsx
+|   |       Sidebar.jsx
+|   |       UserMenu.jsx
+|   |       
+|   \---ui
+|           accordion.jsx
+|           alert-dialog.jsx
+|           alert.jsx
+|           avatar.jsx
+|           badge.jsx
+|           breadcrumb.jsx
+|           Button.jsx
+|           calendar.jsx
+|           card.jsx
+|           checkbox.jsx
+|           collapsible.jsx
+|           command.jsx
+|           dialog.jsx
+|           dropdown-menu.jsx
+|           form.jsx
+|           input.jsx
+|           label.jsx
+|           pagination.jsx
+|           popover.jsx
+|           progress.jsx
+|           scroll-area.jsx
+|           select.jsx
+|           separator.jsx
+|           sheet.jsx
+|           sidebar.jsx
+|           skeleton.jsx
+|           slider.jsx
+|           sonner.jsx
+|           switch.jsx
+|           table.jsx
+|           tabs.jsx
+|           textarea.jsx
+|           tooltip.jsx
+|           
++---config
+|       api.config.js
+|       app.config.js
+|       index.js
+|       routes.config.js
+|       
++---constants
+|       alertLevel.js
+|       authorizationStatus.js
+|       chequeStatus.js
+|       customerStatus.js
+|       dosageForm.js
+|       drugSchedule.js
+|       employmentType.js
+|       gender.js
+|       grnStatus.js
+|       index.js
+|       invoiceStatus.js
+|       notificationType.js
+|       paymentMethods.js
+|       paymentStatus.js
+|       permissions.js
+|       poStatus.js
+|       returnReason.js
+|       roles.js
+|       saleStatus.js
+|       stockMovementType.js
+|       syncStatus.js
+|       transactionType.js
+|       transferStatus.js
+|       unitOfMeasure.js
+|       
++---core
+|   +---api
+|   |   +---client
+|   |   \---endpoints
+|   +---config
+|   \---store
+|       \---middleware
++---features
+|   |   index.js
+|   |   
+|   +---auth
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       LoginForm.jsx
+|   |   |       
+|   |   \---hooks
+|   |           useLogin.js
+|   |           
+|   +---branches
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       BranchColumns.jsx
+|   |   |       BranchForm.jsx
+|   |   |       index.js
+|   |   |       
+|   |   \---hooks
+|   |           index.js
+|   |           useBranches.js
+|   |           
+|   +---categories
+|   |   |   index.js
+|   |   |   
+|   |   \---components
+|   |           CategoryColumns.jsx
+|   |           CategoryFormDialog.jsx
+|   |           index.js
+|   |           
+|   +---customers
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       CreditAccountColumns.jsx
+|   |   |       CustomerColumns.jsx
+|   |   |       CustomerForm.jsx
+|   |   |       index.js
+|   |   |       
+|   |   \---hooks
+|   |           index.js
+|   |           useCustomers.js
+|   |           
+|   +---dashboard
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |   |   DashboardRouter.jsx
+|   |   |   |   InventoryAlertsWidget.jsx
+|   |   |   |   QuickActionsWidget.jsx
+|   |   |   |   RecentSalesWidget.jsx
+|   |   |   |   SalesOverviewWidget.jsx
+|   |   |   |   
+|   |   |   \---dashboards
+|   |   |           AccountantDashboard.jsx
+|   |   |           AdminDashboard.jsx
+|   |   |           CashierDashboard.jsx
+|   |   |           index.js
+|   |   |           InventoryManagerDashboard.jsx
+|   |   |           PharmacistDashboard.jsx
+|   |   |           
+|   |   \---hooks
+|   |           useDashboard.js
+|   |           
+|   +---grn
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       GRNColumns.jsx
+|   |   |       GRNForm.jsx
+|   |   |       index.js
+|   |   |       
+|   |   \---hooks
+|   |           index.js
+|   |           useGRN.js
+|   |           
+|   +---inventory
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       ExpiringColumns.jsx
+|   |   |       index.js
+|   |   |       LowStockColumns.jsx
+|   |   |       StockTransferColumns.jsx
+|   |   |       StockTransferForm.jsx
+|   |   |       
+|   |   \---hooks
+|   |           index.js
+|   |           useInventory.js
+|   |           
+|   +---products
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       index.js
+|   |   |       ProductColumns.jsx
+|   |   |       ProductFilters.jsx
+|   |   |       ProductForm.jsx
+|   |   |       
+|   |   \---hooks
+|   |           index.js
+|   |           useCategories.js
+|   |           useProducts.js
+|   |           
+|   +---purchase-orders
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       index.js
+|   |   |       PurchaseOrderColumns.jsx
+|   |   |       PurchaseOrderForm.jsx
+|   |   |       
+|   |   \---hooks
+|   |           index.js
+|   |           usePurchaseOrders.js
+|   |           
+|   +---reports
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       index.js
+|   |   |       ReportFilters.jsx
+|   |   |       ReportSummaryCard.jsx
+|   |   |       
+|   |   \---hooks
+|   |           index.js
+|   |           useReports.js
+|   |           
+|   +---sales
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       index.js
+|   |   |       POSCart.jsx
+|   |   |       POSProductSearch.jsx
+|   |   |       POSTotals.jsx
+|   |   |       
+|   |   +---hooks
+|   |   |       index.js
+|   |   |       useSales.js
+|   |   |       
+|   |   \---store
+|   |           index.js
+|   |           usePOSStore.js
+|   |           
+|   +---suppliers
+|   |   |   index.js
+|   |   |   
+|   |   +---components
+|   |   |       index.js
+|   |   |       SupplierColumns.jsx
+|   |   |       SupplierForm.jsx
+|   |   |       
+|   |   \---hooks
+|   |           index.js
+|   |           useSuppliers.js
+|   |           
+|   \---users
+|       |   index.js
+|       |   
+|       +---components
+|       |       index.js
+|       |       UserColumns.jsx
+|       |       UserForm.jsx
+|       |       
+|       \---hooks
+|               index.js
+|               useUsers.js
+|               
++---hooks
+|       index.js
+|       use-mobile.js
+|       useApi.js
+|       useAuth.js
+|       useBranch.js
+|       useDebounce.js
+|       usePagination.js
+|       usePermissions.js
+|       useWebSocket.js
+|       
++---lib
+|       utils.js
+|       
++---modules
+|   +---admin
+|   |   \---types
+|   \---auth
+|       +---components
+|       |   \---UserMenu
+|       \---types
++---pages
+|   +---auth
+|   |       LoginPage.jsx
+|   |       
+|   +---branches
+|   |       BranchesPage.jsx
+|   |       BranchFormPage.jsx
+|   |       index.js
+|   |       
+|   +---categories
+|   |       CategoriesPage.jsx
+|   |       index.js
+|   |       
+|   +---customers
+|   |       CreditAccountsPage.jsx
+|   |       CustomerFormPage.jsx
+|   |       CustomersPage.jsx
+|   |       index.js
+|   |       
+|   +---dashboard
+|   |       DashboardPage.jsx
+|   |       
+|   +---employees
+|   |       EmployeeAttendancePage.jsx
+|   |       EmployeeFormPage.jsx
+|   |       EmployeesPage.jsx
+|   |       EmployeeViewPage.jsx
+|   |       index.js
+|   |       
+|   +---finance
+|   |       BanksPage.jsx
+|   |       CashBookPage.jsx
+|   |       CashRegisterFormDialog.jsx
+|   |       CashRegisterPage.jsx
+|   |       ChequeFormDialog.jsx
+|   |       ChequesPage.jsx
+|   |       FinancePage.jsx
+|   |       FinancialSummaryPage.jsx
+|   |       index.js
+|   |       InvoiceFormDialog.jsx
+|   |       InvoicesPage.jsx
+|   |       TransactionFormDialog.jsx
+|   |       TransactionsPage.jsx
+|   |       
+|   +---grn
+|   |       DirectGRNFormPage.jsx
+|   |       GRNEditPage.jsx
+|   |       GRNFormPage.jsx
+|   |       GRNListPage.jsx
+|   |       GRNViewPage.jsx
+|   |       index.js
+|   |       
+|   +---inventory
+|   |   |   AvailableStockPage.jsx
+|   |   |   BatchTrackingPage.jsx
+|   |   |   ExpiringPage.jsx
+|   |   |   index.js
+|   |   |   InventoryPage.jsx
+|   |   |   LowStockPage.jsx
+|   |   |   StockAdjustmentFormPage.jsx
+|   |   |   StockAdjustmentsPage.jsx
+|   |   |   StockMovementsPage.jsx
+|   |   |   StockTransferFormPage.jsx
+|   |   |   StockTransfersPage.jsx
+|   |   |   
+|   |   \---components
+|   |           DirectStockForm.jsx
+|   |           
+|   +---payroll
+|   |       AdvanceFormDialog.jsx
+|   |       AdvancesPage.jsx
+|   |       AttendanceFormDialog.jsx
+|   |       AttendancePage.jsx
+|   |       index.js
+|   |       PayrollPage.jsx
+|   |       SalariesPage.jsx
+|   |       SalaryPaymentDialog.jsx
+|   |       
+|   +---pos
+|   |       index.js
+|   |       POSPage.jsx
+|   |       
+|   +---products
+|   |       index.js
+|   |       ProductFormPage.jsx
+|   |       ProductsPage.jsx
+|   |       ProductViewPage.jsx
+|   |       
+|   +---purchase-orders
+|   |       index.js
+|   |       PurchaseOrderFormPage.jsx
+|   |       PurchaseOrdersPage.jsx
+|   |       PurchaseOrderViewPage.jsx
+|   |       
+|   +---reports
+|   |       AuditPage.jsx
+|   |       EmployeeReportPage.jsx
+|   |       FinancialReportPage.jsx
+|   |       index.js
+|   |       InventoryReportPage.jsx
+|   |       ReportsPage.jsx
+|   |       SalesReportPage.jsx
+|   |       
+|   +---sales
+|   |       index.js
+|   |       SaleReturnFormPage.jsx
+|   |       SaleReturnsPage.jsx
+|   |       SalesHistoryPage.jsx
+|   |       SaleViewPage.jsx
+|   |       
+|   +---settings
+|   |       index.js
+|   |       SettingsPage.jsx
+|   |       
+|   +---suppliers
+|   |       index.js
+|   |       SupplierFormPage.jsx
+|   |       SuppliersPage.jsx
+|   |       
+|   \---users
+|           index.js
+|           UserFormPage.jsx
+|           UsersPage.jsx
+|           UserViewPage.jsx
+|           
++---routes
+|   |   index.jsx
+|   |   
+|   \---guards
+|           AuthGuard.jsx
+|           index.js
+|           RoleGuard.jsx
+|           
++---services
+|       authService.js
+|       branchService.js
+|       categoryService.js
+|       customerService.js
+|       dashboardService.js
+|       grnService.js
+|       index.js
+|       inventoryService.js
+|       productService.js
+|       purchaseOrderService.js
+|       reportService.js
+|       saleService.js
+|       supplierService.js
+|       systemConfigService.js
+|       userService.js
+|       
++---shared
+|   +---components
+|   |   \---layout
+|   |       \---Footer
+|   \---types
++---store
+|       authStore.js
+|       branchStore.js
+|       cartStore.js
+|       index.js
+|       notificationStore.js
+|       uiStore.js
+|       
++---styles
+|   \---theme
++---types
+\---utils
+        api.js
+        auth.js
+        exportImport.js
+        formatters.js
+        index.js
+        permissions.js
+        storage.js
+        validators.js
+        

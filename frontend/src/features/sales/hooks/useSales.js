@@ -32,6 +32,10 @@ export const useSales = (params = {}, options = {}) => {
   return useQuery({
     queryKey: saleKeys.list(params),
     queryFn: () => saleService.getAll(params),
+    enabled: Boolean(params.branchId), // Only fetch when branchId is available
+    refetchInterval: 30000, // Refetch every 30 seconds for real-time updates
+    refetchOnWindowFocus: true, // Refetch when user returns to the page
+    refetchIntervalInBackground: false, // Don't refetch when tab is not visible
     ...options,
   });
 };
@@ -66,10 +70,14 @@ export const useCreateSale = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (data) => saleService.create(data),
+    mutationFn: async (data) => {
+      const response = await saleService.create(data);
+      // Unwrap ApiResponse: response.data = { success, message, data: SaleResponse, timestamp }
+      return response.data?.data || response.data;
+    },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: saleKeys.all });
-      toast.success(`Sale completed! Invoice: ${data?.invoiceNumber || ""}`);
+      toast.success(`Sale completed! Invoice: ${data?.invoiceNumber || data?.saleNumber || ""}`);
       return data;
     },
     onError: (error) => {
@@ -104,7 +112,7 @@ export const useVoidSale = () => {
 
   return useMutation({
     mutationFn: ({ id, reason }) =>
-      saleService.voidSale?.(id, reason) || Promise.resolve(),
+      saleService.void(id, reason),
     onSuccess: (data, { id }) => {
       queryClient.invalidateQueries({ queryKey: saleKeys.all });
       queryClient.invalidateQueries({ queryKey: saleKeys.detail(id) });

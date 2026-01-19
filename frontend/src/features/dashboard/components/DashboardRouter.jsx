@@ -6,6 +6,7 @@
 import { useAuth } from "@/hooks";
 import { ROLES } from "@/constants";
 import {
+  SuperAdminDashboard,
   AdminDashboard,
   CashierDashboard,
   PharmacistDashboard,
@@ -17,7 +18,7 @@ import {
  * Maps user roles to their specific dashboard component
  */
 const DASHBOARD_BY_ROLE = {
-  [ROLES.SUPER_ADMIN]: AdminDashboard,
+  [ROLES.SUPER_ADMIN]: SuperAdminDashboard,
   [ROLES.ADMIN]: AdminDashboard,
   [ROLES.BRANCH_MANAGER]: AdminDashboard,
   [ROLES.PHARMACIST]: PharmacistDashboard,

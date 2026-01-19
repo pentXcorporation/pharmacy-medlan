@@ -29,16 +29,16 @@ import {
   TableFooter,
 } from "@/components/ui/table";
 import { PageHeader, LoadingSpinner } from "@/components/common";
-import { useGRN, useCompleteGRN } from "@/features/grn";
+import { useGRN, useApproveGRN } from "@/features/grn";
 import { formatDate, formatCurrency } from "@/utils/formatters";
 import { toast } from "sonner";
 
 // Status badge configuration
 const statusConfig = {
   DRAFT: { label: "Draft", variant: "secondary" },
-  PENDING: { label: "Pending Verification", variant: "warning" },
-  VERIFIED: { label: "Verified", variant: "default" },
-  COMPLETED: { label: "Completed", variant: "success" },
+  PENDING_APPROVAL: { label: "Pending Approval", variant: "warning" },
+  RECEIVED: { label: "Received (Inventory Updated)", variant: "success" },
+  REJECTED: { label: "Rejected", variant: "destructive" },
   CANCELLED: { label: "Cancelled", variant: "secondary" },
 };
 
@@ -48,12 +48,13 @@ const GRNViewPage = () => {
 
   // Queries
   const { data: grn, isLoading } = useGRN(id);
-  const completeMutation = useCompleteGRN();
+  const approveMutation = useApproveGRN();
 
   const status = grn?.status;
-  const canComplete = status === "DRAFT" || status === "PENDING" || status === "VERIFIED";
-  const canReturn = status === "COMPLETED";
-  const canEdit = status === "DRAFT" || status === "PENDING" || status === "RECEIVED";
+  // Can approve (which updates inventory) if DRAFT or PENDING_APPROVAL
+  const canApprove = status === "DRAFT" || status === "PENDING_APPROVAL";
+  const canReturn = status === "RECEIVED";
+  const canEdit = status === "DRAFT" || status === "PENDING_APPROVAL";
 
   // Calculate totals from items
   const items = grn?.items || [];
@@ -71,14 +72,25 @@ const GRNViewPage = () => {
     item.mrp
   );
 
-  const handleComplete = () => {
+  const handleApprove = () => {
     // Validate that all items have required fields
     if (!hasCompleteData) {
-      toast.error("Cannot complete GRN: Some items are missing required fields (batch number, dates, selling price, or MRP). Please edit the GRN to add missing information.");
+      toast.error("This GRN has missing required fields. Redirecting to edit page...", {
+        description: "Please fill in batch number, dates, selling price, and MRP for all items."
+      });
+      // Redirect to edit page after a short delay
+      setTimeout(() => {
+        navigate(ROUTES.GRN.EDIT(id));
+      }, 1500);
       return;
     }
     
-    completeMutation.mutate(id);
+    // This will create inventory batches and update stock levels in the database
+    approveMutation.mutate(id, {
+      onSuccess: () => {
+        // Success toast is handled by the hook
+      }
+    });
   };
 
   const handleEdit = () => {
@@ -135,14 +147,14 @@ const GRNViewPage = () => {
                 Edit GRN
               </Button>
             )}
-            {canComplete && (
+            {canApprove && (
               <Button
-                onClick={handleComplete}
-                disabled={completeMutation.isPending || !hasCompleteData}
-                title={!hasCompleteData ? "Cannot complete: some items have missing data" : ""}
+                onClick={handleApprove}
+                disabled={approveMutation.isPending || !hasCompleteData}
+                title={!hasCompleteData ? "Cannot approve: some items have missing data" : "Approve GRN and update inventory"}
               >
                 <CheckCircle className="mr-2 h-4 w-4" />
-                Complete & Update Stock
+                Approve & Update Inventory
               </Button>
             )}
             {canReturn && (

@@ -113,7 +113,7 @@ const searchProducts = (products, searchTerm) => {
 
     if (score > 0) {
       // Boost score for products with good stock
-      const stock = product.stockQuantity || product.quantity || 0;
+      const stock = product.quantityAvailable || product.stockQuantity || product.quantity || 0;
       if (stock > 0) {
         score += 10;
       }
@@ -177,7 +177,7 @@ const POSProductSearch = ({ products = [], isLoading }) => {
   // Handle product selection
   const handleSelect = (product) => {
     // Check if product has stock
-    const stockQty = product.stockQuantity || product.quantity || 0;
+    const stockQty = product.quantityAvailable || product.stockQuantity || product.quantity || 0;
     if (stockQty <= 0) {
       toast.error("Out of Stock", {
         description: `${product.name || product.productName} has no available stock.`,
@@ -359,15 +359,15 @@ const POSProductSearch = ({ products = [], isLoading }) => {
                 )}
                 <Badge
                   variant={
-                    (product.stockQuantity || product.quantity || 0) > 10
+                    (product.quantityAvailable || product.stockQuantity || product.quantity || 0) > 10
                       ? "default"
-                      : (product.stockQuantity || product.quantity || 0) > 0
+                      : (product.quantityAvailable || product.stockQuantity || product.quantity || 0) > 0
                       ? "warning"
                       : "destructive"
                   }
                   className="mt-1 text-xs"
                 >
-                  Stock: {product.stockQuantity || product.quantity || 0}
+                  Stock: {product.quantityAvailable || product.stockQuantity || product.quantity || 0}
                 </Badge>
               </div>
             </button>

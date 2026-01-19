@@ -3,9 +3,10 @@
  * View and manage past sales
  */
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Eye, Undo2, Ban, FileText, Download } from "lucide-react";
+import { useQueryClient } from "@tanstack/react-query";
+import { Eye, Undo2, Ban, FileText, Download, RefreshCw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
@@ -27,9 +28,12 @@ import {
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { PageHeader, DataTable } from "@/components/common";
-import { useSales, useVoidSale } from "@/features/sales";
+import { useSales, useVoidSale, saleKeys } from "@/features/sales";
 import { formatCurrency, formatDateTime } from "@/utils/formatters";
+import { useWebSocket } from "@/hooks";
+import { useBranchStore } from "@/store";
 import { ROUTES } from "@/config";
+import { toast } from "sonner";
 
 // Status badge variants
 const statusConfig = {
@@ -41,6 +45,8 @@ const statusConfig = {
 
 const SalesHistoryPage = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const { selectedBranch } = useBranchStore();
   const [filters, setFilters] = useState({
     search: "",
     status: "all",
@@ -50,15 +56,56 @@ const SalesHistoryPage = () => {
   const [voidDialog, setVoidDialog] = useState({ open: false, sale: null });
   const [voidReason, setVoidReason] = useState("");
 
-  // Query
-  const { data, isLoading } = useSales({
+  // Query with branchId
+  const { data, isLoading, refetch, error } = useSales({
     ...filters,
+    branchId: selectedBranch?.id,
     status: filters.status === "all" ? undefined : filters.status,
   });
   const voidMutation = useVoidSale();
 
+  // Log for debugging
+  useEffect(() => {
+    if (error) {
+      console.error('Sales fetch error:', error);
+      toast.error('Failed to load sales data');
+    }
+    if (data) {
+      console.log('Sales data received:', data);
+    }
+  }, [data, error]);
+
+  // WebSocket for real-time updates
+  const { lastMessage } = useWebSocket({
+    onMessage: (message) => {
+      // Listen for new sale notifications
+      if (message.type === "NOTIFICATION" && message.data?.type === "NEW_SALE") {
+        // Invalidate and refetch sales data
+        queryClient.invalidateQueries({ queryKey: saleKeys.all });
+        refetch();
+        toast.success("New sale recorded!", {
+          description: `Invoice: ${message.data?.invoiceNumber || "N/A"}`
+        });
+      }
+      // Also handle sale updates/voids
+      if (message.type === "SALE" || message.data?.type === "SALE_UPDATED") {
+        queryClient.invalidateQueries({ queryKey: saleKeys.all });
+        refetch();
+      }
+    },
+  });
+
+  // Auto-refetch when filters change or branch changes
+  useEffect(() => {
+    if (selectedBranch?.id) {
+      refetch();
+    }
+  }, [filters.search, filters.status, filters.page, selectedBranch?.id, refetch]);
+
+  // Extract sales data from paginated response
   const sales = data?.content || data || [];
   const totalPages = data?.totalPages || 1;
+  const totalElements = data?.totalElements || sales.length || 0;
 
   // Handle void
   const handleVoid = () => {
@@ -197,14 +244,26 @@ const SalesHistoryPage = () => {
         title="Sales History"
         description="View and manage all sales transactions"
       >
-        <Button
-          onClick={() => navigate(ROUTES.POS.ROOT)}
-          size="sm"
-          className="w-full sm:w-auto"
-        >
-          <FileText className="h-4 w-4 mr-2" />
-          New Sale
-        </Button>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading}
+            className="w-auto"
+          >
+            <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
+          </Button>
+          <Button
+            onClick={() => navigate(ROUTES.POS.ROOT)}
+            size="sm"
+            className="w-full sm:w-auto"
+          >
+            <FileText className="h-4 w-4 mr-2" />
+            New Sale
+          </Button>
+        </div>
       </PageHeader>
 
       {/* Filters */}
@@ -239,17 +298,25 @@ const SalesHistoryPage = () => {
       </div>
 
       {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={sales}
-        isLoading={isLoading}
-        pagination={{
-          pageIndex: filters.page,
-          pageSize: filters.size,
-          pageCount: totalPages,
-          onPageChange: (page) => setFilters({ ...filters, page }),
-        }}
-      />
+      {!selectedBranch ? (
+        <div className="rounded-lg border border-dashed p-12 text-center">
+          <p className="text-muted-foreground">
+            Please select a branch to view sales history
+          </p>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={sales}
+          isLoading={isLoading}
+          pagination={{
+            pageIndex: filters.page,
+            pageSize: filters.size,
+            pageCount: totalPages,
+            onPageChange: (page) => setFilters({ ...filters, page }),
+          }}
+        />
+      )}
 
       {/* Void Dialog */}
       <Dialog
