@@ -41,7 +41,7 @@ const LowStockPage = () => {
       sort:
         sorting.length > 0
           ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
-          : "currentStock,asc",
+          : "quantityAvailable,asc",
     }),
     [pagination, sorting]
   );
@@ -54,7 +54,7 @@ const LowStockPage = () => {
 
   // Calculate out of stock count
   const outOfStockCount =
-    data?.content?.filter((p) => p.currentStock === 0).length || 0;
+    data?.content?.filter((p) => p.quantityAvailable === 0).length || 0;
 
   return (
     <div className="space-y-4 sm:space-y-6">

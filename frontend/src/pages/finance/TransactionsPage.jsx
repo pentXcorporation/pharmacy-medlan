@@ -3,11 +3,15 @@
  * Displays all financial transactions
  */
 
-import { useState, useMemo, useCallback } from "react";
-import { Plus, Download, Filter } from "lucide-react";
+import { useState, useMemo, useEffect } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Download, RefreshCw } from "lucide-react";
 import { PageHeader, DataTable } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useBranchStore } from "@/store";
+import { inventoryTransactionService } from "@/services";
+import { toast } from "sonner";
 import {
   Select,
   SelectContent,
@@ -18,135 +22,183 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate } from "@/utils/formatters";
-import { TRANSACTION_TYPE, PAYMENT_METHOD } from "@/constants";
-import TransactionFormDialog from "./TransactionFormDialog";
-import { toast } from "sonner";
 
 const TransactionsPage = () => {
+  const queryClient = useQueryClient();
+  const { selectedBranch } = useBranchStore();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
-  const [isFormOpen, setIsFormOpen] = useState(false);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   });
   const [sorting, setSorting] = useState([{ id: "date", desc: true }]);
 
-  // Mock data - replace with actual API call
-  const mockData = {
-    content: [],
-    total: 0,
-    pageCount: 0,
-  };
+  // Fetch inventory transactions
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: ["inventoryTransactions", selectedBranch?.id, pagination, typeFilter],
+    queryFn: () => inventoryTransactionService.getByBranch(selectedBranch?.id, {
+      page: pagination.pageIndex,
+      size: pagination.pageSize,
+      ...(typeFilter !== "all" && { type: typeFilter }),
+    }),
+    enabled: Boolean(selectedBranch?.id),
+    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchOnWindowFocus: true,
+  });
+
+  // Log errors
+  useEffect(() => {
+    if (error) {
+      console.error('Transaction fetch error:', error);
+      toast.error('Failed to load transactions');
+    }
+  }, [error]);
+
+  // Extract transactions from response
+  const transactions = data?.content || data || [];
+  const totalPages = data?.totalPages || 1;
+  const totalElements = data?.totalElements || transactions.length || 0;
 
   const columns = useMemo(
     () => [
       {
-        accessorKey: "date",
+        accessorKey: "createdAt",
         header: "Date",
-        cell: ({ row }) => formatDate(row.getValue("date")),
+        cell: ({ row }) => formatDate(row.getValue("createdAt") || row.original.transactionDate),
       },
       {
-        accessorKey: "reference",
+        accessorKey: "referenceNumber",
         header: "Reference",
         cell: ({ row }) => (
-          <span className="font-mono text-sm">{row.getValue("reference")}</span>
+          <span className="font-mono text-sm">
+            {row.getValue("referenceNumber") || row.original.transactionId || "-"}
+          </span>
         ),
       },
       {
-        accessorKey: "type",
+        accessorKey: "transactionType",
         header: "Type",
         cell: ({ row }) => {
-          const type = row.getValue("type");
+          const type = row.getValue("transactionType") || row.original.type;
           const variant =
-            type === "INCOME"
+            type === "IN" || type === "GRN" || type === "PURCHASE" || type?.includes("IN")
               ? "success"
-              : type === "EXPENSE"
+              : type === "OUT" || type === "SALE" || type?.includes("OUT")
               ? "destructive"
               : "default";
-          return <Badge variant={variant}>{type}</Badge>;
+          return <Badge variant={variant}>{type || "N/A"}</Badge>;
         },
       },
       {
-        accessorKey: "description",
-        header: "Description",
+        accessorKey: "productName",
+        header: "Product",
+        cell: ({ row }) => row.original.product?.productName || row.original.productName || "-",
         meta: { className: "hidden md:table-cell" },
+      },
+      {
+        accessorKey: "quantity",
+        header: "Quantity",
+        cell: ({ row }) => {
+          const qty = row.getValue("quantity");
+          const type = row.original.transactionType || row.original.type;
+          return (
+            <span
+              className={`font-semibold ${
+                type?.includes("IN") || type === "GRN" || type === "PURCHASE" ? "text-green-600" : "text-red-600"
+              }`}
+            >
+              {type?.includes("IN") || type === "GRN" || type === "PURCHASE" ? "+" : "-"}
+              {qty}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "amount",
         header: "Amount",
         cell: ({ row }) => {
-          const amount = row.getValue("amount");
-          const type = row.original.type;
+          const qty = row.original.quantity || 0;
+          const price = row.original.unitPrice || row.original.costPrice || 0;
+          const amount = qty * price;
+          const type = row.original.transactionType || row.original.type;
           return (
             <span
               className={`font-semibold ${
-                type === "INCOME" ? "text-green-600" : "text-red-600"
+                type?.includes("IN") || type === "GRN" || type === "PURCHASE" ? "text-green-600" : "text-red-600"
               }`}
             >
-              {type === "INCOME" ? "+" : "-"}
+              {type?.includes("IN") || type === "GRN" || type === "PURCHASE" ? "+" : "-"}
               {formatCurrency(amount)}
             </span>
           );
         },
       },
       {
-        accessorKey: "paymentMethod",
-        header: "Payment Method",
+        accessorKey: "batchNumber",
+        header: "Batch",
         meta: { className: "hidden lg:table-cell" },
-        cell: ({ row }) => row.getValue("paymentMethod") || "-",
+        cell: ({ row }) => row.getValue("batchNumber") || "-",
       },
     ],
     []
   );
 
-  const stats = {
-    totalIncome: 0,
-    totalExpense: 0,
-    netBalance: 0,
-    transactionCount: 0,
-  };
-
-  const handleCreateTransaction = useCallback(async (data) => {
-    try {
-      // TODO: Call API to create transaction
-      console.log("Creating transaction:", data);
-
-      toast.success("Transaction Created", {
-        description: "The transaction has been successfully created.",
-      });
-
-      // TODO: Refresh data after creation
-    } catch (error) {
-      toast.error("Error", {
-        description: "Failed to create transaction. Please try again.",
-      });
+  // Calculate statistics from transactions
+  const stats = useMemo(() => {
+    if (!transactions || transactions.length === 0) {
+      return {
+        totalIncome: 0,
+        totalExpense: 0,
+        netBalance: 0,
+        transactionCount: 0,
+      };
     }
-  }, []);
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    transactions.forEach((transaction) => {
+      const amount = transaction.quantity * (transaction.unitPrice || transaction.costPrice || 0);
+      const type = transaction.transactionType || transaction.type;
+      
+      if (type === "IN" || type === "GRN" || type === "PURCHASE" || type === "TRANSFER_IN" || type === "ADJUSTMENT_IN") {
+        totalIncome += amount;
+      } else if (type === "OUT" || type === "SALE" || type === "RETURN" || type === "TRANSFER_OUT" || type === "ADJUSTMENT_OUT") {
+        totalExpense += amount;
+      }
+    });
+
+    return {
+      totalIncome,
+      totalExpense,
+      netBalance: totalIncome - totalExpense,
+      transactionCount: totalElements,
+    };
+  }, [transactions, totalElements]);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Transactions"
-        description="View and manage all financial transactions"
+        title="Inventory Transactions"
+        description="View and track all inventory movements and transactions"
       >
         <div className="flex gap-2">
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Transaction
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => refetch()}
+            disabled={isLoading}
+          >
+            <RefreshCw className={`mr-2 h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            Refresh
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" size="sm">
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
         </div>
       </PageHeader>
-
-      <TransactionFormDialog
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSubmit={handleCreateTransaction}
-      />
 
       {/* Statistics */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
@@ -208,29 +260,39 @@ const TransactionsPage = () => {
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">All Types</SelectItem>
-            <SelectItem value="INCOME">Income</SelectItem>
-            <SelectItem value="EXPENSE">Expense</SelectItem>
-            <SelectItem value="TRANSFER">Transfer</SelectItem>
+            <SelectItem value="IN">Stock In</SelectItem>
+            <SelectItem value="OUT">Stock Out</SelectItem>
+            <SelectItem value="GRN">GRN</SelectItem>
+            <SelectItem value="SALE">Sale</SelectItem>
+            <SelectItem value="TRANSFER_IN">Transfer In</SelectItem>
+            <SelectItem value="TRANSFER_OUT">Transfer Out</SelectItem>
           </SelectContent>
         </Select>
       </div>
 
       {/* Data Table */}
-      <DataTable
-        columns={columns}
-        data={mockData.content}
-        isLoading={false}
-        pagination={{
-          pageIndex: pagination.pageIndex,
-          pageSize: pagination.pageSize,
-          total: mockData.total,
-          pageCount: mockData.pageCount,
-        }}
-        onPaginationChange={setPagination}
-        sorting={sorting}
-        onSortingChange={setSorting}
-        emptyMessage="No transactions found."
-      />
+      {!selectedBranch ? (
+        <div className="rounded-lg border border-dashed p-12 text-center">
+          <p className="text-muted-foreground">
+            Please select a branch to view transactions
+          </p>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          data={transactions}
+          isLoading={isLoading}
+          pagination={{
+            pageIndex: pagination.pageIndex,
+            pageSize: pagination.pageSize,
+            pageCount: totalPages,
+            onPageChange: (page) => setPagination({ ...pagination, pageIndex: page }),
+          }}
+          sorting={sorting}
+          onSortingChange={setSorting}
+          emptyMessage="No transactions found."
+        />
+      )}
     </div>
   );
 };

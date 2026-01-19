@@ -35,6 +35,9 @@ public interface BankRepository extends JpaRepository<Bank, Long>, JpaSpecificat
     @Query("SELECT SUM(b.currentBalance) FROM Bank b WHERE b.isActive = true")
     BigDecimal getTotalBankBalance();
 
+    @Query("SELECT COALESCE(SUM(b.currentBalance), 0) FROM Bank b WHERE b.isActive = true")
+    BigDecimal calculateTotalBalance();
+
     @Query("SELECT b FROM Bank b WHERE b.isActive = true AND b.currentBalance > 0 " +
             "ORDER BY b.currentBalance DESC")
     List<Bank> findBanksWithPositiveBalance();

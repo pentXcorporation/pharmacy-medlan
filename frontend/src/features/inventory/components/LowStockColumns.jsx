@@ -36,10 +36,10 @@ export const getLowStockColumns = () => [
     ),
   },
   {
-    accessorKey: "currentStock",
+    accessorKey: "quantityAvailable",
     header: "Stock",
     cell: ({ row }) => {
-      const current = row.getValue("currentStock") || 0;
+      const current = row.getValue("quantityAvailable") || 0;
       const reorder = row.original.reorderLevel || 0;
       const percentage =
         reorder > 0 ? Math.min((current / reorder) * 100, 100) : 100;
@@ -101,7 +101,7 @@ export const getLowStockColumns = () => [
     id: "status",
     header: "Status",
     cell: ({ row }) => {
-      const current = row.original.currentStock || 0;
+      const current = row.original.quantityAvailable || 0;
 
       if (current === 0) {
         return (

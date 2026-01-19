@@ -407,6 +407,11 @@ export const NAVIGATION = [
           ROLES.ACCOUNTANT,
         ],
       },
+      {
+        title: "Banks",
+        href: ROUTES.FINANCE.BANKS,
+        roles: [ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT],
+      },
     ],
   },
   {

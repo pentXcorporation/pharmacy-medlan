@@ -955,20 +955,16 @@ const SettingsPage = () => {
                   <Label>Currency</Label>
                   <Select
                     value={preferences.currency}
-                    onValueChange={(value) => {
-                      updatePreference("currency", value);
-                      toast.success("Currency updated");
-                    }}
+                    disabled
                   >
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="LKR">LKR (Rs.)</SelectItem>
-                      <SelectItem value="USD">USD ($)</SelectItem>
-                      <SelectItem value="EUR">EUR (€)</SelectItem>
                     </SelectContent>
                   </Select>
+                  <p className="text-xs text-muted-foreground">Currency is fixed to LKR for this system</p>
                 </div>
               </div>
             </CardContent>

@@ -356,7 +356,8 @@ export const API_ENDPOINTS = {
       CASH_FLOW: "/reports/financial/cash-flow",
       RECEIVABLES: "/reports/financial/receivables",
       AGEING: "/reports/financial/ageing",
-      TAX: "/reports/financial/tax",
+      TAX: "/reports/financial/tax-summary",
+      SUMMARY: "/reports/financial/summary",
     },
     // Alerts
     ALERTS: {

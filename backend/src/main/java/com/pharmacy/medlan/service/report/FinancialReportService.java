@@ -31,4 +31,7 @@ public interface FinancialReportService {
     
     // Tax reports
     Map<String, BigDecimal> getTaxSummary(Long branchId, LocalDate startDate, LocalDate endDate);
+    
+    // Financial Summary - Comprehensive overview
+    Map<String, Object> getFinancialSummary(Long branchId, LocalDate startDate, LocalDate endDate);
 }

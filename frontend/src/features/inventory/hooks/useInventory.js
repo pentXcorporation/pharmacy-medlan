@@ -64,6 +64,7 @@ export const useLowStockProducts = (params = {}, options = {}) => {
   return useQuery({
     queryKey: [...inventoryKeys.lowStock(), params],
     queryFn: () => inventoryService.getLowStockProducts(params),
+    select: (response) => response.data.data, // ApiResponse.data contains Page<InventoryResponse>
     ...options,
   });
 };
@@ -75,6 +76,7 @@ export const useExpiringProducts = (params = {}, options = {}) => {
   return useQuery({
     queryKey: [...inventoryKeys.expiring(), params],
     queryFn: () => inventoryService.getExpiringProducts(params),
+    select: (response) => response.data.data, // ApiResponse.data contains Page<InventoryBatchResponse>
     ...options,
   });
 };
@@ -86,6 +88,7 @@ export const useExpiredProducts = (params = {}, options = {}) => {
   return useQuery({
     queryKey: [...inventoryKeys.expired(), params],
     queryFn: () => inventoryService.getExpiredProducts(params),
+    select: (response) => response.data.data, // ApiResponse.data contains Page<InventoryBatchResponse>
     ...options,
   });
 };

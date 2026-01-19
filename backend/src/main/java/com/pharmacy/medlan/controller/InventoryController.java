@@ -26,9 +26,9 @@ public class InventoryController {
 
     @GetMapping("/low-stock")
     @Operation(summary = "Get all low stock inventory across all branches")
-    public ResponseEntity<ApiResponse<List<InventoryResponse>>> getAllLowStockInventory() {
+    public ResponseEntity<ApiResponse<Page<InventoryResponse>>> getAllLowStockInventory(Pageable pageable) {
         return ResponseEntity.ok(ApiResponse.success(
-                inventoryService.getAllLowStockInventory()));
+                inventoryService.getAllLowStockInventory(pageable)));
     }
 
     @GetMapping("/out-of-stock")

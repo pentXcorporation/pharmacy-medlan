@@ -240,4 +240,114 @@ public class FinancialReportServiceImpl implements FinancialReportService {
         
         return summary;
     }
+    
+    @Override
+    public Map<String, Object> getFinancialSummary(Long branchId, LocalDate startDate, LocalDate endDate) {
+        LocalDateTime startDateTime = startDate.atStartOfDay();
+        LocalDateTime endDateTime = endDate.atTime(LocalTime.MAX);
+        
+        // Calculate revenue
+        List<Sale> sales = saleRepository.findByBranchAndDateRange(branchId, startDateTime, endDateTime);
+        BigDecimal totalSales = BigDecimal.ZERO;
+        BigDecimal cashSales = BigDecimal.ZERO;
+        BigDecimal creditSales = BigDecimal.ZERO;
+        BigDecimal totalCost = BigDecimal.ZERO;
+        BigDecimal totalTax = BigDecimal.ZERO;
+        
+        for (Sale sale : sales) {
+            if (sale.getStatus() == SaleStatus.COMPLETED) {
+                totalSales = totalSales.add(sale.getTotalAmount());
+                
+                // Separate cash and credit sales based on payment method
+                if (sale.getPaymentMethod() != null) {
+                    if ("CASH".equals(sale.getPaymentMethod().name())) {
+                        cashSales = cashSales.add(sale.getTotalAmount());
+                    } else {
+                        creditSales = creditSales.add(sale.getTotalAmount());
+                    }
+                } else {
+                    // Default to cash if payment method is not specified
+                    cashSales = cashSales.add(sale.getTotalAmount());
+                }
+                
+                if (sale.getTaxAmount() != null) {
+                    totalTax = totalTax.add(sale.getTaxAmount());
+                }
+                
+                // Calculate cost
+                if (sale.getSaleItems() != null) {
+                    for (SaleItem item : sale.getSaleItems()) {
+                        if (item.getCostPrice() != null) {
+                            totalCost = totalCost.add(
+                                    item.getCostPrice().multiply(BigDecimal.valueOf(item.getQuantity())));
+                        }
+                    }
+                }
+            }
+        }
+        
+        // Returns/Refunds - would need return tracking
+        BigDecimal returnsRefunds = BigDecimal.ZERO;
+        BigDecimal netRevenue = totalSales.subtract(returnsRefunds);
+        
+        // Revenue breakdown
+        Map<String, Object> revenue = new HashMap<>();
+        revenue.put("totalSales", totalSales);
+        revenue.put("cashSales", cashSales);
+        revenue.put("creditSales", creditSales);
+        revenue.put("returnsRefunds", returnsRefunds);
+        revenue.put("netRevenue", netRevenue);
+        
+        // Expenses - placeholder (would need expense tracking)
+        Map<String, Object> expenses = new HashMap<>();
+        expenses.put("purchases", totalCost);
+        expenses.put("salaries", BigDecimal.ZERO);
+        expenses.put("rent", BigDecimal.ZERO);
+        expenses.put("utilities", BigDecimal.ZERO);
+        expenses.put("transportation", BigDecimal.ZERO);
+        expenses.put("marketing", BigDecimal.ZERO);
+        expenses.put("miscellaneous", BigDecimal.ZERO);
+        expenses.put("totalExpenses", totalCost);
+        
+        // Profitability
+        BigDecimal grossProfit = netRevenue.subtract(totalCost);
+        BigDecimal grossMargin = netRevenue.compareTo(BigDecimal.ZERO) > 0 ?
+                grossProfit.multiply(BigDecimal.valueOf(100)).divide(netRevenue, 2, RoundingMode.HALF_UP) :
+                BigDecimal.ZERO;
+        BigDecimal netProfit = grossProfit; // Same as gross profit without other expenses tracked
+        BigDecimal netMargin = netRevenue.compareTo(BigDecimal.ZERO) > 0 ?
+                netProfit.multiply(BigDecimal.valueOf(100)).divide(netRevenue, 2, RoundingMode.HALF_UP) :
+                BigDecimal.ZERO;
+        
+        Map<String, Object> profitability = new HashMap<>();
+        profitability.put("grossProfit", grossProfit);
+        profitability.put("grossMargin", grossMargin);
+        profitability.put("netProfit", netProfit);
+        profitability.put("netMargin", netMargin);
+        
+        // Cash Flow - simplified
+        Map<String, Object> cashFlow = new HashMap<>();
+        cashFlow.put("openingCash", BigDecimal.ZERO); // Would need cash book tracking
+        cashFlow.put("cashIn", cashSales);
+        cashFlow.put("cashOut", BigDecimal.ZERO); // Would need expense tracking
+        cashFlow.put("closingCash", cashSales);
+        
+        // Receivables and Payables
+        BigDecimal accountsReceivable = getTotalReceivables(branchId);
+        BigDecimal accountsPayable = getTotalPayables(branchId);
+        
+        // Build final summary
+        Map<String, Object> summary = new HashMap<>();
+        summary.put("startDate", startDate);
+        summary.put("endDate", endDate);
+        summary.put("revenue", revenue);
+        summary.put("expenses", expenses);
+        summary.put("profitability", profitability);
+        summary.put("cashFlow", cashFlow);
+        summary.put("accountsReceivable", accountsReceivable);
+        summary.put("accountsPayable", accountsPayable);
+        summary.put("totalTax", totalTax);
+        
+        return summary;
+    }
 }

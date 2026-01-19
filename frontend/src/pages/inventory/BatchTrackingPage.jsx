@@ -37,7 +37,7 @@ const BatchTrackingPage = () => {
   const selectedBranch = useBranchStore((state) => state.selectedBranch);
 
   // Fetch inventory data with batches
-  const { data, isLoading } = useApiQuery(
+  const { data: response, isLoading } = useApiQuery(
     ["inventory-batches", selectedBranch?.id],
     selectedBranch?.id
       ? API_ENDPOINTS.INVENTORY.BY_BRANCH(selectedBranch.id)
@@ -47,6 +47,9 @@ const BatchTrackingPage = () => {
       enabled: !!selectedBranch?.id,
     }
   );
+
+  // Extract data from ApiResponse wrapper
+  const data = response?.data;
 
   const batches = useMemo(() => {
     if (!data?.content) return [];
@@ -58,8 +61,9 @@ const BatchTrackingPage = () => {
         inventory.batches.forEach((batch) => {
           allBatches.push({
             ...batch,
-            productName: inventory.product?.productName || "Unknown Product",
-            productCode: inventory.product?.productCode || "",
+            // Use batch's own product info if available, otherwise fall back to inventory product
+            productName: batch.productName || inventory.productName || "Unknown Product",
+            productCode: batch.productCode || inventory.productCode || "",
           });
         });
       }

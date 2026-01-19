@@ -4,25 +4,155 @@
  */
 
 import { useState, useMemo } from "react";
-import { Plus, Download, Building2 } from "lucide-react";
+import { Plus, Download, Building2, Edit, Trash2 } from "lucide-react";
 import { PageHeader, DataTable } from "@/components/common";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatCurrency } from "@/utils/formatters";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { bankService } from "@/services";
+import { toast } from "sonner";
+import BankFormDialog from "./BankFormDialog";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const BanksPage = () => {
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   });
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [selectedBank, setSelectedBank] = useState(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [bankToDelete, setBankToDelete] = useState(null);
 
-  const mockData = {
-    content: [],
-    total: 0,
-    pageCount: 0,
+  // Fetch banks with pagination
+  const { data, isLoading, isFetching } = useQuery({
+    queryKey: ["banks", pagination.pageIndex, pagination.pageSize, searchQuery],
+    queryFn: async () => {
+      const response = await bankService.getAll({
+        page: pagination.pageIndex,
+        size: pagination.pageSize,
+        sort: "bankName,asc",
+      });
+      return response.data.data;
+    },
+  });
+
+  // Fetch total balance
+  const { data: totalBalance } = useQuery({
+    queryKey: ["banks-total-balance"],
+    queryFn: async () => {
+      const response = await bankService.getTotalBalance();
+      return response.data.data;
+    },
+  });
+
+  // Create mutation
+  const createMutation = useMutation({
+    mutationFn: (data) => bankService.create(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["banks"]);
+      queryClient.invalidateQueries(["banks-total-balance"]);
+      toast.success("Bank account created successfully");
+      setDialogOpen(false);
+      setSelectedBank(null);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to create bank account");
+    },
+  });
+
+  // Update mutation
+  const updateMutation = useMutation({
+    mutationFn: ({ id, data }) => bankService.update(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["banks"]);
+      queryClient.invalidateQueries(["banks-total-balance"]);
+      toast.success("Bank account updated successfully");
+      setDialogOpen(false);
+      setSelectedBank(null);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to update bank account");
+    },
+  });
+
+  // Delete mutation
+  const deleteMutation = useMutation({
+    mutationFn: (id) => bankService.delete(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["banks"]);
+      queryClient.invalidateQueries(["banks-total-balance"]);
+      toast.success("Bank account deactivated successfully");
+      setDeleteDialogOpen(false);
+      setBankToDelete(null);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || "Failed to deactivate bank account");
+    },
+  });
+
+  const handleSubmit = (formData) => {
+    if (selectedBank) {
+      updateMutation.mutate({ id: selectedBank.id, data: formData });
+    } else {
+      createMutation.mutate(formData);
+    }
+  };
+
+  const handleEdit = (bank) => {
+    setSelectedBank(bank);
+    setDialogOpen(true);
+  };
+
+  const handleDelete = (bank) => {
+    setBankToDelete(bank);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = () => {
+    if (bankToDelete) {
+      deleteMutation.mutate(bankToDelete.id);
+    }
+  };
+
+  const handleExport = () => {
+    if (!data?.content || data.content.length === 0) return;
+
+    const csv = [
+      ["Bank Name", "Account Number", "IFSC Code", "Branch", "Account Type", "Balance", "Status"],
+      ...data.content.map((bank) => [
+        bank.bankName,
+        bank.accountNumber,
+        bank.ifscCode || "",
+        bank.branchName || "",
+        bank.accountType,
+        bank.currentBalance,
+        bank.isActive ? "Active" : "Inactive",
+      ]),
+    ]
+      .map((row) => row.join(","))
+      .join("\n");
+
+    const blob = new Blob([csv], { type: "text/csv" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `banks-${new Date().toISOString().split("T")[0]}.csv`;
+    link.click();
   };
 
   const columns = useMemo(
@@ -33,7 +163,14 @@ const BanksPage = () => {
         cell: ({ row }) => (
           <div className="flex items-center gap-2">
             <Building2 className="h-4 w-4 text-muted-foreground" />
-            <span className="font-medium">{row.getValue("bankName")}</span>
+            <div>
+              <span className="font-medium">{row.getValue("bankName")}</span>
+              {row.original.branchName && (
+                <div className="text-xs text-muted-foreground">
+                  {row.original.branchName}
+                </div>
+              )}
+            </div>
           </div>
         ),
       },
@@ -47,25 +184,33 @@ const BanksPage = () => {
         ),
       },
       {
+        accessorKey: "accountHolderName",
+        header: "Account Holder",
+        meta: { className: "hidden lg:table-cell" },
+      },
+      {
         accessorKey: "accountType",
         header: "Type",
         meta: { className: "hidden md:table-cell" },
-        cell: ({ row }) => row.getValue("accountType") || "CURRENT",
-      },
-      {
-        accessorKey: "branchName",
-        header: "Branch",
-        meta: { className: "hidden lg:table-cell" },
-        cell: ({ row }) => row.getValue("branchName") || "-",
+        cell: ({ row }) => (
+          <Badge variant="outline">{row.getValue("accountType")}</Badge>
+        ),
       },
       {
         accessorKey: "currentBalance",
         header: "Balance",
-        cell: ({ row }) => (
-          <span className="font-semibold text-lg">
-            {formatCurrency(row.getValue("currentBalance") || 0)}
-          </span>
-        ),
+        cell: ({ row }) => {
+          const balance = row.getValue("currentBalance") || 0;
+          return (
+            <span
+              className={`font-semibold ${
+                balance < 0 ? "text-red-600" : "text-green-600"
+              }`}
+            >
+              {formatCurrency(balance)}
+            </span>
+          );
+        },
       },
       {
         accessorKey: "isActive",
@@ -79,14 +224,36 @@ const BanksPage = () => {
           );
         },
       },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="flex items-center gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEdit(row.original)}
+            >
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDelete(row.original)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        ),
+      },
     ],
     []
   );
 
   const stats = {
-    totalBanks: 0,
-    totalBalance: 0,
-    activeAccounts: 0,
+    totalBanks: data?.totalElements || 0,
+    totalBalance: totalBalance || 0,
+    activeAccounts: data?.content?.filter((b) => b.isActive)?.length || 0,
   };
 
   return (
@@ -96,11 +263,14 @@ const BanksPage = () => {
         description="Manage bank accounts and balances"
       >
         <div className="flex gap-2">
-          <Button>
+          <Button onClick={() => {
+            setSelectedBank(null);
+            setDialogOpen(true);
+          }}>
             <Plus className="mr-2 h-4 w-4" />
             Add Bank Account
           </Button>
-          <Button variant="outline">
+          <Button variant="outline" onClick={handleExport} disabled={!data?.content?.length}>
             <Download className="mr-2 h-4 w-4" />
             Export
           </Button>
@@ -154,17 +324,45 @@ const BanksPage = () => {
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={mockData.content}
-        isLoading={false}
+        data={data?.content || []}
+        isLoading={isLoading}
+        isFetching={isFetching}
         pagination={{
           pageIndex: pagination.pageIndex,
           pageSize: pagination.pageSize,
-          total: mockData.total,
-          pageCount: mockData.pageCount,
+          total: data?.totalElements || 0,
+          pageCount: data?.totalPages || 0,
         }}
         onPaginationChange={setPagination}
         emptyMessage="No bank accounts found."
       />
+
+      {/* Bank Form Dialog */}
+      <BankFormDialog
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        bank={selectedBank}
+        onSubmit={handleSubmit}
+        isLoading={createMutation.isPending || updateMutation.isPending}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Bank Account</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to deactivate {bankToDelete?.bankName}? This action will mark the account as inactive.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>
+              Deactivate
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

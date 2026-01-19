@@ -108,7 +108,7 @@ const CashBookPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ₹{summary.openingBalance.toLocaleString()}
+              Rs. {summary.openingBalance.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -122,7 +122,7 @@ const CashBookPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              ₹{summary.totalReceipts.toLocaleString()}
+              Rs. {summary.totalReceipts.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -136,7 +136,7 @@ const CashBookPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              ₹{summary.totalPayments.toLocaleString()}
+              Rs. {summary.totalPayments.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -149,7 +149,7 @@ const CashBookPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              ₹{summary.closingBalance.toLocaleString()}
+              Rs. {summary.closingBalance.toLocaleString()}
             </div>
           </CardContent>
         </Card>
@@ -226,16 +226,16 @@ const CashBookPage = () => {
                 <TableHead>Reference</TableHead>
                 <TableHead>Description</TableHead>
                 <TableHead>Type</TableHead>
-                <TableHead className="text-right">Receipt (₹)</TableHead>
-                <TableHead className="text-right">Payment (₹)</TableHead>
-                <TableHead className="text-right">Balance (₹)</TableHead>
+                <TableHead className="text-right">Receipt (Rs.)</TableHead>
+                <TableHead className="text-right">Payment (Rs.)</TableHead>
+                <TableHead className="text-right">Balance (Rs.)</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               <TableRow className="bg-gray-50 font-medium">
                 <TableCell colSpan={6}>Opening Balance</TableCell>
                 <TableCell className="text-right">
-                  ₹{summary.openingBalance.toLocaleString()}
+                  Rs. {summary.openingBalance.toLocaleString()}
                 </TableCell>
               </TableRow>
               {cashTransactions.map((transaction) => (
@@ -263,29 +263,29 @@ const CashBookPage = () => {
                   </TableCell>
                   <TableCell className="text-right text-green-600 font-medium">
                     {transaction.type === "RECEIPT"
-                      ? `₹${transaction.amount.toLocaleString()}`
+                      ? `Rs. ${transaction.amount.toLocaleString()}`
                       : "-"}
                   </TableCell>
                   <TableCell className="text-right text-red-600 font-medium">
                     {transaction.type === "PAYMENT"
-                      ? `₹${transaction.amount.toLocaleString()}`
+                      ? `Rs. ${transaction.amount.toLocaleString()}`
                       : "-"}
                   </TableCell>
                   <TableCell className="text-right font-bold">
-                    ₹{transaction.runningBalance.toLocaleString()}
+                    Rs. {transaction.runningBalance.toLocaleString()}
                   </TableCell>
                 </TableRow>
               ))}
               <TableRow className="bg-gray-100 font-bold">
                 <TableCell colSpan={4}>Totals</TableCell>
                 <TableCell className="text-right text-green-600">
-                  ₹{summary.totalReceipts.toLocaleString()}
+                  Rs. {summary.totalReceipts.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-right text-red-600">
-                  ₹{summary.totalPayments.toLocaleString()}
+                  Rs. {summary.totalPayments.toLocaleString()}
                 </TableCell>
                 <TableCell className="text-right">
-                  ₹{summary.closingBalance.toLocaleString()}
+                  Rs. {summary.closingBalance.toLocaleString()}
                 </TableCell>
               </TableRow>
             </TableBody>

@@ -4,6 +4,7 @@
  */
 
 import { useState, useMemo, useCallback } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { Plus, Download, Eye, Edit, FileText } from "lucide-react";
 import { PageHeader, DataTable } from "@/components/common";
 import { Button } from "@/components/ui/button";
@@ -28,6 +29,8 @@ import { formatCurrency, formatDate } from "@/utils/formatters";
 import { INVOICE_STATUS, PAYMENT_STATUS } from "@/constants";
 import InvoiceFormDialog from "./InvoiceFormDialog";
 import { toast } from "sonner";
+import { invoiceService } from "@/services";
+import { useBranchStore } from "@/store/useBranchStore";
 
 const InvoicesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -38,13 +41,42 @@ const InvoicesPage = () => {
     pageSize: 10,
   });
   const [sorting, setSorting] = useState([{ id: "invoiceDate", desc: true }]);
+  
+  const queryClient = useQueryClient();
 
-  // Mock data
-  const mockData = {
-    content: [],
-    total: 0,
-    pageCount: 0,
-  };
+  // Fetch invoices based on status filter
+  const { data: invoicesData, isLoading, error } = useQuery({
+    queryKey: ['invoices', statusFilter, pagination.pageIndex, pagination.pageSize],
+    queryFn: async () => {
+      try {
+        const response = statusFilter === 'all' 
+          ? await invoiceService.getAll({
+              page: pagination.pageIndex,
+              size: pagination.pageSize,
+            })
+          : await invoiceService.getByStatus(statusFilter, {
+              page: pagination.pageIndex,
+              size: pagination.pageSize,
+            });
+        
+        console.log('Invoice API Response:', response);
+        
+        // Handle different response structures
+        const data = response.data?.data || response.data || {};
+        const content = Array.isArray(data) ? data : (data.content || []);
+        
+        return {
+          content: content,
+          total: data.totalElements || content.length,
+          pageCount: data.totalPages || Math.ceil(content.length / pagination.pageSize),
+        };
+      } catch (error) {
+        console.error('Invoice fetch error:', error);
+        return { content: [], total: 0, pageCount: 0 };
+      }
+    },
+    refetchInterval: 30000,
+  });
 
   const columns = useMemo(
     () => [
@@ -144,29 +176,33 @@ const InvoicesPage = () => {
     []
   );
 
-  const stats = {
-    totalInvoices: 0,
-    totalAmount: 0,
-    paidAmount: 0,
-    outstandingAmount: 0,
-  };
+  // Calculate statistics from fetched data
+  const stats = useMemo(() => {
+    const invoices = invoicesData?.content || [];
+    return {
+      totalInvoices: invoices.length,
+      totalAmount: invoices.reduce((sum, inv) => sum + (inv.totalAmount || 0), 0),
+      paidAmount: invoices.reduce((sum, inv) => sum + (inv.paidAmount || 0), 0),
+      outstandingAmount: invoices.reduce((sum, inv) => sum + (inv.balanceAmount || 0), 0),
+    };
+  }, [invoicesData]);
 
   const handleCreateInvoice = useCallback(async (data) => {
     try {
-      // TODO: Call API to create invoice
       console.log("Creating invoice:", data);
 
       toast.success("Invoice Created", {
         description: "The invoice has been successfully created.",
       });
 
-      // TODO: Refresh data after creation
+      // Refresh data after creation
+      queryClient.invalidateQueries({ queryKey: ['invoices'] });
     } catch (error) {
       toast.error("Error", {
         description: "Failed to create invoice. Please try again.",
       });
     }
-  }, []);
+  }, [queryClient]);
 
   return (
     <div className="space-y-6">
@@ -256,16 +292,23 @@ const InvoicesPage = () => {
         </Select>
       </div>
 
+      {/* Error Display */}
+      {error && (
+        <div className="rounded-md bg-destructive/15 p-4 text-sm text-destructive">
+          Failed to load invoices. Please try again.
+        </div>
+      )}
+
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={mockData.content}
-        isLoading={false}
+        data={invoicesData?.content || []}
+        isLoading={isLoading}
         pagination={{
           pageIndex: pagination.pageIndex,
           pageSize: pagination.pageSize,
-          total: mockData.total,
-          pageCount: mockData.pageCount,
+          total: invoicesData?.total || 0,
+          pageCount: invoicesData?.pageCount || 0,
         }}
         onPaginationChange={setPagination}
         sorting={sorting}

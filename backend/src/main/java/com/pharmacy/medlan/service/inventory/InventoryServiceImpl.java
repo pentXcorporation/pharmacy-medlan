@@ -71,6 +71,17 @@ public class InventoryServiceImpl implements InventoryService {
     }
 
     @Override
+    public Page<InventoryResponse> getAllLowStockInventory(Pageable pageable) {
+        Page<BranchInventory> lowStockPage = branchInventoryRepository.findAllLowStock(pageable);
+
+        return lowStockPage.map(inv -> {
+            List<InventoryBatch> batches = inventoryBatchRepository
+                    .findByProductIdAndBranchId(inv.getProduct().getId(), inv.getBranch().getId());
+            return inventoryMapper.toInventoryResponse(inv, batches);
+        });
+    }
+
+    @Override
     public List<InventoryResponse> getAllOutOfStockInventory() {
         List<BranchInventory> allOutOfStock = branchInventoryRepository.findAllOutOfStock();
 

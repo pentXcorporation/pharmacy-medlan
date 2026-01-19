@@ -220,6 +220,15 @@ export const reportService = {
     });
   },
 
+  /**
+   * Get comprehensive financial summary
+   */
+  getFinancialSummary: (branchId, startDate, endDate) => {
+    return api.get(API_ENDPOINTS.REPORTS.FINANCIAL.SUMMARY, {
+      params: { branchId, startDate, endDate },
+    });
+  },
+
   // ===================
   // ALERTS
   // ===================

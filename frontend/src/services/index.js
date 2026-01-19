@@ -17,3 +17,11 @@ export * from "./reportService";
 export * from "./dashboardService";
 export * from "./systemConfigService";
 export * from "./chequeService";
+export * from "./barcodeService";
+export * from "./inventoryTransactionService";
+
+// Default exports
+export { default as bankService } from "./bankService";
+
+// Export invoiceService explicitly since it's in saleService.js
+export { invoiceService } from "./saleService";

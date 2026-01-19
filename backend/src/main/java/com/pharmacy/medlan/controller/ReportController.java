@@ -223,6 +223,16 @@ public class ReportController {
             @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
         return ResponseEntity.ok(financialReportService.getTaxSummary(branchId, startDate, endDate));
     }
+    
+    @GetMapping("/financial/summary")
+    @PreAuthorize("hasAnyRole('ADMIN', 'MANAGER', 'SUPER_ADMIN', 'OWNER', 'ACCOUNTANT')")
+    @Operation(summary = "Get comprehensive financial summary", description = "Get complete financial overview including revenue, expenses, profitability, and cash flow")
+    public ResponseEntity<Map<String, Object>> getFinancialSummary(
+            @RequestParam Long branchId,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate startDate,
+            @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate endDate) {
+        return ResponseEntity.ok(financialReportService.getFinancialSummary(branchId, startDate, endDate));
+    }
 
     // ===================== ALERTS =====================
 
