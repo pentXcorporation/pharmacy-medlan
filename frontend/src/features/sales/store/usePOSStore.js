@@ -124,6 +124,12 @@ const usePOSStore = create(
           items: [],
           customer: null,
           discount: { type: "percentage", value: 0 },
+          payment: {
+            method: "CASH",
+            amountTendered: 0,
+            cardNumber: "",
+            reference: "",
+          },
         });
       },
 
@@ -246,6 +252,7 @@ const usePOSStore = create(
         items: state.items,
         customer: state.customer,
         discount: state.discount,
+        payment: state.payment,
         heldSales: state.heldSales,
       }),
     }

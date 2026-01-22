@@ -75,8 +75,8 @@ const SalesHistoryPage = () => {
     }
   }, [data, error]);
 
-  // WebSocket for real-time updates
-  const { lastMessage } = useWebSocket({
+  // WebSocket for real-time updates (optional feature)
+  const { lastMessage, isConnected } = useWebSocket({
     onMessage: (message) => {
       // Listen for new sale notifications
       if (message.type === "NOTIFICATION" && message.data?.type === "NEW_SALE") {
@@ -92,6 +92,9 @@ const SalesHistoryPage = () => {
         queryClient.invalidateQueries({ queryKey: saleKeys.all });
         refetch();
       }
+    },
+    onError: () => {
+      // Silently ignore WebSocket errors - it's an optional feature
     },
   });
 

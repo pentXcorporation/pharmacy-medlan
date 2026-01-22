@@ -66,12 +66,15 @@ const EmployeesPage = () => {
     branchId: filters.branchId === "all" ? undefined : filters.branchId,
     status: filters.status === "all" ? undefined : filters.status,
   });
-  const { data: branchesData } = useActiveBranches();
+  const { data: branchesData, isLoading: branchesLoading } = useActiveBranches();
   const deleteMutation = useDeleteUser();
 
   const employees = data?.content || data || [];
   const branches = branchesData || [];
   const totalPages = data?.totalPages || 1;
+
+  console.log("Branches data:", branchesData);
+  console.log("Branches loading:", branchesLoading);
 
   // Handle delete
   const handleDelete = () => {

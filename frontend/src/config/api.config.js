@@ -13,6 +13,9 @@ export const API_CONFIG = {
   // WebSocket URL
   WS_URL: import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws",
 
+  // Enable WebSocket features
+  ENABLE_WEBSOCKET: import.meta.env.VITE_ENABLE_WEBSOCKET !== 'false',
+
   // Request timeout in milliseconds
   TIMEOUT: 30000,
 

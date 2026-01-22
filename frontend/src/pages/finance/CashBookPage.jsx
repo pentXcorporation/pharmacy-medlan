@@ -1,87 +1,142 @@
-import React, { useState } from "react";
-import { Calendar, DollarSign, TrendingUp, TrendingDown, Download, Filter } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { Calendar, DollarSign, TrendingUp, TrendingDown, Download, Filter, Loader2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../../components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../../components/ui/table";
 import { Badge } from "../../components/ui/badge";
+import { cashBookService } from "@/services";
+import { useBranch } from "@/hooks";
+import { toast } from "sonner";
 
 /**
  * Cash Book Page - Track all cash transactions
  * Records cash receipts and payments with running balance
  */
 const CashBookPage = () => {
+  const { selectedBranch } = useBranch();
   const [filters, setFilters] = useState({
     startDate: new Date().toISOString().split("T")[0],
     endDate: new Date().toISOString().split("T")[0],
     type: "all",
   });
 
-  // Mock data - replace with actual API calls
-  const cashTransactions = [
-    {
-      id: 1,
-      date: "2026-01-03",
-      time: "09:30",
-      reference: "SALE-0001",
-      description: "Cash Sale - Bill #0001",
-      type: "RECEIPT",
-      amount: 1250.00,
-      runningBalance: 15250.00,
-    },
-    {
-      id: 2,
-      date: "2026-01-03",
-      time: "10:15",
-      reference: "SALE-0002",
-      description: "Cash Sale - Bill #0002",
-      type: "RECEIPT",
-      amount: 3500.00,
-      runningBalance: 18750.00,
-    },
-    {
-      id: 3,
-      date: "2026-01-03",
-      time: "11:00",
-      reference: "EXP-001",
-      description: "Utility Bills Payment",
-      type: "PAYMENT",
-      amount: 2000.00,
-      runningBalance: 16750.00,
-    },
-    {
-      id: 4,
-      date: "2026-01-03",
-      time: "12:30",
-      reference: "SALE-0003",
-      description: "Cash Sale - Bill #0003",
-      type: "RECEIPT",
-      amount: 850.00,
-      runningBalance: 17600.00,
-    },
-    {
-      id: 5,
-      date: "2026-01-03",
-      time: "14:00",
-      reference: "PAY-GRN-001",
-      description: "Supplier Payment - ABC Pharma",
-      type: "PAYMENT",
-      amount: 5000.00,
-      runningBalance: 12600.00,
-    },
-  ];
+  const [cashTransactions, setCashTransactions] = useState([]);
+  const [summary, setSummary] = useState({
+    openingBalance: 0,
+    totalReceipts: 0,
+    totalPayments: 0,
+    closingBalance: 0,
+  });
+  const [loading, setLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
-  const summary = {
-    openingBalance: 14000.00,
-    totalReceipts: 5600.00,
-    totalPayments: 7000.00,
-    closingBalance: 12600.00,
+  // Fetch cash book data
+  useEffect(() => {
+    if (selectedBranch?.id) {
+      fetchCashBookData();
+    }
+  }, [selectedBranch, filters.startDate, filters.endDate]);
+
+  const fetchCashBookData = async () => {
+    if (!selectedBranch?.id) {
+      toast.error("Please select a branch");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      // Fetch transactions
+      const transactionsResponse = await cashBookService.getByBranchAndDateRange(
+        selectedBranch.id,
+        filters.startDate,
+        filters.endDate
+      );
+
+      // Fetch summary
+      const summaryResponse = await cashBookService.getSummary(
+        selectedBranch.id,
+        filters.startDate,
+        filters.endDate
+      );
+
+      const transactions = transactionsResponse.data.data || [];
+      const summaryData = summaryResponse.data.data || {};
+
+      // Filter by type if needed
+      let filteredTransactions = transactions;
+      if (filters.type === "RECEIPT") {
+        filteredTransactions = transactions.filter(t => t.debitAmount > 0);
+      } else if (filters.type === "PAYMENT") {
+        filteredTransactions = transactions.filter(t => t.creditAmount > 0);
+      }
+
+      setCashTransactions(filteredTransactions);
+      setSummary({
+        openingBalance: summaryData.openingBalance || 0,
+        totalReceipts: summaryData.totalReceipts || 0,
+        totalPayments: summaryData.totalPayments || 0,
+        closingBalance: summaryData.closingBalance || 0,
+      });
+    } catch (error) {
+      console.error("Error fetching cash book data:", error);
+      toast.error(error.response?.data?.message || "Failed to fetch cash book data");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleExport = () => {
-    console.log("Exporting cash book data...");
-    // Implement actual export logic
+  const handleApplyFilters = () => {
+    fetchCashBookData();
+  };
+
+  const handleExport = async () => {
+    if (!selectedBranch?.id) {
+      toast.error("Please select a branch");
+      return;
+    }
+
+    setExporting(true);
+    try {
+      const response = await cashBookService.export({
+        branchId: selectedBranch.id,
+        startDate: filters.startDate,
+        endDate: filters.endDate,
+      });
+
+      // Create download link
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement("a");
+      link.href = url;
+      link.setAttribute("download", `cash-book-${filters.startDate}-to-${filters.endDate}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+
+      toast.success("Cash book exported successfully");
+    } catch (error) {
+      console.error("Error exporting cash book:", error);
+      toast.error("Failed to export cash book");
+    } finally {
+      setExporting(false);
+    }
+  };
+
+  const formatCurrency = (amount) => {
+    return `Rs. ${Number(amount).toLocaleString("en-US", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`;
+  };
+
+  const formatDateTime = (dateString) => {
+    if (!dateString) return { date: "N/A", time: "" };
+    const date = new Date(dateString);
+    return {
+      date: date.toLocaleDateString("en-GB"),
+      time: date.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" }),
+    };
   };
 
   return (
@@ -91,9 +146,16 @@ const CashBookPage = () => {
         <div>
           <h1 className="text-3xl font-bold">Cash Book</h1>
           <p className="text-gray-600 mt-1">Track all cash receipts and payments</p>
+          {selectedBranch && (
+            <p className="text-sm text-gray-500 mt-1">Branch: {selectedBranch.name}</p>
+          )}
         </div>
-        <Button onClick={handleExport}>
-          <Download className="mr-2 h-4 w-4" />
+        <Button onClick={handleExport} disabled={exporting || loading}>
+          {exporting ? (
+            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+          ) : (
+            <Download className="mr-2 h-4 w-4" />
+          )}
           Export Cash Book
         </Button>
       </div>
@@ -108,7 +170,7 @@ const CashBookPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              Rs. {summary.openingBalance.toLocaleString()}
+              {formatCurrency(summary.openingBalance)}
             </div>
           </CardContent>
         </Card>
@@ -122,7 +184,7 @@ const CashBookPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              Rs. {summary.totalReceipts.toLocaleString()}
+              {formatCurrency(summary.totalReceipts)}
             </div>
           </CardContent>
         </Card>
@@ -136,7 +198,7 @@ const CashBookPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              Rs. {summary.totalPayments.toLocaleString()}
+              {formatCurrency(summary.totalPayments)}
             </div>
           </CardContent>
         </Card>
@@ -149,7 +211,7 @@ const CashBookPage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              Rs. {summary.closingBalance.toLocaleString()}
+              {formatCurrency(summary.closingBalance)}
             </div>
           </CardContent>
         </Card>
@@ -204,7 +266,16 @@ const CashBookPage = () => {
               </Select>
             </div>
             <div className="flex items-end">
-              <Button className="w-full">Apply Filters</Button>
+              <Button className="w-full" onClick={handleApplyFilters} disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  "Apply Filters"
+                )}
+              </Button>
             </div>
           </div>
         </CardContent>
@@ -219,77 +290,91 @@ const CashBookPage = () => {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Date & Time</TableHead>
-                <TableHead>Reference</TableHead>
-                <TableHead>Description</TableHead>
-                <TableHead>Type</TableHead>
-                <TableHead className="text-right">Receipt (Rs.)</TableHead>
-                <TableHead className="text-right">Payment (Rs.)</TableHead>
-                <TableHead className="text-right">Balance (Rs.)</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow className="bg-gray-50 font-medium">
-                <TableCell colSpan={6}>Opening Balance</TableCell>
-                <TableCell className="text-right">
-                  Rs. {summary.openingBalance.toLocaleString()}
-                </TableCell>
-              </TableRow>
-              {cashTransactions.map((transaction) => (
-                <TableRow key={transaction.id}>
-                  <TableCell>
-                    <div>
-                      <div className="font-medium">{transaction.date}</div>
-                      <div className="text-sm text-gray-500">{transaction.time}</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    <code className="text-xs bg-gray-100 px-2 py-1 rounded">
-                      {transaction.reference}
-                    </code>
-                  </TableCell>
-                  <TableCell>{transaction.description}</TableCell>
-                  <TableCell>
-                    <Badge
-                      variant={
-                        transaction.type === "RECEIPT" ? "success" : "destructive"
-                      }
-                    >
-                      {transaction.type}
-                    </Badge>
-                  </TableCell>
-                  <TableCell className="text-right text-green-600 font-medium">
-                    {transaction.type === "RECEIPT"
-                      ? `Rs. ${transaction.amount.toLocaleString()}`
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="text-right text-red-600 font-medium">
-                    {transaction.type === "PAYMENT"
-                      ? `Rs. ${transaction.amount.toLocaleString()}`
-                      : "-"}
-                  </TableCell>
-                  <TableCell className="text-right font-bold">
-                    Rs. {transaction.runningBalance.toLocaleString()}
+          {loading ? (
+            <div className="flex items-center justify-center py-12">
+              <Loader2 className="h-8 w-8 animate-spin text-primary" />
+              <span className="ml-3 text-gray-600">Loading cash book entries...</span>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date & Time</TableHead>
+                  <TableHead>Reference</TableHead>
+                  <TableHead>Description</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead className="text-right">Receipt (Rs.)</TableHead>
+                  <TableHead className="text-right">Payment (Rs.)</TableHead>
+                  <TableHead className="text-right">Balance (Rs.)</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow className="bg-gray-50 font-medium">
+                  <TableCell colSpan={6}>Opening Balance</TableCell>
+                  <TableCell className="text-right">
+                    {formatCurrency(summary.openingBalance)}
                   </TableCell>
                 </TableRow>
-              ))}
-              <TableRow className="bg-gray-100 font-bold">
-                <TableCell colSpan={4}>Totals</TableCell>
-                <TableCell className="text-right text-green-600">
-                  Rs. {summary.totalReceipts.toLocaleString()}
-                </TableCell>
-                <TableCell className="text-right text-red-600">
-                  Rs. {summary.totalPayments.toLocaleString()}
-                </TableCell>
-                <TableCell className="text-right">
-                  Rs. {summary.closingBalance.toLocaleString()}
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+                {cashTransactions.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={7} className="text-center py-8 text-gray-500">
+                      No transactions found for the selected date range
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  cashTransactions.map((transaction) => {
+                    const { date, time } = formatDateTime(transaction.createdAt || transaction.transactionDate);
+                    const isReceipt = transaction.debitAmount > 0;
+                    
+                    return (
+                      <TableRow key={transaction.id}>
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{date}</div>
+                            <div className="text-sm text-gray-500">{time}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <code className="text-xs bg-gray-100 px-2 py-1 rounded">
+                            {transaction.referenceNumber || "N/A"}
+                          </code>
+                        </TableCell>
+                        <TableCell>{transaction.description}</TableCell>
+                        <TableCell>
+                          <Badge variant={isReceipt ? "success" : "destructive"}>
+                            {isReceipt ? "RECEIPT" : "PAYMENT"}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="text-right text-green-600 font-medium">
+                          {isReceipt ? formatCurrency(transaction.debitAmount) : "-"}
+                        </TableCell>
+                        <TableCell className="text-right text-red-600 font-medium">
+                          {!isReceipt ? formatCurrency(transaction.creditAmount) : "-"}
+                        </TableCell>
+                        <TableCell className="text-right font-bold">
+                          {formatCurrency(transaction.runningBalance)}
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })
+                )}
+                {cashTransactions.length > 0 && (
+                  <TableRow className="bg-gray-100 font-bold">
+                    <TableCell colSpan={4}>Totals</TableCell>
+                    <TableCell className="text-right text-green-600">
+                      {formatCurrency(summary.totalReceipts)}
+                    </TableCell>
+                    <TableCell className="text-right text-red-600">
+                      {formatCurrency(summary.totalPayments)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(summary.closingBalance)}
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
         </CardContent>
       </Card>
     </div>

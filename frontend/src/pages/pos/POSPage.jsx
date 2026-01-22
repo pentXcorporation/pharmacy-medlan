@@ -53,6 +53,7 @@ const POSPage = () => {
   const [showCustomerDialog, setShowCustomerDialog] = useState(false);
   const [showHeldSalesSheet, setShowHeldSalesSheet] = useState(false);
   const [showReceiptDialog, setShowReceiptDialog] = useState(false);
+  const [showPrintConfirmDialog, setShowPrintConfirmDialog] = useState(false);
   const [lastSale, setLastSale] = useState(null);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -103,6 +104,15 @@ const POSPage = () => {
     const interval = setInterval(() => setCurrentTime(new Date()), 1000);
     return () => clearInterval(interval);
   }, []);
+
+  // Debug: Log dialog state changes
+  useEffect(() => {
+    console.log("Dialog states:", {
+      showReceiptDialog,
+      showPrintConfirmDialog,
+      hasLastSale: !!lastSale
+    });
+  }, [showReceiptDialog, showPrintConfirmDialog, lastSale]);
 
   // Filter customers
   const filteredCustomers =
@@ -209,11 +219,28 @@ const POSPage = () => {
     try {
       const result = await createSaleMutation.mutateAsync(payload);
       console.log("Sale created successfully:", result);
+      console.log("Result type:", typeof result, "Is null:", result === null, "Is undefined:", result === undefined);
       
-      if (result) {
+      // The mutation should return sale data
+      if (result && typeof result === 'object') {
+        console.log("Setting last sale and showing receipt dialog");
         setLastSale(result);
         setShowReceiptDialog(true);
-        clearCart();
+        // Don't clear cart here - wait for user action
+      } else {
+        // If result is falsy or not an object, show a fallback dialog
+        console.warn("Sale result is unexpected:", result);
+        // Still show success since the mutation didn't throw an error
+        setLastSale({ 
+          saleNumber: "Success", 
+          invoiceNumber: "INV-" + Date.now(),
+          items: saleData.items,
+          totalAmount: saleData.grandTotal,
+          paymentMethod: saleData.payment?.method || "CASH",
+          paidAmount: saleData.payment?.amountTendered || saleData.grandTotal,
+          saleDate: new Date().toISOString()
+        });
+        setShowReceiptDialog(true);
       }
     } catch (error) {
       console.error("Sale creation failed:", error);
@@ -265,6 +292,40 @@ const POSPage = () => {
     setCustomerSearch("");
   };
 
+  // Handle receipt dialog close - prevent auto close
+  const handleReceiptDialogClose = (open) => {
+    console.log("Receipt dialog onOpenChange:", open);
+    // Don't allow closing by clicking outside or ESC - user must click a button
+    if (!open) {
+      console.log("Prevented receipt dialog from auto-closing");
+      return;
+    }
+    setShowReceiptDialog(open);
+  };
+
+  // Handle confirmed cart clearing without print
+  const handleClearWithoutPrint = () => {
+    console.log("User chose: Skip print, clearing cart...");
+    setShowPrintConfirmDialog(false);
+    setShowReceiptDialog(false);
+    clearCart();
+    setLastSale(null);
+  };
+
+  // Handle print then clear
+  const handlePrintAndClear = () => {
+    console.log("User chose: Print receipt");
+    setShowPrintConfirmDialog(false);
+    window.print();
+    // Clear after print dialog appears
+    setTimeout(() => {
+      console.log("Clearing cart after print...");
+      setShowReceiptDialog(false);
+      clearCart();
+      setLastSale(null);
+    }, 500);
+  };
+
   return (
     <div className="h-[calc(100vh-4rem)] sm:h-screen flex flex-col">
       {/* Top Bar */}
@@ -282,6 +343,12 @@ const POSPage = () => {
           ) : (
             <Badge variant="destructive" className="gap-1 hidden lg:flex">
               ⚠️ No Branch Selected
+            </Badge>
+          )}
+          {/* Debug indicator */}
+          {showPrintConfirmDialog && (
+            <Badge variant="destructive" className="gap-1">
+              🐛 Print Dialog Should Be Open
             </Badge>
           )}
         </div>
@@ -492,8 +559,14 @@ const POSPage = () => {
       </Dialog>
 
       {/* Receipt Dialog */}
-      <Dialog open={showReceiptDialog} onOpenChange={setShowReceiptDialog}>
-        <DialogContent className="sm:max-w-[400px] max-h-[90vh] overflow-auto">
+      <Dialog 
+        open={showReceiptDialog} 
+        onOpenChange={handleReceiptDialogClose}
+      >
+        <DialogContent 
+          className="sm:max-w-[400px] max-h-[90vh] overflow-auto"
+          onInteractOutside={(e) => e.preventDefault()}
+        >
           <DialogHeader>
             <DialogTitle className="text-center text-green-600">
               Sale Complete!
@@ -656,21 +729,59 @@ const POSPage = () => {
           
           <DialogFooter className="gap-2 sm:gap-0 print:hidden">
             <Button
-              variant="outline"
-              onClick={() => setShowReceiptDialog(false)}
+              onClick={() => window.print()}
+            >
+              <Receipt className="mr-2 h-4 w-4" />
+              Print Receipt
+            </Button>
+            <Button
+              variant="default"
+              onClick={() => {
+                console.log("New Sale button clicked - showing print confirmation");
+                setShowPrintConfirmDialog(true);
+              }}
             >
               New Sale
             </Button>
-            <Button onClick={() => window.print()}>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Print Confirmation Dialog */}
+      <Dialog 
+        open={showPrintConfirmDialog} 
+        onOpenChange={(open) => {
+          // Prevent closing by clicking outside or ESC - force user to choose
+          if (!open) {
+            return;
+          }
+          setShowPrintConfirmDialog(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-[400px]" onInteractOutside={(e) => e.preventDefault()}>
+          <DialogHeader>
+            <DialogTitle>Print Receipt?</DialogTitle>
+            <DialogDescription>
+              Do you want to print the receipt before starting a new sale?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={handleClearWithoutPrint}
+            >
+              No, Skip Print
+            </Button>
+            <Button onClick={handlePrintAndClear}>
               <Receipt className="mr-2 h-4 w-4" />
-              Print Receipt
+              Yes, Print Receipt
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
 
       {/* Print Styles */}
-      <style jsx>{`
+      <style>{`
         @media print {
           body * {
             visibility: hidden;

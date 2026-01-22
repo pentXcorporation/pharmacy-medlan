@@ -30,7 +30,7 @@ import { INVOICE_STATUS, PAYMENT_STATUS } from "@/constants";
 import InvoiceFormDialog from "./InvoiceFormDialog";
 import { toast } from "sonner";
 import { invoiceService } from "@/services";
-import { useBranchStore } from "@/store/useBranchStore";
+import { useBranchStore } from "@/store";
 
 const InvoicesPage = () => {
   const [searchQuery, setSearchQuery] = useState("");

@@ -50,7 +50,6 @@ public class Employee extends AuditableEntity {
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 
-    @OneToMany(mappedBy = "employee", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<EmployeePayment> payments = new ArrayList<>();
+    // Note: EmployeePayment now references User, not Employee
+    // Keeping this entity for future payroll-specific employee records if needed
 }

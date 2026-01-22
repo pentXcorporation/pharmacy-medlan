@@ -284,6 +284,213 @@ export const reportService = {
   acknowledgeAlert: (alertId) => {
     return api.post(API_ENDPOINTS.REPORTS.ALERTS.ACKNOWLEDGE(alertId));
   },
+
+  // ===================
+  // AGGREGATE REPORTS (Frontend convenience methods)
+  // ===================
+
+  /**
+   * Get comprehensive sales report
+   */
+  getSalesReport: async (params) => {
+    const { branchId, startDate, endDate } = params;
+    
+    try {
+      // Fetch all required data in parallel
+      const [totalResponse, countResponse, topProductsResponse, dailySalesResponse] = await Promise.all([
+        reportService.getSalesTotal(branchId, startDate, endDate),
+        reportService.getSalesCount(branchId, startDate, endDate),
+        reportService.getTopProducts(branchId, startDate, endDate, 10),
+        reportService.getDailySales(branchId, startDate, endDate),
+      ]);
+
+      // Extract data from responses
+      const totalSales = totalResponse?.data?.data || 0;
+      const salesCount = countResponse?.data?.data || 0;
+      const topProducts = topProductsResponse?.data?.data || [];
+      const dailySales = dailySalesResponse?.data?.data || [];
+
+      // Calculate summary metrics
+      const averageSale = salesCount > 0 ? totalSales / salesCount : 0;
+      const itemsSold = topProducts.reduce((sum, p) => sum + (p.quantitySold || 0), 0);
+      const uniqueCustomers = 0; // Would need customer data
+
+      return {
+        data: {
+          summary: {
+            totalSales,
+            salesCount,
+            averageSale,
+            itemsSold,
+            uniqueCustomers,
+          },
+          topProducts,
+          dailySales,
+        }
+      };
+    } catch (error) {
+      console.error("Error fetching sales report:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get comprehensive inventory report
+   */
+  getInventoryReport: async (params) => {
+    const { branchId } = params;
+    
+    try {
+      // Fetch all required data in parallel
+      const [stockValueResponse, lowStockResponse, expiringResponse, summaryResponse, categoryResponse] = await Promise.all([
+        reportService.getStockValue(branchId),
+        reportService.getLowStockReport(branchId),
+        reportService.getExpiringStockReport(branchId, 30),
+        reportService.getInventorySummary(branchId),
+        reportService.getStockValueByCategory(branchId),
+      ]);
+
+      // Extract data from responses
+      const totalStockValue = stockValueResponse?.data?.data || 0;
+      const lowStockItems = lowStockResponse?.data?.data?.content || lowStockResponse?.data?.data || [];
+      const expiringItems = expiringResponse?.data?.data?.content || expiringResponse?.data?.data || [];
+      const summaryData = summaryResponse?.data?.data || {};
+      const stockLevels = categoryResponse?.data?.data || [];
+
+      // Calculate summary metrics
+      const lowStockCount = lowStockItems.filter(item => item.currentStock < item.reorderLevel).length;
+      const outOfStockCount = lowStockItems.filter(item => item.currentStock === 0).length;
+      const expiringCount = expiringItems.length;
+
+      return {
+        data: {
+          summary: {
+            totalStockValue,
+            totalProducts: summaryData.totalProducts || 0,
+            lowStockCount,
+            outOfStockCount,
+            expiringCount,
+          },
+          stockLevels,
+          lowStockItems,
+          expiringItems,
+        }
+      };
+    } catch (error) {
+      console.error("Error fetching inventory report:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get comprehensive financial report
+   */
+  getFinancialReport: async (params) => {
+    const { branchId, startDate, endDate } = params;
+    
+    try {
+      // Fetch all required data in parallel
+      const [revenueResponse, profitLossResponse, summaryResponse] = await Promise.all([
+        reportService.getRevenue(branchId, startDate, endDate),
+        reportService.getProfitLoss(branchId, startDate, endDate),
+        reportService.getFinancialSummary(branchId, startDate, endDate),
+      ]);
+
+      // Extract data from responses
+      const revenue = revenueResponse?.data?.data || 0;
+      const profitLossData = profitLossResponse?.data?.data || {};
+      const summaryData = summaryResponse?.data?.data || {};
+
+      // Build summary
+      const totalRevenue = revenue;
+      const totalExpenses = profitLossData.totalExpenses || 0;
+      const netProfit = totalRevenue - totalExpenses;
+      const profitMargin = totalRevenue > 0 ? (netProfit / totalRevenue) * 100 : 0;
+
+      return {
+        data: {
+          summary: {
+            totalRevenue,
+            totalExpenses,
+            netProfit,
+            profitMargin,
+          },
+          transactions: summaryData.transactions || [],
+          paymentMethods: summaryData.paymentMethods || [],
+          expenses: summaryData.expenses || [],
+        }
+      };
+    } catch (error) {
+      console.error("Error fetching financial report:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get purchase report
+   */
+  getPurchaseReport: async (params) => {
+    const { branchId, startDate, endDate } = params;
+    
+    // Placeholder - implement when backend endpoints are ready
+    return {
+      data: {
+        summary: {
+          totalPurchases: 0,
+          purchaseCount: 0,
+          averagePurchase: 0,
+        },
+        topSuppliers: [],
+        dailyPurchases: [],
+      }
+    };
+  },
+
+  /**
+   * Get expiry report
+   */
+  getExpiryReport: async (params) => {
+    const { branchId } = params;
+    
+    try {
+      const [expiringResponse, expiredResponse] = await Promise.all([
+        reportService.getExpiringStockReport(branchId, 30),
+        reportService.getExpiredStockReport(branchId),
+      ]);
+
+      const expiringItems = expiringResponse?.data?.data?.content || expiringResponse?.data?.data || [];
+      const expiredItems = expiredResponse?.data?.data?.content || expiredResponse?.data?.data || [];
+
+      return {
+        data: {
+          summary: {
+            expiringCount: expiringItems.length,
+            expiredCount: expiredItems.length,
+          },
+          expiringItems,
+          expiredItems,
+        }
+      };
+    } catch (error) {
+      console.error("Error fetching expiry report:", error);
+      throw error;
+    }
+  },
+
+  /**
+   * Get profit/loss report
+   */
+  getProfitLossReport: async (params) => {
+    const { branchId, startDate, endDate } = params;
+    
+    try {
+      const response = await reportService.getProfitLoss(branchId, startDate, endDate);
+      return response;
+    } catch (error) {
+      console.error("Error fetching profit/loss report:", error);
+      throw error;
+    }
+  },
 };
 
 export default reportService;

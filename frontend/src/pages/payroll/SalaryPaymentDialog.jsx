@@ -3,6 +3,7 @@
  * Form for processing salary payments
  */
 
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import {
   Dialog,
@@ -24,16 +25,22 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { PAYMENT_METHOD } from "@/constants";
+import { userService } from "@/services";
+import { toast } from "sonner";
 
 const SalaryPaymentDialog = ({ open, onOpenChange, onSubmit }) => {
+  const [employees, setEmployees] = useState([]);
+  const [loadingEmployees, setLoadingEmployees] = useState(false);
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
     setValue,
+    watch,
   } = useForm({
     defaultValues: {
       month: new Date().toISOString().slice(0, 7),
+      employeeId: "",
       employeeName: "",
       basicSalary: "",
       allowances: 0,
@@ -42,6 +49,41 @@ const SalaryPaymentDialog = ({ open, onOpenChange, onSubmit }) => {
       notes: "",
     },
   });
+
+  const selectedEmployeeId = watch("employeeId");
+
+  // Fetch employees when dialog opens
+  useEffect(() => {
+    if (open) {
+      fetchEmployees();
+    }
+  }, [open]);
+
+  // Update employee name when employee is selected
+  useEffect(() => {
+    if (selectedEmployeeId) {
+      const selectedEmployee = employees.find(
+        (emp) => emp.id.toString() === selectedEmployeeId
+      );
+      if (selectedEmployee) {
+        setValue("employeeName", selectedEmployee.fullName || selectedEmployee.username);
+      }
+    }
+  }, [selectedEmployeeId, employees, setValue]);
+
+  const fetchEmployees = async () => {
+    setLoadingEmployees(true);
+    try {
+      const response = await userService.getAll({ size: 1000 });
+      const employeeList = response.data.data?.content || response.data.data || [];
+      setEmployees(employeeList);
+    } catch (error) {
+      console.error("Failed to fetch employees:", error);
+      toast.error("Failed to load employees");
+    } finally {
+      setLoadingEmployees(false);
+    }
+  };
 
   const handleFormSubmit = async (data) => {
     try {
@@ -79,17 +121,31 @@ const SalaryPaymentDialog = ({ open, onOpenChange, onSubmit }) => {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="employeeName">Employee *</Label>
-              <Input
-                id="employeeName"
-                placeholder="Employee name"
-                {...register("employeeName", {
-                  required: "Employee name is required",
-                })}
-              />
-              {errors.employeeName && (
+              <Label htmlFor="employeeId">Employee *</Label>
+              <Select
+                onValueChange={(value) => setValue("employeeId", value)}
+                disabled={loadingEmployees}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder={loadingEmployees ? "Loading employees..." : "Select an employee"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {employees.length === 0 ? (
+                    <SelectItem value="no-employees" disabled>
+                      No employees found
+                    </SelectItem>
+                  ) : (
+                    employees.map((employee) => (
+                      <SelectItem key={employee.id} value={employee.id.toString()}>
+                        {employee.fullName || employee.username} {employee.employeeCode ? `(${employee.employeeCode})` : ""}
+                      </SelectItem>
+                    ))
+                  )}
+                </SelectContent>
+              </Select>
+              {errors.employeeId && (
                 <p className="text-sm text-destructive">
-                  {errors.employeeName.message}
+                  {errors.employeeId.message}
                 </p>
               )}
             </div>

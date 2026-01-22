@@ -22,6 +22,8 @@ export * from "./inventoryTransactionService";
 
 // Default exports
 export { default as bankService } from "./bankService";
+export { default as cashBookService } from "./cashBookService";
+export { default as payrollService } from "./payrollService";
 
 // Export invoiceService explicitly since it's in saleService.js
 export { invoiceService } from "./saleService";

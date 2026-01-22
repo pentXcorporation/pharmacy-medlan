@@ -27,6 +27,8 @@ import { ReportFilters, ReportSummaryCard } from "@/features/reports";
 import { useFinancialReport } from "@/features/reports";
 import { useActiveBranches } from "@/features/branches";
 import { formatCurrency } from "@/utils/formatters";
+import { exportFinancialReportCSV, printReport } from "@/utils/reportExport";
+import { toast } from "sonner";
 
 const FinancialReportPage = () => {
   const [filters, setFilters] = useState({
@@ -36,7 +38,7 @@ const FinancialReportPage = () => {
   });
 
   const { data: branches } = useActiveBranches();
-  const { data: report, isLoading } = useFinancialReport(filters);
+  const { data: report, isLoading, error } = useFinancialReport(filters);
 
   const handleDateChange = ({ startDate, endDate }) => {
     setFilters((prev) => ({ ...prev, startDate, endDate }));
@@ -50,13 +52,46 @@ const FinancialReportPage = () => {
   };
 
   const handleExport = (format) => {
-    console.log("Exporting as", format);
+    try {
+      if (!report || !report.summary) {
+        toast.error("No data available to export");
+        return;
+      }
+
+      const branchName = branches?.find(b => b.id?.toString() === filters.branchId?.toString())?.branchName || "All Branches";
+      const exportData = {
+        summary: report.summary || {},
+        revenue: report.paymentMethods || [],
+        expenses: report.expenses || [],
+        profitLoss: report.transactions || [],
+      };
+      
+      const exportFilters = {
+        ...filters,
+        branchName,
+      };
+
+      if (format === "csv" || format === "excel") {
+        exportFinancialReportCSV(exportData, exportFilters);
+        toast.success("Report exported successfully");
+      } else if (format === "pdf") {
+        printReport();
+      }
+    } catch (error) {
+      console.error("Export error:", error);
+      toast.error("Failed to export report");
+    }
   };
 
-  // Summary metrics
+  // Summary metrics with safe defaults
   const summary = report?.summary || {};
   const transactions = report?.transactions || [];
   const paymentMethods = report?.paymentMethods || [];
+
+  // Log error for debugging
+  if (error) {
+    console.error("Financial report error:", error);
+  }
 
   return (
     <div className="space-y-6">

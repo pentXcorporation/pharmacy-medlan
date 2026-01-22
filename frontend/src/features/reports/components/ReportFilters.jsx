@@ -189,13 +189,17 @@ const ReportFilters = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onExport("pdf")}>
-                  <FileText className="mr-2 h-4 w-4" />
-                  Export as PDF
+                <DropdownMenuItem onClick={() => onExport("csv")}>
+                  <FileSpreadsheet className="mr-2 h-4 w-4" />
+                  Export as CSV
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => onExport("excel")}>
                   <FileSpreadsheet className="mr-2 h-4 w-4" />
                   Export as Excel
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => onExport("pdf")}>
+                  <FileText className="mr-2 h-4 w-4" />
+                  Print Report
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>

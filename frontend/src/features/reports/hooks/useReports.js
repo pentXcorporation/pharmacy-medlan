@@ -24,7 +24,9 @@ export const useSalesReport = (params = {}, options = {}) => {
   return useQuery({
     queryKey: reportKeys.sales(params),
     queryFn: () => reportService.getSalesReport(params),
+    select: (response) => response?.data || response,
     enabled: Boolean(params.startDate && params.endDate),
+    retry: 1,
     ...options,
   });
 };
@@ -36,6 +38,8 @@ export const useInventoryReport = (params = {}, options = {}) => {
   return useQuery({
     queryKey: reportKeys.inventory(params),
     queryFn: () => reportService.getInventoryReport(params),
+    select: (response) => response?.data || response,
+    retry: 1,
     ...options,
   });
 };
@@ -47,7 +51,9 @@ export const useFinancialReport = (params = {}, options = {}) => {
   return useQuery({
     queryKey: reportKeys.financial(params),
     queryFn: () => reportService.getFinancialReport(params),
+    select: (response) => response?.data || response,
     enabled: Boolean(params.startDate && params.endDate),
+    retry: 1,
     ...options,
   });
 };

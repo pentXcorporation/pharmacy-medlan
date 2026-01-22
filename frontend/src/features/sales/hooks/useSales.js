@@ -71,16 +71,23 @@ export const useCreateSale = () => {
 
   return useMutation({
     mutationFn: async (data) => {
+      console.log("useSales - mutationFn called with:", data);
       const response = await saleService.create(data);
+      console.log("useSales - raw response:", response);
+      console.log("useSales - response.data:", response.data);
       // Unwrap ApiResponse: response.data = { success, message, data: SaleResponse, timestamp }
-      return response.data?.data || response.data;
+      const result = response.data?.data || response.data;
+      console.log("useSales - returning result:", result);
+      return result;
     },
     onSuccess: (data) => {
+      console.log("useSales - onSuccess called with:", data);
       queryClient.invalidateQueries({ queryKey: saleKeys.all });
       toast.success(`Sale completed! Invoice: ${data?.invoiceNumber || data?.saleNumber || ""}`);
-      return data;
+      // Don't need to return here - the mutationFn return value is what matters
     },
     onError: (error) => {
+      console.error("useSales - onError:", error);
       toast.error(error.response?.data?.message || "Failed to complete sale");
     },
   });

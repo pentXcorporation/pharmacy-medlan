@@ -27,6 +27,8 @@ import { ReportFilters, ReportSummaryCard } from "@/features/reports";
 import { useSalesReport } from "@/features/reports";
 import { useActiveBranches } from "@/features/branches";
 import { formatCurrency } from "@/utils/formatters";
+import { exportSalesReportCSV, printReport } from "@/utils/reportExport";
+import { toast } from "sonner";
 
 const SalesReportPage = () => {
   const [filters, setFilters] = useState({
@@ -36,7 +38,7 @@ const SalesReportPage = () => {
   });
 
   const { data: branches } = useActiveBranches();
-  const { data: report, isLoading } = useSalesReport(filters);
+  const { data: report, isLoading, error } = useSalesReport(filters);
 
   const handleDateChange = ({ startDate, endDate }) => {
     setFilters((prev) => ({ ...prev, startDate, endDate }));
@@ -51,58 +53,44 @@ const SalesReportPage = () => {
 
   const handleExport = (format) => {
     try {
-      // Generate CSV export
-      if (format === "csv") {
-        let csvContent = "data:text/csv;charset=utf-8,";
-        
-        // Summary Section
-        csvContent += "Sales Report Summary\n";
-        csvContent += `Period:,${filters.startDate} to ${filters.endDate}\n`;
-        csvContent += `Total Sales:,${summary.totalSales || 0}\n`;
-        csvContent += `Sales Count:,${summary.salesCount || 0}\n`;
-        csvContent += `Average Sale:,${summary.averageSale || 0}\n\n`;
-        
-        // Top Products Section
-        csvContent += "Top Selling Products\n";
-        csvContent += "Product Name,Quantity Sold,Revenue\n";
-        topProducts.forEach(product => {
-          csvContent += `"${product.productName}",${product.quantity},${product.revenue}\n`;
-        });
-        
-        csvContent += "\n";
-        
-        // Daily Sales Section
-        csvContent += "Daily Sales\n";
-        csvContent += "Date,Sales Amount,Transaction Count\n";
-        dailySales.forEach(day => {
-          csvContent += `${day.date},${day.amount},${day.count}\n`;
-        });
-        
-        // Download file
-        const encodedUri = encodeURI(csvContent);
-        const link = document.createElement("a");
-        link.setAttribute("href", encodedUri);
-        link.setAttribute("download", `sales_report_${new Date().toISOString().split('T')[0]}.csv`);
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
+      if (!report || !report.summary) {
+        toast.error("No data available to export");
+        return;
       }
+
+      const branchName = branches?.find(b => b.id?.toString() === filters.branchId?.toString())?.branchName || "All Branches";
+      const exportData = {
+        summary: report.summary || {},
+        topProducts: report.topProducts || [],
+        dailySales: report.dailySales || [],
+      };
       
-      // PDF export placeholder - would use a library like jsPDF
-      if (format === "pdf") {
-        console.log("PDF export requires jsPDF library implementation");
-        alert("PDF export feature coming soon. Please use CSV for now.");
+      const exportFilters = {
+        ...filters,
+        branchName,
+      };
+
+      if (format === "csv" || format === "excel") {
+        exportSalesReportCSV(exportData, exportFilters);
+        toast.success("Report exported successfully");
+      } else if (format === "pdf") {
+        printReport();
       }
     } catch (error) {
       console.error("Export error:", error);
-      alert("Failed to export report");
+      toast.error("Failed to export report");
     }
   };
 
-  // Summary metrics
+  // Summary metrics with safe defaults
   const summary = report?.summary || {};
   const topProducts = report?.topProducts || [];
   const dailySales = report?.dailySales || [];
+
+  // Log error for debugging
+  if (error) {
+    console.error("Sales report error:", error);
+  }
 
   return (
     <div className="space-y-6">

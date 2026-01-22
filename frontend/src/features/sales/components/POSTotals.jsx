@@ -3,7 +3,7 @@
  * Displays cart totals and checkout controls
  */
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Percent,
   DollarSign,
@@ -59,6 +59,12 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
 
   const [discountType, setDiscountType] = useState(discount.type);
   const [discountValue, setDiscountValue] = useState(discount.value);
+
+  // Sync local discount state with store when cart is cleared
+  useEffect(() => {
+    setDiscountType(discount.type);
+    setDiscountValue(discount.value);
+  }, [discount.type, discount.value]);
 
   // Check for special product requirements and warnings
   const cartWarnings = useMemo(() => {

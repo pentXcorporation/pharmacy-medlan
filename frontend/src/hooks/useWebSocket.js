@@ -26,11 +26,12 @@ export const useWebSocket = (options = {}) => {
   const {
     autoConnect = true,
     reconnectInterval = 5000,
-    maxReconnectAttempts = 5,
+    maxReconnectAttempts = 3,
     onMessage,
     onConnect,
     onDisconnect,
     onError,
+    enabled = API_CONFIG.ENABLE_WEBSOCKET, // Use config flag by default
   } = options;
 
   const wsRef = useRef(null);
@@ -56,7 +57,7 @@ export const useWebSocket = (options = {}) => {
    * Connect to WebSocket
    */
   const connect = useCallback(() => {
-    if (!isAuthenticated || wsRef.current?.readyState === WebSocket.OPEN) {
+    if (!enabled || !isAuthenticated || wsRef.current?.readyState === WebSocket.OPEN) {
       return;
     }
 
@@ -97,16 +98,21 @@ export const useWebSocket = (options = {}) => {
         ) {
           reconnectTimeoutRef.current = setTimeout(() => {
             reconnectAttemptsRef.current++;
+            console.log(`WebSocket reconnection attempt ${reconnectAttemptsRef.current}/${maxReconnectAttempts}`);
             connect();
           }, reconnectInterval);
+        } else if (reconnectAttemptsRef.current >= maxReconnectAttempts) {
+          console.info("WebSocket max reconnection attempts reached. WebSocket features will be unavailable.");
         }
       };
 
       wsRef.current.onerror = (error) => {
+        console.warn("WebSocket connection error (this is optional and can be ignored if WebSocket server is not running)");
         setState(WS_STATE.ERROR);
         onError?.(error);
       };
     } catch (error) {
+      console.warn("WebSocket connection error (this is optional and can be ignored if WebSocket server is not running)");
       setState(WS_STATE.ERROR);
       onError?.(error);
     }
@@ -175,23 +181,23 @@ export const useWebSocket = (options = {}) => {
 
   // Auto-connect on mount if authenticated
   useEffect(() => {
-    if (autoConnect && isAuthenticated) {
+    if (enabled && autoConnect && isAuthenticated) {
       connect();
     }
 
     return () => {
       disconnect();
     };
-  }, [autoConnect, isAuthenticated]);
+  }, [enabled, autoConnect, isAuthenticated]);
 
   // Reconnect on token change
   useEffect(() => {
-    if (isAuthenticated && state === WS_STATE.DISCONNECTED) {
+    if (enabled && isAuthenticated && state === WS_STATE.DISCONNECTED) {
       connect();
     } else if (!isAuthenticated && state !== WS_STATE.DISCONNECTED) {
       disconnect();
     }
-  }, [isAuthenticated, accessToken]);
+  }, [enabled, isAuthenticated, accessToken]);
 
   return {
     // State
