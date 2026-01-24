@@ -67,4 +67,31 @@ public class IncomingCheque extends AuditableEntity {
 
     @Column(name = "remarks", columnDefinition = "TEXT")
     private String remarks;
+
+    // Financial tracking
+    @OneToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "bank_data_id")
+    private BankData bankTransaction;
+
+    @Column(name = "is_recorded_in_bank", nullable = false)
+    private Boolean isRecordedInBank = false;
+
+    @Column(name = "reconciled", nullable = false)
+    private Boolean reconciled = false;
+
+    @Column(name = "reconciliation_date")
+    private LocalDate reconciliationDate;
+
+    // Reference to invoice or payment if applicable
+    @Column(name = "reference_number", length = 100)
+    private String referenceNumber;
+
+    @Column(name = "bounce_reason", length = 500)
+    private String bounceReason;
+
+    @Column(name = "bounce_date")
+    private LocalDate bounceDate;
+
+    @Column(name = "bounce_charges", precision = 10, scale = 2)
+    private BigDecimal bounceCharges = BigDecimal.ZERO;
 }

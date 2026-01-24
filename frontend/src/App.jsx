@@ -30,9 +30,10 @@ const queryClient = new QueryClient({
 
 /**
  * Theme Provider - applies theme class to document
+ * Simplified to prevent infinite loops
  */
 const ThemeProvider = ({ children }) => {
-  const { theme, preferences } = useUiStore();
+  const theme = useUiStore((state) => state.theme);
 
   useEffect(() => {
     const root = window.document.documentElement;
@@ -47,6 +48,12 @@ const ThemeProvider = ({ children }) => {
     } else {
       root.classList.add(theme);
     }
+  }, [theme]);
+
+  // Separate effect for preferences to avoid re-render loops
+  useEffect(() => {
+    const root = window.document.documentElement;
+    const preferences = useUiStore.getState().preferences;
 
     // Apply color theme
     root.setAttribute("data-theme", preferences.colorTheme);
@@ -58,20 +65,38 @@ const ThemeProvider = ({ children }) => {
     root.classList.toggle("screen-reader", preferences.screenReader);
     root.setAttribute("data-keyboard-nav", preferences.keyboardNav);
     root.classList.toggle("compact-tables", preferences.compactTables);
-  }, [theme, preferences]);
+
+    // Subscribe to preference changes
+    const unsubscribe = useUiStore.subscribe((state) => {
+      const prefs = state.preferences;
+      root.setAttribute("data-theme", prefs.colorTheme);
+      root.classList.toggle("high-contrast", prefs.highContrast);
+      root.classList.toggle("reduce-motion", prefs.reduceMotion);
+      root.classList.toggle("large-text", prefs.largeText);
+      root.classList.toggle("screen-reader", prefs.screenReader);
+      root.setAttribute("data-keyboard-nav", prefs.keyboardNav);
+      root.classList.toggle("compact-tables", prefs.compactTables);
+    });
+
+    return unsubscribe;
+  }, []);
 
   return children;
 };
 
 /**
  * Auth Initializer - restores auth state on app load
+ * Note: Zustand persist middleware automatically handles rehydration
+ * We call initializeAuth once to sync localStorage with store
  */
 const AuthInitializer = ({ children }) => {
-  const { initializeAuth } = useAuthStore();
-
   useEffect(() => {
-    initializeAuth();
-  }, [initializeAuth]);
+    // Get initializeAuth directly from store to avoid dependency issues
+    const initializeAuth = useAuthStore.getState().initializeAuth;
+    if (initializeAuth) {
+      initializeAuth();
+    }
+  }, []); // Empty deps - run only once on mount
 
   return children;
 };

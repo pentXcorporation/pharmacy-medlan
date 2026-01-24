@@ -5,7 +5,8 @@ public enum ChequeStatus {
     DEPOSITED("Deposited"),
     CLEARED("Cleared"),
     BOUNCED("Bounced"),
-    CANCELLED("Cancelled");
+    CANCELLED("Cancelled"),
+    REPLACED("Replaced");
 
     private final String displayName;
 

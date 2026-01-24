@@ -118,11 +118,13 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOriginPatterns(List.of("*"));
+        // Use patterns to allow localhost and ngrok domains
+        config.setAllowedOriginPatterns(List.of("http://localhost:*", "https://*.ngrok-free.dev", "https://*.ngrok.io", "https://*.ngrok-free.app"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of("Authorization", "Content-Type", "X-Total-Count"));
         config.setAllowCredentials(true);
+        config.setMaxAge(3600L); // Cache preflight for 1 hour
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);

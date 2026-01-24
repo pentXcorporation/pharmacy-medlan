@@ -12,8 +12,10 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -34,7 +36,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse createProduct(CreateProductRequest request) {
         log.info("Creating product: {}", request.getProductName());
 
-        if (request.getBarcode() != null && productRepository.existsByBarcode(request.getBarcode())) {
+        if (request.getBarcode() != null && productRepository.existsByBarcodeAndDeletedFalse(request.getBarcode())) {
             throw new DuplicationResourceException("Barcode already exists");
         }
 
@@ -67,7 +69,7 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse updateProduct(Long id, UpdateProductRequest request) {
         log.info("Updating product: {}", id);
 
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
 
         productMapper.updateEntityFromRequest(request, product);
@@ -83,21 +85,21 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public ProductResponse getProductById(Long id) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         return productMapper.toResponse(product);
     }
 
     @Override
     public ProductResponse getProductByCode(String productCode) {
-        Product product = productRepository.findByProductCode(productCode)
+        Product product = productRepository.findByProductCodeAndDeletedFalse(productCode)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with code: " + productCode));
         return productMapper.toResponse(product);
     }
 
     @Override
     public Page<ProductResponse> getAllProducts(Pageable pageable) {
-        return productRepository.findAll(pageable)
+        return productRepository.findAllNonDeleted(pageable)
                 .map(productMapper::toResponse);
     }
 
@@ -120,17 +122,33 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long id) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
+        
+        // Soft delete the product
         product.setDeleted(true);
+        product.setDeletedAt(LocalDateTime.now());
+        
+        // Get current user from security context
+        try {
+            String currentUser = SecurityContextHolder.getContext().getAuthentication().getName();
+            product.setDeletedBy(currentUser);
+        } catch (Exception e) {
+            product.setDeletedBy("system");
+            log.warn("Could not get current user for deletion, using 'system'");
+        }
+        
+        // Also mark as inactive
+        product.setIsActive(false);
+        
         productRepository.save(product);
-        log.info("Product deleted: {}", id);
+        log.info("Product soft deleted: {} by {}", id, product.getDeletedBy());
     }
 
     @Override
     @Transactional
     public void discontinueProduct(Long id) {
-        Product product = productRepository.findById(id)
+        Product product = productRepository.findByIdAndDeletedFalse(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found"));
         product.setIsDiscontinued(true);
         product.setIsActive(false);

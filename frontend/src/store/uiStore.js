@@ -61,10 +61,6 @@ export const useUiStore = create(
       // Set theme
       setTheme: (theme) => {
         set({ theme });
-        // Also update preferences.themeMode
-        set((state) => ({
-          preferences: { ...state.preferences, themeMode: theme }
-        }));
         // Apply theme to document
         const root = document.documentElement;
         root.classList.remove("light", "dark");
@@ -173,6 +169,7 @@ export const useUiStore = create(
       partialize: (state) => ({
         sidebarCollapsed: state.sidebarCollapsed,
         theme: state.theme,
+        preferences: state.preferences, // Persist preferences to avoid resets
       }),
     }
   )

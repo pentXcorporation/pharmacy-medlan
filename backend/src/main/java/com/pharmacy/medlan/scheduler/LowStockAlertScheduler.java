@@ -58,7 +58,7 @@ public class LowStockAlertScheduler {
         log.info("=== Starting Low Stock Alert & Auto-Order Check ===");
 
         List<Branch> branches = branchRepository.findAll();
-        List<Product> allProducts = productRepository.findByIsActiveTrue();
+        List<Product> allProducts = productRepository.findByIsActiveTrueAndDeletedFalse();
 
         int criticalCount = 0;
         int lowStockCount = 0;
@@ -200,7 +200,7 @@ public class LowStockAlertScheduler {
         List<Branch> branches = branchRepository.findAll();
         for (Branch branch : branches) {
             Map<Product, Integer> reorderSuggestions = new HashMap<>();
-            List<Product> lowStockProducts = productRepository.findByIsActiveTrue();
+            List<Product> lowStockProducts = productRepository.findByIsActiveTrueAndDeletedFalse();
 
             for (Product product : lowStockProducts) {
                 Integer currentStock = inventoryBatchRepository

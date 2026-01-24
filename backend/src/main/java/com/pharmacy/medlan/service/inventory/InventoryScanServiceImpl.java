@@ -249,10 +249,10 @@ public class InventoryScanServiceImpl implements InventoryScanService {
     // ==================== Private Helper Methods ====================
 
     private Product findProductByBarcode(String barcode) {
-        Optional<Product> byBarcode = productRepository.findByBarcode(barcode);
+        Optional<Product> byBarcode = productRepository.findByBarcodeAndDeletedFalse(barcode);
         if (byBarcode.isPresent()) return byBarcode.get();
 
-        Optional<Product> byCode = productRepository.findByProductCode(barcode);
+        Optional<Product> byCode = productRepository.findByProductCodeAndDeletedFalse(barcode);
         if (byCode.isPresent()) return byCode.get();
 
         throw new ResourceNotFoundException("Product not found for barcode/code: " + barcode);

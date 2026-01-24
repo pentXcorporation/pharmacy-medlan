@@ -40,17 +40,118 @@ const ChequesPage = () => {
     bouncedCount: 0,
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedCheque, setSelectedCheque] = useState(null);
 
-  // NOTE: Backend cheques endpoints are not yet implemented
-  // Using empty data until backend is ready
+  // Fetch cheques with backend integration
   const fetchCheques = useCallback(async () => {
-    // Placeholder - backend not ready yet
-    setIsLoading(false);
-  }, []);
+    try {
+      setIsLoading(true);
+      const params = {
+        page: pagination.pageIndex,
+        size: pagination.pageSize,
+        sort: sorting.length > 0 
+          ? `${sorting[0].id},${sorting[0].desc ? 'desc' : 'asc'}`
+          : 'chequeDate,desc',
+      };
+
+      if (statusFilter !== 'all') {
+        params.status = statusFilter;
+      }
+
+      if (searchQuery) {
+        params.search = searchQuery;
+      }
+
+      const response = await chequeService.getAll(params);
+      setData({
+        content: response.data.content || [],
+        total: response.data.totalElements || 0,
+        pageCount: response.data.totalPages || 0,
+      });
+    } catch (error) {
+      console.error('Error fetching cheques:', error);
+      toast.error('Failed to load cheques');
+      setData({ content: [], total: 0, pageCount: 0 });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [pagination, sorting, statusFilter, searchQuery]);
 
   const fetchStats = useCallback(async () => {
-    // Placeholder - backend not ready yet
+    try {
+      const response = await chequeService.getStats();
+      setStats(response.data || {
+        totalCheques: 0,
+        pendingAmount: 0,
+        clearedAmount: 0,
+        bouncedCount: 0,
+      });
+    } catch (error) {
+      console.error('Error fetching stats:', error);
+    }
   }, []);
+
+  // Fetch data on mount and when dependencies change
+  useEffect(() => {
+    fetchCheques();
+  }, [fetchCheques]);
+
+  useEffect(() => {
+    fetchStats();
+  }, [fetchStats]);
+
+  // Define handler functions BEFORE using them in columns to avoid TDZ error
+  const handleEditCheque = useCallback((cheque) => {
+    setSelectedCheque(cheque);
+    setIsFormOpen(true);
+  }, []);
+
+  const handleDeleteCheque = useCallback(async (id) => {
+    if (!confirm('Are you sure you want to delete this cheque?')) return;
+    
+    try {
+      await chequeService.delete(id);
+      toast.success('Cheque deleted successfully');
+      fetchCheques();
+      fetchStats();
+    } catch (error) {
+      console.error('Error deleting cheque:', error);
+      toast.error(error.response?.data?.message || 'Failed to delete cheque');
+    }
+  }, [fetchCheques, fetchStats]);
+
+  const handleCreateCheque = useCallback(async (chequeData) => {
+    try {
+      if (selectedCheque) {
+        await chequeService.update(selectedCheque.id, chequeData);
+        toast.success('Cheque updated successfully');
+      } else {
+        await chequeService.create(chequeData);
+        toast.success('Cheque created successfully');
+      }
+      setIsFormOpen(false);
+      setSelectedCheque(null);
+      fetchCheques();
+      fetchStats();
+    } catch (error) {
+      console.error('Error saving cheque:', error);
+      toast.error('Error', {
+        description: error.response?.data?.message || 'Failed to save cheque. Please try again.',
+      });
+    }
+  }, [selectedCheque, fetchCheques, fetchStats]);
+
+  const handleStatusChange = useCallback(async (id, newStatus) => {
+    try {
+      await chequeService.updateStatus(id, newStatus);
+      toast.success('Cheque status updated');
+      fetchCheques();
+      fetchStats();
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast.error(error.response?.data?.message || 'Failed to update status');
+    }
+  }, [fetchCheques, fetchStats]);
 
   const columns = useMemo(
     () => [
@@ -74,9 +175,10 @@ const ChequesPage = () => {
         meta: { className: "hidden md:table-cell" },
       },
       {
-        accessorKey: "payeeName",
-        header: "Payee",
+        accessorKey: "receivedFrom",
+        header: "Received From",
         meta: { className: "hidden lg:table-cell" },
+        cell: ({ row }) => row.getValue("receivedFrom") || "-",
       },
       {
         accessorKey: "amount",
@@ -112,26 +214,35 @@ const ChequesPage = () => {
           return date ? formatDate(date) : "-";
         },
       },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <div className="flex gap-2">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleEditCheque(row.original)}
+            >
+              Edit
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleDeleteCheque(row.original.id)}
+              className="text-destructive"
+            >
+              Delete
+            </Button>
+          </div>
+        ),
+      },
     ],
-    []
+    [handleEditCheque, handleDeleteCheque]
   );
 
-  const handleCreateCheque = useCallback(async (chequeData) => {
-    try {
-      // TODO: Enable when backend is ready
-      // await chequeService.create(chequeData);
-
-      toast.info("Backend Not Ready", {
-        description: "The cheque feature is under development. Backend endpoints are not yet available.",
-      });
-
-      setIsFormOpen(false);
-    } catch (error) {
-      console.error("Error creating cheque:", error);
-      toast.error("Error", {
-        description: error.response?.data?.message || "Failed to create cheque. Please try again.",
-      });
-    }
+  const handleExport = useCallback(() => {
+    toast.info('Export functionality coming soon');
   }, []);
 
   return (
@@ -154,8 +265,12 @@ const ChequesPage = () => {
 
       <ChequeFormDialog
         open={isFormOpen}
-        onOpenChange={setIsFormOpen}
+        onOpenChange={(open) => {
+          setIsFormOpen(open);
+          if (!open) setSelectedCheque(null);
+        }}
         onSubmit={handleCreateCheque}
+        cheque={selectedCheque}
       />
 
       {/* Statistics */}

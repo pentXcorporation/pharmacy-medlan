@@ -3,7 +3,9 @@
  * Form for marking employee attendance
  */
 
-import { useForm } from "react-hook-form";
+import { useForm, Controller } from "react-hook-form";
+import { useQuery } from "@tanstack/react-query";
+import payrollService from "@/services/payrollService";
 import {
   Dialog,
   DialogContent,
@@ -28,12 +30,13 @@ const AttendanceFormDialog = ({ open, onOpenChange, onSubmit }) => {
   const {
     register,
     handleSubmit,
+    control,
     formState: { errors, isSubmitting },
-    setValue,
+    reset,
   } = useForm({
     defaultValues: {
       date: new Date().toISOString().split("T")[0],
-      employeeName: "",
+      employeeId: "",
       checkIn: "",
       checkOut: "",
       status: "PRESENT",
@@ -41,13 +44,34 @@ const AttendanceFormDialog = ({ open, onOpenChange, onSubmit }) => {
     },
   });
 
+  // Fetch employees
+  const { data: employeesData } = useQuery({
+    queryKey: ["employees", "all"],
+    queryFn: () => payrollService.getAllEmployees({ page: 0, size: 1000 }),
+    select: (response) => response.data,
+  });
+
   const handleFormSubmit = async (data) => {
     try {
-      await onSubmit(data);
-      onOpenChange(false);
+      // Convert employeeId to number and ensure proper format
+      const payload = {
+        ...data,
+        employeeId: Number(data.employeeId),
+        date: data.date,
+        checkIn: data.checkIn || null,
+        checkOut: data.checkOut || null,
+      };
+
+      await onSubmit(payload);
+      reset();
     } catch (error) {
       console.error("Failed to mark attendance:", error);
     }
+  };
+
+  const handleClose = () => {
+    reset();
+    onOpenChange(false);
   };
 
   return (
@@ -74,17 +98,32 @@ const AttendanceFormDialog = ({ open, onOpenChange, onSubmit }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="employeeName">Employee Name *</Label>
-            <Input
-              id="employeeName"
-              placeholder="Enter employee name"
-              {...register("employeeName", {
-                required: "Employee name is required",
-              })}
+            <Label htmlFor="employeeId">Employee *</Label>
+            <Controller
+              name="employeeId"
+              control={control}
+              rules={{ required: "Employee is required" }}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select employee" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employeesData?.content?.map((employee) => (
+                      <SelectItem
+                        key={employee.id}
+                        value={String(employee.id)}
+                      >
+                        {employee.fullName} ({employee.employeeCode})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
             />
-            {errors.employeeName && (
+            {errors.employeeId && (
               <p className="text-sm text-destructive">
-                {errors.employeeName.message}
+                {errors.employeeId.message}
               </p>
             )}
           </div>
@@ -92,32 +131,49 @@ const AttendanceFormDialog = ({ open, onOpenChange, onSubmit }) => {
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="checkIn">Check In</Label>
-              <Input id="checkIn" type="time" {...register("checkIn")} />
+              <Input
+                id="checkIn"
+                type="time"
+                {...register("checkIn")}
+              />
             </div>
 
             <div className="space-y-2">
               <Label htmlFor="checkOut">Check Out</Label>
-              <Input id="checkOut" type="time" {...register("checkOut")} />
+              <Input
+                id="checkOut"
+                type="time"
+                {...register("checkOut")}
+              />
             </div>
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="status">Status *</Label>
-            <Select
-              defaultValue="PRESENT"
-              onValueChange={(value) => setValue("status", value)}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="PRESENT">Present</SelectItem>
-                <SelectItem value="ABSENT">Absent</SelectItem>
-                <SelectItem value="LATE">Late</SelectItem>
-                <SelectItem value="HALF_DAY">Half Day</SelectItem>
-                <SelectItem value="ON_LEAVE">On Leave</SelectItem>
-              </SelectContent>
-            </Select>
+            <Controller
+              name="status"
+              control={control}
+              rules={{ required: "Status is required" }}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="PRESENT">Present</SelectItem>
+                    <SelectItem value="ABSENT">Absent</SelectItem>
+                    <SelectItem value="LATE">Late</SelectItem>
+                    <SelectItem value="HALF_DAY">Half Day</SelectItem>
+                    <SelectItem value="ON_LEAVE">On Leave</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
+            {errors.status && (
+              <p className="text-sm text-destructive">
+                {errors.status.message}
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -134,7 +190,7 @@ const AttendanceFormDialog = ({ open, onOpenChange, onSubmit }) => {
             <Button
               type="button"
               variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleClose}
               disabled={isSubmitting}
             >
               Cancel

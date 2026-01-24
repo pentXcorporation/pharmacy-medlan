@@ -14,6 +14,24 @@ public class UserMapper {
             return null;
         }
 
+        // Get primary branch from branch assignments
+        Long branchId = null;
+        String branchName = null;
+        if (user.getBranchAssignments() != null && !user.getBranchAssignments().isEmpty()) {
+            var primaryAssignment = user.getBranchAssignments().stream()
+                    .filter(bs -> bs.getIsPrimaryBranch() && bs.getIsActive())
+                    .findFirst()
+                    .orElse(user.getBranchAssignments().stream()
+                            .filter(bs -> bs.getIsActive())
+                            .findFirst()
+                            .orElse(null));
+            
+            if (primaryAssignment != null && primaryAssignment.getBranch() != null) {
+                branchId = primaryAssignment.getBranch().getId();
+                branchName = primaryAssignment.getBranch().getBranchName();
+            }
+        }
+
         return UserResponse.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -28,6 +46,8 @@ public class UserMapper {
                 .employeeCode(user.getEmployeeCode())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
+                .branchId(branchId)
+                .branchName(branchName)
                 .build();
     }
 

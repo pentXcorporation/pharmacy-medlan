@@ -31,12 +31,13 @@ const CashRegisterFormDialog = ({ open, onOpenChange, onSubmit }) => {
     formState: { errors, isSubmitting },
     setValue,
     watch,
+    reset,
   } = useForm({
     defaultValues: {
       type: "CASH_IN",
       amount: "",
       description: "",
-      reference: "",
+      category: "",
     },
   });
 
@@ -45,6 +46,7 @@ const CashRegisterFormDialog = ({ open, onOpenChange, onSubmit }) => {
   const handleFormSubmit = async (data) => {
     try {
       await onSubmit(data);
+      reset();
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to submit transaction:", error);
@@ -74,8 +76,11 @@ const CashRegisterFormDialog = ({ open, onOpenChange, onSubmit }) => {
               <SelectContent>
                 <SelectItem value="CASH_IN">Cash In</SelectItem>
                 <SelectItem value="CASH_OUT">Cash Out</SelectItem>
-                <SelectItem value="OPENING">Opening Balance</SelectItem>
-                <SelectItem value="CLOSING">Closing Balance</SelectItem>
+                <SelectItem value="SALE">Sale</SelectItem>
+                <SelectItem value="REFUND">Refund</SelectItem>
+                <SelectItem value="EXPENSE">Expense</SelectItem>
+                <SelectItem value="COLLECTION">Collection</SelectItem>
+                <SelectItem value="ADVANCE">Advance</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -100,11 +105,11 @@ const CashRegisterFormDialog = ({ open, onOpenChange, onSubmit }) => {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="reference">Reference Number</Label>
+            <Label htmlFor="category">Category</Label>
             <Input
-              id="reference"
-              placeholder="e.g., REC-001, INV-123"
-              {...register("reference")}
+              id="category"
+              placeholder="e.g., Petty Cash, Sales, Utilities"
+              {...register("category")}
             />
           </div>
 
@@ -114,9 +119,13 @@ const CashRegisterFormDialog = ({ open, onOpenChange, onSubmit }) => {
               id="description"
               placeholder={
                 transactionType === "CASH_IN"
-                  ? "e.g., Sales payment, Customer payment"
+                  ? "e.g., Cash received from customer"
                   : transactionType === "CASH_OUT"
-                  ? "e.g., Petty expenses, Supplier payment"
+                  ? "e.g., Petty cash withdrawal"
+                  : transactionType === "SALE"
+                  ? "e.g., POS sale payment"
+                  : transactionType === "EXPENSE"
+                  ? "e.g., Office supplies purchase"
                   : "Enter transaction details"
               }
               rows={3}

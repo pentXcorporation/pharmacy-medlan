@@ -60,6 +60,7 @@ const editUserSchema = z.object({
   email: z.string().email("Invalid email").min(1, "Email is required"),
   phoneNumber: z.string().optional().or(z.literal("")),
   role: z.string().min(1, "Role is required"),
+  branchId: z.string().optional(),
   discountLimit: z.string().optional().or(z.literal("")),
   creditTransactionLimit: z.string().optional().or(z.literal("")),
   isActive: z.boolean().default(true),
@@ -109,6 +110,7 @@ const UserForm = ({
         email: user.email || "",
         phoneNumber: user.phoneNumber || "",
         role: user.role || "",
+        branchId: user.branchId ? String(user.branchId) : "",
         discountLimit: user.discountLimit ? String(user.discountLimit) : "",
         creditTransactionLimit: user.creditTransactionLimit
           ? String(user.creditTransactionLimit)
@@ -126,6 +128,7 @@ const UserForm = ({
         email: data.email,
         phoneNumber: data.phoneNumber || null,
         role: data.role,
+        branchId: data.branchId ? Number(data.branchId) : null,
         isActive: data.isActive,
         discountLimit: data.discountLimit
           ? parseFloat(data.discountLimit)
@@ -275,39 +278,39 @@ const UserForm = ({
               )}
             />
 
-            {!isEditing && (
-              <FormField
-                control={form.control}
-                name="branchId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Assigned Branch</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value || "none"}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select branch" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="none">No specific branch</SelectItem>
-                        {branches.map((branch) => (
-                          <SelectItem key={branch.id} value={String(branch.id)}>
-                            {branch.branchName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormDescription>
-                      Branch the user is assigned to work at
-                    </FormDescription>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
+            <FormField
+              control={form.control}
+              name="branchId"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assigned Branch</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    value={field.value || "none"}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select branch" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="none">No specific branch</SelectItem>
+                      {branches.map((branch) => (
+                        <SelectItem key={branch.id} value={String(branch.id)}>
+                          {branch.branchName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <FormDescription>
+                    {isEditing 
+                      ? "Update the branch this user is assigned to"
+                      : "Branch the user is assigned to work at"}
+                  </FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
 
             <FormField
               control={form.control}

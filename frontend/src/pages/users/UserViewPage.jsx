@@ -145,7 +145,7 @@ const UserViewPage = () => {
                   Branch
                 </p>
                 <p className="text-base">
-                  {user.branch?.branchName || "All Branches"}
+                  {user.branchName || "All Branches"}
                 </p>
               </div>
             </div>

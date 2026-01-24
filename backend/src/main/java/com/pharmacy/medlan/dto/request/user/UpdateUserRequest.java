@@ -31,4 +31,6 @@ public class UpdateUserRequest {
     private BigDecimal discountLimit;
 
     private BigDecimal creditTransactionLimit;
+
+    private Long branchId;
 }

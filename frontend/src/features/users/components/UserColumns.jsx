@@ -129,11 +129,11 @@ export const getUserColumns = ({
     },
   },
   {
-    accessorKey: "branch",
+    accessorKey: "branchName",
     header: "Branch",
     cell: ({ row }) => (
       <span className="text-muted-foreground">
-        {row.original.branch?.branchName || "All Branches"}
+        {row.original.branchName || "All Branches"}
       </span>
     ),
   },

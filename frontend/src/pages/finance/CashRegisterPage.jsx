@@ -3,13 +3,15 @@
  * Manages daily cash register operations and balances
  */
 
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import {
   Plus,
   Download,
   DollarSign,
   TrendingUp,
   TrendingDown,
+  Lock,
+  Unlock,
 } from "lucide-react";
 import { PageHeader, DataTable } from "@/components/common";
 import { Button } from "@/components/ui/button";
@@ -26,23 +28,173 @@ import { Badge } from "@/components/ui/badge";
 import { formatCurrency, formatDate, formatDateTime } from "@/utils/formatters";
 import CashRegisterFormDialog from "./CashRegisterFormDialog";
 import { toast } from "sonner";
+import { cashRegisterService } from "@/services";
+import { useAuth } from "@/hooks";
 
 const CashRegisterPage = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [currentRegister, setCurrentRegister] = useState(null);
+  const [transactions, setTransactions] = useState([]);
   const [pagination, setPagination] = useState({
     pageIndex: 0,
     pageSize: 10,
   });
   const [sorting, setSorting] = useState([{ id: "timestamp", desc: true }]);
 
-  // Mock data
-  const mockData = {
-    content: [],
-    total: 0,
-    pageCount: 0,
+  // Fetch current register and transactions
+  useEffect(() => {
+    const branchId = user?.branchId || user?.branch?.id || user?.branch;
+    if (branchId) {
+      fetchCurrentRegister(branchId);
+    }
+  }, [user]);
+
+  const fetchCurrentRegister = async (branchId) => {
+    try {
+      setIsLoading(true);
+      const register = await cashRegisterService.getCurrentRegister(branchId);
+      setCurrentRegister(register);
+      
+      if (register?.id) {
+        const txns = await cashRegisterService.getRegisterTransactions(register.id);
+        setTransactions(txns || []);
+      }
+    } catch (error) {
+      if (error.response?.status === 404) {
+        // No open register
+        setCurrentRegister(null);
+        setTransactions([]);
+      } else {
+        toast.error("Error", {
+          description: "Failed to load cash register data.",
+        });
+      }
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  const handleOpenRegister = useCallback(async () => {
+    // Try different possible branch field names
+    const branchId = user?.branchId || user?.branch?.id || user?.branch;
+    
+    console.log("User object:", user); // Debug log
+    console.log("Branch ID:", branchId); // Debug log
+    
+    if (!branchId) {
+      toast.error("Error", {
+        description: "Branch information not found. Please ensure your user account is assigned to a branch.",
+      });
+      return;
+    }
+
+    const openingBalance = prompt("Enter opening balance:", "0");
+    if (openingBalance === null) return;
+
+    try {
+      setIsLoading(true);
+      const data = {
+        branchId: branchId,
+        openingBalance: parseFloat(openingBalance),
+        notes: "Register opened",
+      };
+
+      const register = await cashRegisterService.openRegister(data);
+      setCurrentRegister(register);
+      setTransactions([]);
+
+      toast.success("Register Opened", {
+        description: "Cash register has been opened successfully.",
+      });
+    } catch (error) {
+      console.error("Error opening register:", error); // Debug log
+      toast.error("Error", {
+        description: error.response?.data?.message || "Failed to open register.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user]);
+
+  const handleCloseRegister = useCallback(async () => {
+    if (!currentRegister?.id) return;
+
+    const closingBalance = prompt("Enter closing balance:", currentRegister.expectedClosingBalance);
+    if (closingBalance === null) return;
+
+    try {
+      setIsLoading(true);
+      const data = {
+        closingBalance: parseFloat(closingBalance),
+        notes: "Register closed",
+      };
+
+      const register = await cashRegisterService.closeRegister(currentRegister.id, data);
+      setCurrentRegister(register);
+
+      toast.success("Register Closed", {
+        description: `Register closed. Discrepancy: ${formatCurrency(register.discrepancy)}`,
+      });
+
+      // Refresh data
+      await fetchCurrentRegister();
+    } catch (error) {
+      toast.error("Error", {
+        description: error.response?.data?.message || "Failed to close register.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentRegister]);
+
+  const handleCashTransaction = useCallback(async (data) => {
+    if (!currentRegister?.id) {
+      toast.error("Error", {
+        description: "No open register found.",
+      });
+      return;
+    }
+
+    try {
+      setIsLoading(true);
+      
+      const transactionData = {
+        type: data.type,
+        amount: parseFloat(data.amount),
+        description: data.description,
+        category: data.category,
+      };
+
+      let register;
+      if (data.type === "CASH_OUT" || data.type === "EXPENSE" || data.type === "REFUND") {
+        register = await cashRegisterService.recordCashOut(currentRegister.id, transactionData);
+      } else {
+        register = await cashRegisterService.recordCashIn(currentRegister.id, transactionData);
+      }
+
+      setCurrentRegister(register);
+      
+      // Refresh transactions
+      const txns = await cashRegisterService.getRegisterTransactions(register.id);
+      setTransactions(txns || []);
+
+      toast.success("Transaction Recorded", {
+        description: "Cash register transaction has been recorded successfully.",
+      });
+
+      setIsFormOpen(false);
+    } catch (error) {
+      toast.error("Error", {
+        description: error.response?.data?.message || "Failed to record transaction.",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, [currentRegister]);
 
   const columns = useMemo(
     () => [
@@ -57,18 +209,14 @@ const CashRegisterPage = () => {
         cell: ({ row }) => {
           const type = row.getValue("type");
           const variant =
-            type === "CASH_IN"
+            type === "CASH_IN" || type === "SALE" || type === "COLLECTION"
               ? "success"
-              : type === "CASH_OUT"
+              : type === "CASH_OUT" || type === "EXPENSE" || type === "REFUND"
               ? "destructive"
               : "default";
           return (
             <Badge variant={variant}>
-              {type === "CASH_IN"
-                ? "Cash In"
-                : type === "CASH_OUT"
-                ? "Cash Out"
-                : type}
+              {type.replace("_", " ")}
             </Badge>
           );
         },
@@ -79,13 +227,14 @@ const CashRegisterPage = () => {
         cell: ({ row }) => {
           const amount = row.getValue("amount");
           const type = row.original.type;
+          const isCredit = ["CASH_OUT", "EXPENSE", "REFUND"].includes(type);
           return (
             <span
               className={`font-semibold ${
-                type === "CASH_IN" ? "text-green-600" : "text-red-600"
+                isCredit ? "text-red-600" : "text-green-600"
               }`}
             >
-              {type === "CASH_IN" ? "+" : "-"}
+              {isCredit ? "-" : "+"}
               {formatCurrency(amount)}
             </span>
           );
@@ -97,57 +246,51 @@ const CashRegisterPage = () => {
         meta: { className: "hidden md:table-cell" },
       },
       {
-        accessorKey: "reference",
-        header: "Reference",
+        accessorKey: "category",
+        header: "Category",
         meta: { className: "hidden lg:table-cell" },
-        cell: ({ row }) => {
-          const ref = row.getValue("reference");
-          return ref ? <span className="font-mono text-sm">{ref}</span> : "-";
-        },
+        cell: ({ row }) => row.getValue("category") || "-",
       },
       {
-        accessorKey: "handledBy",
+        accessorKey: "userName",
         header: "Handled By",
         meta: { className: "hidden xl:table-cell" },
-        cell: ({ row }) => row.getValue("handledBy") || "-",
-      },
-      {
-        accessorKey: "balance",
-        header: "Balance",
-        cell: ({ row }) => (
-          <span className="font-semibold">
-            {formatCurrency(row.getValue("balance") || 0)}
-          </span>
-        ),
+        cell: ({ row }) => row.getValue("userName") || "-",
       },
     ],
     []
   );
 
   const stats = {
-    openingBalance: 0,
-    cashIn: 0,
-    cashOut: 0,
-    currentBalance: 0,
+    openingBalance: currentRegister?.openingBalance || 0,
+    cashIn: (currentRegister?.cashInTotal || 0) + (currentRegister?.salesTotal || 0),
+    cashOut: currentRegister?.cashOutTotal || 0,
+    currentBalance: currentRegister?.expectedClosingBalance || 0,
   };
 
-  const handleCashTransaction = useCallback(async (data) => {
-    try {
-      // TODO: Call API to record cash transaction
-      console.log("Recording cash transaction:", data);
+  const filteredTransactions = useMemo(() => {
+    let filtered = transactions;
 
-      toast.success("Transaction Recorded", {
-        description:
-          "Cash register transaction has been recorded successfully.",
-      });
-
-      // TODO: Refresh data after creation
-    } catch (error) {
-      toast.error("Error", {
-        description: "Failed to record transaction. Please try again.",
-      });
+    if (searchQuery) {
+      filtered = filtered.filter(
+        (txn) =>
+          txn.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          txn.category?.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     }
-  }, []);
+
+    if (typeFilter !== "all") {
+      filtered = filtered.filter((txn) => txn.type === typeFilter);
+    }
+
+    return filtered;
+  }, [transactions, searchQuery, typeFilter]);
+
+  const paginatedData = useMemo(() => {
+    const start = pagination.pageIndex * pagination.pageSize;
+    const end = start + pagination.pageSize;
+    return filteredTransactions.slice(start, end);
+  }, [filteredTransactions, pagination]);
 
   return (
     <div className="space-y-6">
@@ -156,10 +299,27 @@ const CashRegisterPage = () => {
         description="Manage daily cash register operations"
       >
         <div className="flex gap-2">
-          <Button onClick={() => setIsFormOpen(true)}>
-            <Plus className="mr-2 h-4 w-4" />
-            New Transaction
-          </Button>
+          {!currentRegister ? (
+            <Button onClick={handleOpenRegister} disabled={isLoading}>
+              <Unlock className="mr-2 h-4 w-4" />
+              Open Register
+            </Button>
+          ) : currentRegister.status === "OPEN" ? (
+            <>
+              <Button onClick={() => setIsFormOpen(true)} disabled={isLoading}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Transaction
+              </Button>
+              <Button variant="outline" onClick={handleCloseRegister} disabled={isLoading}>
+                <Lock className="mr-2 h-4 w-4" />
+                Close Register
+              </Button>
+            </>
+          ) : (
+            <Badge variant="secondary" className="px-4 py-2">
+              Register Closed ({currentRegister.status})
+            </Badge>
+          )}
           <Button variant="outline">
             <Download className="mr-2 h-4 w-4" />
             Export
@@ -243,8 +403,10 @@ const CashRegisterPage = () => {
             <SelectItem value="all">All Types</SelectItem>
             <SelectItem value="CASH_IN">Cash In</SelectItem>
             <SelectItem value="CASH_OUT">Cash Out</SelectItem>
-            <SelectItem value="OPENING">Opening Balance</SelectItem>
-            <SelectItem value="CLOSING">Closing Balance</SelectItem>
+            <SelectItem value="SALE">Sale</SelectItem>
+            <SelectItem value="REFUND">Refund</SelectItem>
+            <SelectItem value="EXPENSE">Expense</SelectItem>
+            <SelectItem value="COLLECTION">Collection</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -252,13 +414,13 @@ const CashRegisterPage = () => {
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={mockData.content}
-        isLoading={false}
+        data={paginatedData}
+        isLoading={isLoading}
         pagination={{
           pageIndex: pagination.pageIndex,
           pageSize: pagination.pageSize,
-          total: mockData.total,
-          pageCount: mockData.pageCount,
+          total: filteredTransactions.length,
+          pageCount: Math.ceil(filteredTransactions.length / pagination.pageSize),
         }}
         onPaginationChange={setPagination}
         sorting={sorting}

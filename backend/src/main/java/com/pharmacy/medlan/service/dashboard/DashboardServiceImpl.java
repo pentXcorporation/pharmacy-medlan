@@ -229,7 +229,7 @@ public class DashboardServiceImpl implements DashboardService {
 
     @Override
     public InventoryAnalyticsResponse getInventoryAnalytics(Long branchId) {
-        List<Product> allProducts = productRepository.findByIsActiveTrue();
+        List<Product> allProducts = productRepository.findByIsActiveTrueAndDeletedFalse();
         
         int totalProducts = allProducts.size();
         int productsInStock = 0;
@@ -340,7 +340,7 @@ public class DashboardServiceImpl implements DashboardService {
         LocalDateTime cutoffDate = LocalDateTime.now().minusDays(daysSinceLastSale);
         List<Map<String, Object>> slowMovingProducts = new ArrayList<>();
         
-        var allProducts = productRepository.findByIsActiveTrue();
+        var allProducts = productRepository.findByIsActiveTrueAndDeletedFalse();
         
         for (var product : allProducts) {
             // Check if product has stock at this branch
@@ -560,7 +560,7 @@ public class DashboardServiceImpl implements DashboardService {
         
         // Low stock products
         int lowStockCount = 0;
-        var products = productRepository.findByIsActiveTrue();
+        var products = productRepository.findByIsActiveTrueAndDeletedFalse();
         for (var product : products) {
             Integer stock = inventoryBatchRepository
                     .sumAvailableQuantityByProductAndBranch(product.getId(), branchId);
@@ -659,7 +659,7 @@ public class DashboardServiceImpl implements DashboardService {
         }
         
         // Calculate current inventory value
-        var allProducts = productRepository.findByIsActiveTrue();
+        var allProducts = productRepository.findByIsActiveTrueAndDeletedFalse();
         BigDecimal currentInventoryValue = BigDecimal.ZERO;
         
         for (var product : allProducts) {

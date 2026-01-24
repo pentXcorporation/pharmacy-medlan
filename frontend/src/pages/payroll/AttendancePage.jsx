@@ -12,7 +12,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { formatDate } from "@/utils/formatters";
 import AttendanceFormDialog from "./AttendanceFormDialog";
-import { toast } from "sonner";
+import {
+  useAttendance,
+  useAttendanceStats,
+  useCreateAttendance,
+  useDeleteAttendance,
+} from "@/hooks/useAttendance";
+import { useConfirm } from "@/components/common/ConfirmDialog";
 
 const AttendancePage = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -21,12 +27,29 @@ const AttendancePage = () => {
     pageIndex: 0,
     pageSize: 10,
   });
+  const [sorting, setSorting] = useState([{ id: "date", desc: true }]);
 
-  const mockData = {
-    content: [],
-    total: 0,
-    pageCount: 0,
-  };
+  const confirm = useConfirm();
+
+  // Build query params
+  const queryParams = useMemo(
+    () => ({
+      page: pagination.pageIndex,
+      size: pagination.pageSize,
+      sort:
+        sorting.length > 0
+          ? `${sorting[0].id},${sorting[0].desc ? "desc" : "asc"}`
+          : "date,desc",
+      ...(searchQuery && { search: searchQuery }),
+    }),
+    [pagination, sorting, searchQuery]
+  );
+
+  // Fetch data
+  const { data, isLoading, isFetching } = useAttendance(queryParams);
+  const { data: stats } = useAttendanceStats();
+  const createAttendance = useCreateAttendance();
+  const deleteAttendance = useDeleteAttendance();
 
   const columns = useMemo(
     () => [
@@ -65,7 +88,7 @@ const AttendancePage = () => {
         meta: { className: "hidden lg:table-cell" },
         cell: ({ row }) => {
           const hours = row.getValue("workHours");
-          return hours ? `${hours}h` : "-";
+          return hours ? `${hours.toFixed(2)}h` : "-";
         },
       },
       {
@@ -84,30 +107,50 @@ const AttendancePage = () => {
           return <Badge variant={variant}>{status}</Badge>;
         },
       },
+      {
+        id: "actions",
+        header: "Actions",
+        cell: ({ row }) => (
+          <Button
+            variant="destructive"
+            size="sm"
+            onClick={() => handleDelete(row.original)}
+          >
+            Delete
+          </Button>
+        ),
+      },
     ],
     []
   );
 
-  const stats = {
-    totalEmployees: 0,
-    presentToday: 0,
-    absentToday: 0,
-    lateToday: 0,
-  };
-
-  const handleMarkAttendance = useCallback(async (data) => {
-    try {
-      console.log("Marking attendance:", data);
-
-      toast.success("Attendance Marked", {
-        description: "Employee attendance has been recorded successfully.",
+  const handleMarkAttendance = useCallback(
+    async (data) => {
+      createAttendance.mutate(data, {
+        onSuccess: () => {
+          setIsFormOpen(false);
+        },
       });
-    } catch (error) {
-      toast.error("Error", {
-        description: "Failed to mark attendance. Please try again.",
+    },
+    [createAttendance]
+  );
+
+  const handleDelete = useCallback(
+    async (attendance) => {
+      const confirmed = await confirm({
+        title: "Delete Attendance",
+        description: `Are you sure you want to delete attendance record for ${attendance.employeeName} on ${formatDate(attendance.date)}?`,
+        confirmText: "Delete",
+        cancelText: "Cancel",
+        variant: "destructive",
       });
-    }
-  }, []);
+
+      if (confirmed) {
+        deleteAttendance.mutate(attendance.id);
+      }
+    },
+    [confirm, deleteAttendance]
+  );
 
   return (
     <div className="space-y-6">
@@ -127,22 +170,16 @@ const AttendancePage = () => {
         </div>
       </PageHeader>
 
-      <AttendanceFormDialog
-        open={isFormOpen}
-        onOpenChange={setIsFormOpen}
-        onSubmit={handleMarkAttendance}
-      />
-
-      {/* Statistics */}
-      <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
+      {/* Stats Cards */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">
-              Total Employees
-            </CardTitle>
+            <CardTitle className="text-sm font-medium">Total Employees</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.totalEmployees}</div>
+            <div className="text-2xl font-bold">
+              {stats?.totalEmployees || 0}
+            </div>
           </CardContent>
         </Card>
         <Card>
@@ -151,7 +188,7 @@ const AttendancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">
-              {stats.presentToday}
+              {stats?.presentToday || 0}
             </div>
           </CardContent>
         </Card>
@@ -161,7 +198,7 @@ const AttendancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-red-600">
-              {stats.absentToday}
+              {stats?.absentToday || 0}
             </div>
           </CardContent>
         </Card>
@@ -171,7 +208,7 @@ const AttendancePage = () => {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-orange-600">
-              {stats.lateToday}
+              {stats?.lateToday || 0}
             </div>
           </CardContent>
         </Card>
@@ -192,16 +229,25 @@ const AttendancePage = () => {
       {/* Data Table */}
       <DataTable
         columns={columns}
-        data={mockData.content}
-        isLoading={false}
+        data={data?.content || []}
+        isLoading={isLoading || isFetching}
         pagination={{
           pageIndex: pagination.pageIndex,
           pageSize: pagination.pageSize,
-          total: mockData.total,
-          pageCount: mockData.pageCount,
+          total: data?.totalElements || 0,
+          pageCount: data?.totalPages || 0,
         }}
         onPaginationChange={setPagination}
+        sorting={sorting}
+        onSortingChange={setSorting}
         emptyMessage="No attendance records found."
+      />
+
+      {/* Form Dialog */}
+      <AttendanceFormDialog
+        open={isFormOpen}
+        onOpenChange={setIsFormOpen}
+        onSubmit={handleMarkAttendance}
       />
     </div>
   );

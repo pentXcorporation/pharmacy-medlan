@@ -18,6 +18,10 @@ public interface CashBookRepository extends JpaRepository<CashBook, Long> {
             "ORDER BY cb.transactionDate DESC, cb.id DESC")
     List<CashBook> findLatestByBranch(Long branchId);
 
+    @Query("SELECT cb.runningBalance FROM CashBook cb WHERE cb.branch.id = :branchId " +
+            "ORDER BY cb.transactionDate DESC, cb.id DESC")
+    List<BigDecimal> findLastBalanceByBranch(Long branchId);
+
     @Query("SELECT SUM(cb.debitAmount) FROM CashBook cb WHERE cb.branch.id = :branchId " +
             "AND cb.transactionDate BETWEEN :startDate AND :endDate")
     BigDecimal getTotalDebitByBranchAndDate(Long branchId, LocalDate startDate, LocalDate endDate);

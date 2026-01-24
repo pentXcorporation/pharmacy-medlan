@@ -29,4 +29,6 @@ public class UserResponse {
     private String employeeCode;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long branchId;
+    private String branchName;
 }

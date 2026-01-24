@@ -14,6 +14,8 @@ import {
   Edit,
   Trash2,
   FileDown,
+  X,
+  Filter,
 } from "lucide-react";
 import { ROUTES } from "@/config";
 import { useProducts, useDeleteProduct } from "@/features/products";
@@ -22,6 +24,13 @@ import { useDebounce } from "@/hooks/useDebounce";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Card,
   CardContent,
@@ -53,107 +62,326 @@ import { productService } from "@/services";
 import { toast } from "sonner";
 
 /**
- * Advanced product search algorithm
- * Supports: exact barcode match, name search, generic name search, SKU search, partial matches
+ * Normalize and tokenize text for better matching
+ */
+const normalizeText = (text) => {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s]/g, ' ') // Replace special chars with space
+    .replace(/\s+/g, ' ') // Replace multiple spaces with single space
+    .trim();
+};
+
+/**
+ * Tokenize search query into individual words
+ */
+const tokenizeQuery = (query) => {
+  return normalizeText(query)
+    .split(' ')
+    .filter(token => token.length > 0);
+};
+
+/**
+ * Calculate Levenshtein distance for fuzzy matching
+ */
+const levenshteinDistance = (str1, str2) => {
+  const matrix = [];
+  
+  for (let i = 0; i <= str2.length; i++) {
+    matrix[i] = [i];
+  }
+  
+  for (let j = 0; j <= str1.length; j++) {
+    matrix[0][j] = j;
+  }
+  
+  for (let i = 1; i <= str2.length; i++) {
+    for (let j = 1; j <= str1.length; j++) {
+      if (str2.charAt(i - 1) === str1.charAt(j - 1)) {
+        matrix[i][j] = matrix[i - 1][j - 1];
+      } else {
+        matrix[i][j] = Math.min(
+          matrix[i - 1][j - 1] + 1, // substitution
+          matrix[i][j - 1] + 1,     // insertion
+          matrix[i - 1][j] + 1      // deletion
+        );
+      }
+    }
+  }
+  
+  return matrix[str2.length][str1.length];
+};
+
+/**
+ * Enhanced fuzzy matching with similarity percentage
+ */
+const getFuzzySimilarity = (str, query) => {
+  const normalizedStr = normalizeText(str);
+  const normalizedQuery = normalizeText(query);
+  
+  // Direct substring match
+  if (normalizedStr.includes(normalizedQuery)) {
+    return 1.0;
+  }
+  
+  // Check word-by-word
+  const strWords = normalizedStr.split(' ');
+  const queryWords = normalizedQuery.split(' ');
+  
+  let bestSimilarity = 0;
+  
+  // Single word fuzzy match
+  if (queryWords.length === 1) {
+    strWords.forEach(word => {
+      if (word.length < 2) return;
+      
+      // Starts with check
+      if (word.startsWith(normalizedQuery)) {
+        bestSimilarity = Math.max(bestSimilarity, 0.9);
+        return;
+      }
+      
+      // Levenshtein distance
+      const distance = levenshteinDistance(word, normalizedQuery);
+      const maxLen = Math.max(word.length, normalizedQuery.length);
+      const similarity = 1 - (distance / maxLen);
+      
+      if (similarity > bestSimilarity) {
+        bestSimilarity = similarity;
+      }
+    });
+  } else {
+    // Multi-word query - check if all words are present
+    const allWordsPresent = queryWords.every(qWord => 
+      strWords.some(sWord => {
+        if (sWord.includes(qWord)) return true;
+        const distance = levenshteinDistance(sWord, qWord);
+        return distance <= Math.floor(qWord.length * 0.3); // 30% tolerance
+      })
+    );
+    
+    if (allWordsPresent) {
+      bestSimilarity = 0.85;
+    }
+  }
+  
+  return bestSimilarity;
+};
+
+/**
+ * Advanced product search algorithm with optimized matching
+ * Supports: exact matches, partial matches, multi-word search, fuzzy matching, tokenized search
  */
 const searchProducts = (products, searchTerm) => {
   if (!searchTerm || searchTerm.trim().length === 0) return products;
 
-  const query = searchTerm.trim().toLowerCase();
+  const query = searchTerm.trim();
+  const normalizedQuery = normalizeText(query);
+  const queryTokens = tokenizeQuery(query);
   const results = [];
 
   products.forEach((product) => {
-    // Handle various possible field names from API
-    const name = (product.productName || product.name || "").toLowerCase();
-    const sku = (product.productCode || product.sku || "").toLowerCase();
-    const barcode = (product.barcode || "").toLowerCase();
-    const genericName = (product.genericName || "").toLowerCase();
-    const manufacturer = (product.manufacturer || "").toLowerCase();
-    const description = (product.description || "").toLowerCase();
-    const category = (product.category?.categoryName || "").toLowerCase();
+    // Extract and normalize all searchable fields
+    const name = product.productName || product.name || "";
+    const sku = product.productCode || product.sku || "";
+    const barcode = product.barcode || "";
+    const genericName = product.genericName || "";
+    const manufacturer = product.manufacturer || "";
+    const supplier = product.supplier || "";
+    const description = product.description || "";
+    const category = product.category?.categoryName || "";
+    const strength = product.strength || "";
+    const dosageForm = product.dosageForm || "";
+
+    const normalizedName = normalizeText(name);
+    const normalizedSku = normalizeText(sku);
+    const normalizedBarcode = normalizeText(barcode);
+    const normalizedGeneric = normalizeText(genericName);
+    const normalizedManufacturer = normalizeText(manufacturer);
+    const normalizedCategory = normalizeText(category);
+    const normalizedDescription = normalizeText(description);
+    const normalizedSupplier = normalizeText(supplier);
+    const normalizedStrength = normalizeText(strength);
 
     let score = 0;
     let matchType = "";
+    let matchedFields = [];
 
-    // Priority 1: Exact barcode match
-    if (barcode && barcode === query) {
-      score = 1000;
+    // Priority 1: Exact barcode match (highest priority)
+    if (normalizedBarcode && normalizedBarcode === normalizedQuery) {
+      score = 10000;
       matchType = "barcode-exact";
+      matchedFields.push("barcode");
     }
-    // Priority 2: Barcode starts with query
-    else if (barcode && barcode.startsWith(query)) {
-      score = 900;
-      matchType = "barcode-prefix";
-    }
-    // Priority 3: Barcode contains query
-    else if (barcode && barcode.includes(query)) {
-      score = 800;
-      matchType = "barcode-partial";
-    }
-    // Priority 4: Exact SKU match
-    else if (sku && sku === query) {
-      score = 700;
+    // Priority 2: Exact SKU/Code match
+    else if (normalizedSku && normalizedSku === normalizedQuery) {
+      score = 9000;
       matchType = "sku-exact";
+      matchedFields.push("code");
     }
-    // Priority 5: SKU starts with query
-    else if (sku && sku.startsWith(query)) {
-      score = 600;
+    // Priority 3: Barcode starts with query
+    else if (normalizedBarcode && normalizedBarcode.startsWith(normalizedQuery)) {
+      score = 8500;
+      matchType = "barcode-prefix";
+      matchedFields.push("barcode");
+    }
+    // Priority 4: SKU starts with query
+    else if (normalizedSku && normalizedSku.startsWith(normalizedQuery)) {
+      score = 8000;
       matchType = "sku-prefix";
+      matchedFields.push("code");
     }
-    // Priority 6: Product name OR Generic name exact match
-    else if ((name && name === query) || (genericName && genericName === query)) {
-      score = 550;
-      matchType = (genericName && genericName === query) ? "generic-exact" : "name-exact";
+    // Priority 5: Exact product name match
+    else if (normalizedName === normalizedQuery) {
+      score = 7500;
+      matchType = "name-exact";
+      matchedFields.push("name");
     }
-    // Priority 7: Product name OR Generic name starts with query
-    else if ((name && name.startsWith(query)) || (genericName && genericName.startsWith(query))) {
-      score = 500;
-      matchType = (genericName && genericName.startsWith(query)) ? "generic-prefix" : "name-prefix";
+    // Priority 6: Exact generic name match
+    else if (normalizedGeneric && normalizedGeneric === normalizedQuery) {
+      score = 7000;
+      matchType = "generic-exact";
+      matchedFields.push("generic");
     }
-    // Priority 8: Product name OR Generic name contains whole word match
-    else if (
-      (name && (name.includes(` ${query} `) || name.startsWith(`${query} `) || name.endsWith(` ${query}`))) ||
-      (genericName && (genericName.includes(` ${query} `) || genericName.startsWith(`${query} `) || genericName.endsWith(` ${query}`)))
-    ) {
-      score = 450;
-      const genericMatch = genericName && (genericName.includes(` ${query} `) || genericName.startsWith(`${query} `) || genericName.endsWith(` ${query}`));
-      matchType = genericMatch ? "generic-word" : "name-word";
+    // Priority 7: Product name starts with query
+    else if (normalizedName.startsWith(normalizedQuery)) {
+      score = 6500;
+      matchType = "name-prefix";
+      matchedFields.push("name");
     }
-    // Priority 9: Product name OR Generic name contains query anywhere
-    else if ((name && name.includes(query)) || (genericName && genericName.includes(query))) {
-      score = 400;
-      matchType = (genericName && genericName.includes(query)) ? "generic-partial" : "name-partial";
+    // Priority 8: Generic name starts with query
+    else if (normalizedGeneric && normalizedGeneric.startsWith(normalizedQuery)) {
+      score = 6000;
+      matchType = "generic-prefix";
+      matchedFields.push("generic");
     }
-    // Priority 10: Category contains query
-    else if (category && category.includes(query)) {
-      score = 300;
-      matchType = "category";
+    // Priority 9: All query tokens present in name
+    else if (queryTokens.length > 1 && queryTokens.every(token => normalizedName.includes(token))) {
+      score = 5500;
+      matchType = "name-all-tokens";
+      matchedFields.push("name");
     }
-    // Priority 11: Description contains query
-    else if (description && description.includes(query)) {
-      score = 250;
-      matchType = "description";
+    // Priority 10: All query tokens present in generic name
+    else if (queryTokens.length > 1 && normalizedGeneric && queryTokens.every(token => normalizedGeneric.includes(token))) {
+      score = 5000;
+      matchType = "generic-all-tokens";
+      matchedFields.push("generic");
     }
-    // Priority 12: SKU contains query
-    else if (sku && sku.includes(query)) {
-      score = 200;
+    // Priority 11: Product name contains whole word
+    else if (normalizedName.split(' ').some(word => word === normalizedQuery)) {
+      score = 4500;
+      matchType = "name-word";
+      matchedFields.push("name");
+    }
+    // Priority 12: Generic name contains whole word
+    else if (normalizedGeneric && normalizedGeneric.split(' ').some(word => word === normalizedQuery)) {
+      score = 4000;
+      matchType = "generic-word";
+      matchedFields.push("generic");
+    }
+    // Priority 13: Name contains query substring
+    else if (normalizedName.includes(normalizedQuery)) {
+      score = 3500;
+      matchType = "name-partial";
+      matchedFields.push("name");
+    }
+    // Priority 14: Generic name contains query substring
+    else if (normalizedGeneric && normalizedGeneric.includes(normalizedQuery)) {
+      score = 3000;
+      matchType = "generic-partial";
+      matchedFields.push("generic");
+    }
+    // Priority 15: Barcode contains query
+    else if (normalizedBarcode && normalizedBarcode.includes(normalizedQuery)) {
+      score = 2800;
+      matchType = "barcode-partial";
+      matchedFields.push("barcode");
+    }
+    // Priority 16: SKU contains query
+    else if (normalizedSku && normalizedSku.includes(normalizedQuery)) {
+      score = 2600;
       matchType = "sku-partial";
+      matchedFields.push("code");
     }
-    // Priority 13: Manufacturer match
-    else if (manufacturer && manufacturer.includes(query)) {
-      score = 150;
+    // Priority 17: Strength match
+    else if (normalizedStrength && normalizedStrength.includes(normalizedQuery)) {
+      score = 2400;
+      matchType = "strength";
+      matchedFields.push("strength");
+    }
+    // Priority 18: Category match
+    else if (normalizedCategory && normalizedCategory.includes(normalizedQuery)) {
+      score = 2200;
+      matchType = "category";
+      matchedFields.push("category");
+    }
+    // Priority 19: Dosage form match
+    else if (normalizedQuery === normalizeText(dosageForm)) {
+      score = 2000;
+      matchType = "dosage-form";
+      matchedFields.push("form");
+    }
+    // Priority 20: Manufacturer match
+    else if (normalizedManufacturer && normalizedManufacturer.includes(normalizedQuery)) {
+      score = 1800;
       matchType = "manufacturer";
+      matchedFields.push("manufacturer");
+    }
+    // Priority 21: Supplier match
+    else if (normalizedSupplier && normalizedSupplier.includes(normalizedQuery)) {
+      score = 1600;
+      matchType = "supplier";
+      matchedFields.push("supplier");
+    }
+    // Priority 22: Description match
+    else if (normalizedDescription && normalizedDescription.includes(normalizedQuery)) {
+      score = 1400;
+      matchType = "description";
+      matchedFields.push("description");
     }
 
-    // Fuzzy matching for typos (check both name and generic name)
-    if (score === 0 && query.length >= 3) {
-      if (name && isCloseMatch(name, query)) {
-        score = 100;
+    // Fuzzy matching with advanced similarity
+    if (score === 0 && normalizedQuery.length >= 3) {
+      // Check name fuzzy match
+      const nameSimilarity = getFuzzySimilarity(name, query);
+      if (nameSimilarity >= 0.7) {
+        score = Math.floor(1200 * nameSimilarity);
         matchType = "fuzzy-name";
-      } else if (genericName && isCloseMatch(genericName, query)) {
-        score = 95;
-        matchType = "fuzzy-generic";
+        matchedFields.push("name-fuzzy");
       }
+      
+      // Check generic name fuzzy match
+      if (genericName) {
+        const genericSimilarity = getFuzzySimilarity(genericName, query);
+        if (genericSimilarity >= 0.7 && genericSimilarity * 1100 > score) {
+          score = Math.floor(1100 * genericSimilarity);
+          matchType = "fuzzy-generic";
+          matchedFields.push("generic-fuzzy");
+        }
+      }
+      
+      // Check manufacturer fuzzy match
+      if (manufacturer) {
+        const mfgSimilarity = getFuzzySimilarity(manufacturer, query);
+        if (mfgSimilarity >= 0.8 && mfgSimilarity * 900 > score) {
+          score = Math.floor(900 * mfgSimilarity);
+          matchType = "fuzzy-manufacturer";
+          matchedFields.push("manufacturer-fuzzy");
+        }
+      }
+    }
+
+    // Boost score for multiple token matches
+    if (queryTokens.length > 1 && score > 0) {
+      const tokenMatchCount = queryTokens.filter(token => 
+        normalizedName.includes(token) || 
+        normalizedGeneric.includes(token) ||
+        normalizedBarcode.includes(token) ||
+        normalizedSku.includes(token)
+      ).length;
+      
+      const tokenBoost = (tokenMatchCount / queryTokens.length) * 500;
+      score += tokenBoost;
     }
 
     if (score > 0) {
@@ -161,6 +389,7 @@ const searchProducts = (products, searchTerm) => {
         ...product,
         searchScore: score,
         matchType,
+        matchedFields,
       });
     }
   });
@@ -170,28 +399,16 @@ const searchProducts = (products, searchTerm) => {
 };
 
 /**
- * Basic fuzzy matching - checks if strings are similar within 1-2 character differences
- */
-const isCloseMatch = (str, query) => {
-  const words = str.split(" ");
-  return words.some(word => {
-    if (word.length < query.length) return false;
-    let differences = 0;
-    for (let i = 0; i < Math.min(word.length, query.length); i++) {
-      if (word[i] !== query[i]) differences++;
-      if (differences > 2) return false;
-    }
-    return differences <= 2 && Math.abs(word.length - query.length) <= 1;
-  });
-};
-
-/**
  * ProductsPage component
  */
 const ProductsPage = () => {
   const navigate = useNavigate();
   const { confirm } = useConfirm();
   const [searchQuery, setSearchQuery] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [dosageFormFilter, setDosageFormFilter] = useState("all");
+  const [priceRangeFilter, setPriceRangeFilter] = useState("all");
   const [isExporting, setIsExporting] = useState(false);
   const [isImporting, setIsImporting] = useState(false);
   const fileInputRef = useRef(null);
@@ -239,10 +456,88 @@ const ProductsPage = () => {
     });
   }, [data, categoryMap]);
 
-  // Filter products using advanced search
+  // Get unique dosage forms for filter
+  const dosageForms = useMemo(() => {
+    const forms = new Set();
+    allProducts.forEach(product => {
+      if (product.dosageForm) {
+        forms.add(product.dosageForm);
+      }
+    });
+    return Array.from(forms).sort();
+  }, [allProducts]);
+
+  // Filter products using advanced search and filters
   const products = useMemo(() => {
-    return searchProducts(allProducts, debouncedSearch);
-  }, [allProducts, debouncedSearch]);
+    let filtered = searchProducts(allProducts, debouncedSearch);
+    
+    // Apply category filter
+    if (categoryFilter !== "all") {
+      filtered = filtered.filter(product => 
+        product.category?.id?.toString() === categoryFilter.toString()
+      );
+    }
+    
+    // Apply status filter
+    if (statusFilter !== "all") {
+      if (statusFilter === "active") {
+        filtered = filtered.filter(product => product.isActive === true);
+      } else if (statusFilter === "inactive") {
+        filtered = filtered.filter(product => product.isActive === false);
+      } else if (statusFilter === "discontinued") {
+        filtered = filtered.filter(product => product.isDiscontinued === true);
+      }
+    }
+    
+    // Apply dosage form filter
+    if (dosageFormFilter !== "all") {
+      filtered = filtered.filter(product => 
+        product.dosageForm === dosageFormFilter
+      );
+    }
+    
+    // Apply price range filter
+    if (priceRangeFilter !== "all") {
+      filtered = filtered.filter(product => {
+        const price = parseFloat(product.sellingPrice) || 0;
+        switch (priceRangeFilter) {
+          case "under-100":
+            return price < 100;
+          case "100-500":
+            return price >= 100 && price < 500;
+          case "500-1000":
+            return price >= 500 && price < 1000;
+          case "1000-5000":
+            return price >= 1000 && price < 5000;
+          case "over-5000":
+            return price >= 5000;
+          default:
+            return true;
+        }
+      });
+    }
+    
+    return filtered;
+  }, [allProducts, debouncedSearch, categoryFilter, statusFilter, dosageFormFilter, priceRangeFilter]);
+
+  // Count active filters
+  const activeFiltersCount = useMemo(() => {
+    let count = 0;
+    if (categoryFilter !== "all") count++;
+    if (statusFilter !== "all") count++;
+    if (dosageFormFilter !== "all") count++;
+    if (priceRangeFilter !== "all") count++;
+    return count;
+  }, [categoryFilter, statusFilter, dosageFormFilter, priceRangeFilter]);
+
+  // Clear all filters
+  const clearFilters = () => {
+    setCategoryFilter("all");
+    setStatusFilter("all");
+    setDosageFormFilter("all");
+    setPriceRangeFilter("all");
+    setSearchQuery("");
+  };
 
   // Handlers
   const handleView = (product) => {
@@ -543,16 +838,173 @@ const ProductsPage = () => {
       {/* Filters Card */}
       <Card>
         <CardHeader className="pb-3 sm:pb-4">
-          <CardTitle className="text-sm sm:text-base">Filters</CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="text-sm sm:text-base flex items-center gap-2">
+              <Filter className="h-4 w-4" />
+              Filters
+              {activeFiltersCount > 0 && (
+                <Badge variant="secondary" className="ml-2">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </CardTitle>
+            {(activeFiltersCount > 0 || searchQuery) && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="h-8 text-xs"
+              >
+                <X className="mr-1 h-3 w-3" />
+                Clear All
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
-            <Input
-              placeholder="Search products..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full sm:max-w-sm"
-            />
+          <div className="space-y-4">
+            {/* Search Input */}
+            <div className="w-full space-y-1.5">
+              <Input
+                placeholder="🔍 Search by name, code, barcode, generic name, manufacturer, or category..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full"
+              />
+              {searchQuery && products.length > 0 && (
+                <p className="text-xs text-muted-foreground">
+                  Found {products.length} {products.length === 1 ? 'product' : 'products'} matching "{searchQuery}"
+                </p>
+              )}
+              {searchQuery && products.length === 0 && (
+                <p className="text-xs text-amber-600 dark:text-amber-400">
+                  No products found. Try a different search term or check the filters.
+                </p>
+              )}
+            </div>
+
+            {/* Filter Controls */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+              {/* Category Filter */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Category
+                </label>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Categories</SelectItem>
+                    {categoriesData?.content?.map((category) => (
+                      <SelectItem key={category.id} value={category.id.toString()}>
+                        {category.categoryName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Status Filter */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Status
+                </label>
+                <Select value={statusFilter} onValueChange={setStatusFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                    <SelectItem value="discontinued">Discontinued</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Dosage Form Filter */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Dosage Form
+                </label>
+                <Select value={dosageFormFilter} onValueChange={setDosageFormFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Forms" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Forms</SelectItem>
+                    {dosageForms.map((form) => (
+                      <SelectItem key={form} value={form}>
+                        {form}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Price Range Filter */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Price Range
+                </label>
+                <Select value={priceRangeFilter} onValueChange={setPriceRangeFilter}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="All Prices" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Prices</SelectItem>
+                    <SelectItem value="under-100">Under ₹100</SelectItem>
+                    <SelectItem value="100-500">₹100 - ₹500</SelectItem>
+                    <SelectItem value="500-1000">₹500 - ₹1,000</SelectItem>
+                    <SelectItem value="1000-5000">₹1,000 - ₹5,000</SelectItem>
+                    <SelectItem value="over-5000">Over ₹5,000</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            {/* Active Filter Tags */}
+            {activeFiltersCount > 0 && (
+              <div className="flex flex-wrap gap-2 pt-2 border-t">
+                {categoryFilter !== "all" && (
+                  <Badge variant="secondary" className="gap-1">
+                    Category: {categoriesData?.content?.find(c => c.id.toString() === categoryFilter)?.categoryName}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => setCategoryFilter("all")}
+                    />
+                  </Badge>
+                )}
+                {statusFilter !== "all" && (
+                  <Badge variant="secondary" className="gap-1">
+                    Status: {statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => setStatusFilter("all")}
+                    />
+                  </Badge>
+                )}
+                {dosageFormFilter !== "all" && (
+                  <Badge variant="secondary" className="gap-1">
+                    Form: {dosageFormFilter}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => setDosageFormFilter("all")}
+                    />
+                  </Badge>
+                )}
+                {priceRangeFilter !== "all" && (
+                  <Badge variant="secondary" className="gap-1">
+                    Price: {priceRangeFilter.split("-").map(p => p.charAt(0).toUpperCase() + p.slice(1)).join(" ")}
+                    <X
+                      className="h-3 w-3 cursor-pointer"
+                      onClick={() => setPriceRangeFilter("all")}
+                    />
+                  </Badge>
+                )}
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>
@@ -613,29 +1065,61 @@ const ProductsPage = () => {
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col min-w-0">
-                              <div className="flex items-center gap-2">
+                              <div className="flex items-center gap-2 flex-wrap">
                                 <span className="font-medium text-sm truncate max-w-[150px] sm:max-w-none">
                                   {product.productName}
                                 </span>
+                                {/* Match type badges */}
                                 {product.matchType?.includes("barcode") && (
-                                  <Badge variant="secondary" className="text-xs">
-                                    Barcode
+                                  <Badge variant="secondary" className="text-xs shrink-0">
+                                    📱 Barcode
+                                  </Badge>
+                                )}
+                                {product.matchType?.includes("sku") && (
+                                  <Badge variant="secondary" className="text-xs shrink-0">
+                                    🏷️ Code
                                   </Badge>
                                 )}
                                 {product.matchType?.includes("generic") && (
-                                  <Badge variant="default" className="text-xs">
-                                    Generic
+                                  <Badge variant="default" className="text-xs shrink-0">
+                                    🧬 Generic
+                                  </Badge>
+                                )}
+                                {product.matchType?.includes("category") && (
+                                  <Badge variant="outline" className="text-xs shrink-0">
+                                    📁 Category
+                                  </Badge>
+                                )}
+                                {product.matchType?.includes("manufacturer") && (
+                                  <Badge variant="outline" className="text-xs shrink-0">
+                                    🏭 Mfg
+                                  </Badge>
+                                )}
+                                {product.matchType?.includes("strength") && (
+                                  <Badge variant="outline" className="text-xs shrink-0">
+                                    💊 Strength
                                   </Badge>
                                 )}
                                 {product.matchType?.includes("fuzzy") && (
-                                  <Badge variant="outline" className="text-xs">
-                                    Similar
+                                  <Badge variant="outline" className="text-xs shrink-0">
+                                    ≈ Similar
+                                  </Badge>
+                                )}
+                                {product.matchType?.includes("exact") && (
+                                  <Badge variant="success" className="text-xs shrink-0 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
+                                    ✓ Exact
                                   </Badge>
                                 )}
                               </div>
                               {product.genericName && (
                                 <span className="text-xs text-muted-foreground truncate max-w-[150px] sm:max-w-none">
                                   {product.genericName}
+                                </span>
+                              )}
+                              {/* Show search score in development */}
+                              {product.searchScore && process.env.NODE_ENV === 'development' && (
+                                <span className="text-xs text-muted-foreground">
+                                  Score: {Math.round(product.searchScore)}
                                 </span>
                               )}
                             </div>

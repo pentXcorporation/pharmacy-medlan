@@ -423,7 +423,7 @@ const SettingsPage = () => {
                 <div>
                   <p className="text-sm text-muted-foreground">Branch</p>
                   <p className="font-medium">
-                    {user?.branch?.branchName || "All Branches"}
+                    {user?.branchName || "All Branches"}
                   </p>
                   {user?.branch?.branchCode && (
                     <p className="text-xs text-muted-foreground">

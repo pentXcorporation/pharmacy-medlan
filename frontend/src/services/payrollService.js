@@ -58,6 +58,20 @@ const payrollService = {
       responseType: "blob",
     });
   },
+
+  /**
+   * Get all employees
+   */
+  getAllEmployees: (params = {}) => {
+    return api.get("/employees", { params });
+  },
+
+  /**
+   * Get employee by ID
+   */
+  getEmployeeById: (id) => {
+    return api.get(`/employees/${id}`);
+  },
 };
 
 export default payrollService;
