@@ -16,7 +16,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Button } from "../ui/Button" // Uppercase 'B' (if your file is named Button.jsx)
+import { Button } from "../ui/button";
 
 /**
  * Dialog variant icons
