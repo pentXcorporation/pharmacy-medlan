@@ -23,4 +23,16 @@ public interface ExpiryAlertRepository extends JpaRepository<ExpiryAlert, Long> 
     @Query("SELECT ea FROM ExpiryAlert ea WHERE ea.branch.id = :branchId " +
             "AND ea.expiryDate BETWEEN :startDate AND :endDate")
     List<ExpiryAlert> findByBranchAndExpiryDateRange(Long branchId, LocalDate startDate, LocalDate endDate);
+    
+    /**
+     * Count items expiring before a certain date
+     */
+    @Query("SELECT COUNT(ea) FROM ExpiryAlert ea WHERE ea.expiryDate < :date AND ea.isAcknowledged = false")
+    Long countExpiringBefore(LocalDate date);
+    
+    /**
+     * Count expired items
+     */
+    @Query("SELECT COUNT(ea) FROM ExpiryAlert ea WHERE ea.expiryDate < CURRENT_DATE AND ea.isAcknowledged = false")
+    Long countExpired();
 }

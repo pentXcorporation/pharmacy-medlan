@@ -28,11 +28,13 @@ import {
 import { PageHeader } from "@/components/common";
 import { useAuth } from "@/hooks";
 import {
+  useSuperAdminDashboard,
   useSystemMetrics,
   useBranchAnalytics,
   useBusinessMetrics,
   useInventoryOverview,
   useUserStatistics,
+  useFinancialSummary,
   useRecentActivities,
 } from "@/hooks/useSuperAdminDashboard";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";

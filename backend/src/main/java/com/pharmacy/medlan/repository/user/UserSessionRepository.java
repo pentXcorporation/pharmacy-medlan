@@ -17,4 +17,10 @@ public interface UserSessionRepository extends JpaRepository<UserSession, Long> 
     List<UserSession> findExpiredSessions(LocalDateTime now);
 
     void deleteByUserId(Long userId);
+    
+    /**
+     * Count active sessions for dashboard metrics
+     */
+    @Query("SELECT COUNT(us) FROM UserSession us WHERE us.isActive = true AND us.expiresAt > CURRENT_TIMESTAMP")
+    int countActiveSessions();
 }

@@ -17,4 +17,16 @@ public interface LowStockAlertRepository extends JpaRepository<LowStockAlert, Lo
     @Query("SELECT lsa FROM LowStockAlert lsa WHERE lsa.branch.id = :branchId " +
             "AND lsa.isAcknowledged = false ORDER BY lsa.alertLevel DESC, lsa.alertGeneratedAt ASC")
     List<LowStockAlert> findUnacknowledgedAlertsByBranch(Long branchId);
+    
+    /**
+     * Count low stock alerts by branch
+     */
+    @Query("SELECT COUNT(lsa) FROM LowStockAlert lsa WHERE lsa.branch.id = :branchId AND lsa.isAcknowledged = false")
+    Long countByBranchId(Long branchId);
+    
+    /**
+     * Count critical alerts across all branches
+     */
+    @Query("SELECT COUNT(lsa) FROM LowStockAlert lsa WHERE lsa.alertLevel = 'CRITICAL' AND lsa.isAcknowledged = false")
+    Long countCriticalAlerts();
 }

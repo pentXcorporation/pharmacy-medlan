@@ -51,4 +51,28 @@ public interface BranchInventoryRepository extends JpaRepository<BranchInventory
 
     @Query("SELECT bi FROM BranchInventory bi WHERE bi.quantityAvailable <= 0")
     List<BranchInventory> findAllOutOfStock();
+    
+    /**
+     * Count inventory items by branch
+     */
+    @Query("SELECT COUNT(bi) FROM BranchInventory bi WHERE bi.branch.id = :branchId")
+    Long countByBranchId(@Param("branchId") Long branchId);
+    
+    /**
+     * Count out of stock items by branch
+     */
+    @Query("SELECT COUNT(bi) FROM BranchInventory bi WHERE bi.branch.id = :branchId AND bi.quantityAvailable <= 0")
+    Long countOutOfStockByBranchId(@Param("branchId") Long branchId);
+    
+    /**
+     * Count all out of stock items across all branches
+     */
+    @Query("SELECT COUNT(bi) FROM BranchInventory bi WHERE bi.quantityAvailable <= 0")
+    Long countAllOutOfStock();
+    
+    /**
+     * Calculate total inventory value across all branches
+     */
+    @Query("SELECT COALESCE(SUM(bi.quantityAvailable * p.costPrice), 0) FROM BranchInventory bi JOIN bi.product p")
+    java.math.BigDecimal calculateTotalInventoryValue();
 }
