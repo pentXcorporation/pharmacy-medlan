@@ -1,0 +1,15 @@
+[build]
+  # Step 1: Point to your frontend folder
+  base = "frontend"
+
+  # Step 2: Define the build command
+  command = "npm run build"
+
+  # Step 3: Define where the built files go (relative to base)
+  publish = "dist" 
+
+# Step 4: Handle SPA Routing (Redirects)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
