@@ -119,7 +119,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
         // Use patterns to allow localhost and ngrok domains
-        config.setAllowedOriginPatterns(List.of("http://localhost:*", "https://*.ngrok-free.dev", "https://*.ngrok.io", "https://*.ngrok-free.app"));
+        config.setAllowedOriginPatterns(List.of("http://localhost:*", "https://*.ngrok-free.dev", "https://*.ngrok.io", "https://*.ngrok-free.app", "https://*.asse.devtunnels.ms"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
         config.setAllowedHeaders(List.of("*"));
         config.setExposedHeaders(List.of("Authorization", "Content-Type", "X-Total-Count"));
@@ -128,6 +128,7 @@ public class SecurityConfig {
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
+        
         return source;
     }
 }
