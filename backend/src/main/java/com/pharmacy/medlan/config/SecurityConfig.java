@@ -57,6 +57,7 @@ public class SecurityConfig {
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
+                        .requestMatchers("/**").permitAll() // temporarily allow everything to test CORS
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -83,11 +84,6 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-    /**
-     * Role Hierarchy Configuration
-     * SUPER_ADMIN has all permissions of all other roles
-     * This ensures SUPER_ADMIN can access everything in the system
-     */
     @Bean
     public RoleHierarchy roleHierarchy() {
         String hierarchy = """
@@ -104,10 +100,6 @@ public class SecurityConfig {
         return RoleHierarchyImpl.fromHierarchy(hierarchy);
     }
 
-    /**
-     * Method Security Expression Handler with Role Hierarchy
-     * This enables the role hierarchy for @PreAuthorize annotations
-     */
     @Bean
     public MethodSecurityExpressionHandler methodSecurityExpressionHandler(RoleHierarchy roleHierarchy) {
         DefaultMethodSecurityExpressionHandler handler = new DefaultMethodSecurityExpressionHandler();
@@ -118,17 +110,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Use patterns to allow localhost and ngrok domains
-        config.setAllowedOriginPatterns(List.of("http://localhost:*", "https://*.ngrok-free.dev", "https://*.ngrok.io", "https://*.ngrok-free.app", "https://*.asse.devtunnels.ms", "https://medlan.vercel.app"));
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
+        // Allow your frontend origin
+        config.setAllowedOriginPatterns(List.of(
+                "http://localhost:*",
+                "https://*.ngrok.io",
+                "https://*.ngrok-free.app",
+                "https://medlan.vercel.app"
+        ));
+        config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Authorization", "Content-Type", "X-Total-Count"));
+        config.setExposedHeaders(List.of("Authorization", "Content-Type"));
         config.setAllowCredentials(true);
-        config.setMaxAge(3600L); // Cache preflight for 1 hour
+        config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-        
+
         return source;
     }
 }
