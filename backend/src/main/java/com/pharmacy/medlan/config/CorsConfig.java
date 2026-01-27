@@ -1,6 +1,5 @@
 package com.pharmacy.medlan.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
@@ -9,21 +8,16 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 public class CorsConfig {
 
-    // Get the frontend URL from application.properties
-    @Value("${frontend.url}")
-    private String frontendUrl;
-
     @Bean
     public WebMvcConfigurer corsConfigurer() {
         return new WebMvcConfigurer() {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
-                // Allow frontend to access all API endpoints
-                registry.addMapping("/**")
-                        .allowedOrigins(frontendUrl)          // Only allow the Vercel frontend
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                registry.addMapping("/**") // allow all endpoints
+                        .allowedOrigins("https://medlan.vercel.app") // allow your frontend
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // allow common methods
                         .allowedHeaders("*")
-                        .allowCredentials(true);             // Allow cookies/auth headers if used
+                        .allowCredentials(true); // allow cookies/auth headers
             }
         };
     }
