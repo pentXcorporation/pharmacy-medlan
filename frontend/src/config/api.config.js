@@ -5,13 +5,13 @@
 
 export const API_CONFIG = {
   // Base URL for API calls
-  BASE_URL: import.meta.env.VITE_API_BASE_URL || "http://localhost:8080/api",
+  BASE_URL: import.meta.env.VITE_API_BASE_URL,
 
   // Auth endpoints (no /api prefix as they're at root)
-  AUTH_URL: import.meta.env.VITE_AUTH_URL || "http://localhost:8080",
+  AUTH_URL: import.meta.env.VITE_AUTH_URL,
 
   // WebSocket URL
-  WS_URL: import.meta.env.VITE_WS_URL || "ws://localhost:8080/ws",
+  WS_URL: import.meta.env.VITE_WS_URL,
 
   // Enable WebSocket features
   ENABLE_WEBSOCKET: import.meta.env.VITE_ENABLE_WEBSOCKET !== 'false',
