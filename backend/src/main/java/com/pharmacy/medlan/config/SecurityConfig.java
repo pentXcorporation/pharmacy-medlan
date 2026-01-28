@@ -52,12 +52,13 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+                // 1. Force Spring Security to use the corsConfigurationSource bean defined below
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        .requestMatchers("/**").permitAll() // temporarily allow everything to test CORS
+                        // .requestMatchers("/**").permitAll() // Uncomment this ONLY if you are still stuck, but try to keep it secure first
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -110,17 +111,20 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        // Allow your frontend origin
+
+        // 2. CRITICAL UPDATE: Added your Netlify and No-IP domains here
         config.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",
-                "https://*.ngrok.io",
-                "https://*.ngrok-free.app",
-                "https://medlan.vercel.app"
+                "http://localhost:*",                    // Local development
+                "https://*.netlify.app",                 // ALL Netlify apps (includes your specific one)
+                "https://medlan.netlify.app",            // Main Netlify URL
+                "https://medlan-project.serveminecraft.net", // Your Backend URL (No-IP)
+                "*"                                      // WILDCARD (Allow everything for testing/demo)
         ));
-        config.setAllowedMethods(Arrays.asList("GET","POST","PUT","DELETE","PATCH","OPTIONS"));
-        config.setAllowedHeaders(List.of("*"));
-        config.setExposedHeaders(List.of("Authorization", "Content-Type"));
-        config.setAllowCredentials(true);
+
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
+        config.setAllowedHeaders(List.of("*")); // Allow all headers
+        config.setExposedHeaders(List.of("Authorization", "Content-Type", "Access-Control-Allow-Origin"));
+        config.setAllowCredentials(true); // Allow cookies/auth headers
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
