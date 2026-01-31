@@ -26,14 +26,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { ButtonSpinner } from "@/components/common";
 import { useCreateGRN, useApproveGRN } from "@/features/grn";
 import { useActiveSuppliers } from "@/features/suppliers";
@@ -274,13 +266,13 @@ const DirectStockForm = ({ onSuccess }) => {
             name="supplierId"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Supplier *</FormLabel>
+                <FormLabel className="text-sm font-medium">Supplier *</FormLabel>
                 <Select
                   onValueChange={field.onChange}
                   defaultValue={field.value}
                 >
                   <FormControl>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue placeholder="Select supplier" />
                     </SelectTrigger>
                   </FormControl>
@@ -305,11 +297,12 @@ const DirectStockForm = ({ onSuccess }) => {
             name="receivedDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Received Date *</FormLabel>
+                <FormLabel className="text-sm font-medium">Received Date *</FormLabel>
                 <FormControl>
                   <Input
                     type="date"
                     max={new Date().toISOString().split("T")[0]}
+                    className="h-10"
                     {...field}
                   />
                 </FormControl>
@@ -323,11 +316,12 @@ const DirectStockForm = ({ onSuccess }) => {
             name="supplierInvoiceNumber"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Supplier Invoice Number</FormLabel>
+                <FormLabel className="text-sm font-medium">Supplier Invoice Number</FormLabel>
                 <FormControl>
                   <Input
                     placeholder="INV-12345"
                     maxLength={100}
+                    className="h-10"
                     {...field}
                   />
                 </FormControl>
@@ -341,9 +335,9 @@ const DirectStockForm = ({ onSuccess }) => {
             name="supplierInvoiceDate"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Supplier Invoice Date</FormLabel>
+                <FormLabel className="text-sm font-medium">Supplier Invoice Date</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input type="date" className="h-10" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -354,259 +348,267 @@ const DirectStockForm = ({ onSuccess }) => {
         {/* Items Table */}
         <div className="space-y-3 sm:space-y-4">
           <div className="flex items-center justify-between">
-            <h3 className="text-base sm:text-lg font-medium">Items</h3>
-            <Button type="button" size="sm" onClick={addItem}>
-              <Plus className="mr-1 sm:mr-2 h-3 w-3 sm:h-4 sm:w-4" />
+            <h3 className="text-base sm:text-lg font-semibold">Items</h3>
+            <Button type="button" size="sm" onClick={addItem} className="h-9">
+              <Plus className="mr-1 sm:mr-2 h-4 w-4" />
               <span className="hidden sm:inline">Add Item</span>
               <span className="sm:hidden">Add</span>
             </Button>
           </div>
 
-          <div className="border rounded-lg overflow-x-auto shadow-sm">
-            <Table>
-              <TableHeader>
-                <TableRow className="bg-muted/50">
-                  <TableHead className="min-w-[200px] text-xs sm:text-sm font-semibold">Product *</TableHead>
-                  <TableHead className="min-w-[150px] text-xs sm:text-sm font-semibold">Batch Number *</TableHead>
-                  <TableHead className="w-[100px] text-xs sm:text-sm font-semibold">Qty *</TableHead>
-                  <TableHead className="w-[120px] text-xs sm:text-sm font-semibold">Cost Price *</TableHead>
-                  <TableHead className="w-[120px] text-xs sm:text-sm font-semibold">Sell Price *</TableHead>
-                  <TableHead className="w-[120px] text-xs sm:text-sm font-semibold">MRP *</TableHead>
-                  <TableHead className="min-w-[150px] text-xs sm:text-sm font-semibold">MFG Date</TableHead>
-                  <TableHead className="min-w-[150px] text-xs sm:text-sm font-semibold">Expiry Date *</TableHead>
-                  <TableHead className="w-[100px] text-xs sm:text-sm font-semibold">Discount</TableHead>
-                  <TableHead className="w-[120px] text-xs sm:text-sm font-semibold">Total</TableHead>
-                  <TableHead className="w-[80px]"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {fields.map((field, index) => (
-                  <TableRow key={field.id}>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.productId`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <Select
-                              onValueChange={field.onChange}
-                              defaultValue={field.value}
+          <div className="border rounded-lg overflow-hidden shadow-sm">
+            <div className="overflow-x-auto">
+              <div className="inline-block min-w-full align-middle">
+                <table className="min-w-full divide-y divide-border">
+                  <thead className="bg-muted/50">
+                    <tr>
+                      <th className="px-1 py-2 text-left text-xs font-semibold w-8">#</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[180px]">Product *</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[110px]">Batch *</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[70px]">Qty *</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[90px]">Cost *</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[90px]">Sell *</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[90px]">MRP *</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[110px]">MFG Date</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[110px]">Expiry *</th>
+                      <th className="px-1 py-2 text-left text-xs font-semibold min-w-[80px]">Discount</th>
+                      <th className="px-1 py-2 text-right text-xs font-semibold min-w-[90px]">Total</th>
+                      <th className="px-1 py-2 text-center text-xs font-semibold w-10"></th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border bg-background">
+                    {fields.map((field, index) => (
+                      <tr key={field.id} className="hover:bg-muted/30">
+                        <td className="px-1 py-1">
+                          <span className="text-xs text-muted-foreground">{index + 1}</span>
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.productId`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <Select
+                                  onValueChange={field.onChange}
+                                  defaultValue={field.value}
+                                >
+                                  <FormControl>
+                                    <SelectTrigger className="h-8 text-xs border-0 shadow-none focus:ring-1">
+                                      <SelectValue placeholder="Select" />
+                                    </SelectTrigger>
+                                  </FormControl>
+                                  <SelectContent>
+                                    {products.map((product) => (
+                                      <SelectItem
+                                        key={product.id}
+                                        value={product.id.toString()}
+                                      >
+                                        {product.productName}
+                                      </SelectItem>
+                                    ))}
+                                  </SelectContent>
+                                </Select>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.batchNumber`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    placeholder="BATCH-001"
+                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
+                                    maxLength={100}
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.quantity`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...inputRestrictions.positiveInteger}
+                                    max="100000"
+                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
+                                    {...field}
+                                    onChange={(e) => {
+                                      const value = sanitize.positiveNumber(e.target.value);
+                                      field.onChange(value);
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.costPrice`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...inputRestrictions.positiveDecimal}
+                                    max="999999999.99"
+                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
+                                    {...field}
+                                    onChange={(e) => {
+                                      const value = sanitize.positiveNumber(e.target.value);
+                                      field.onChange(value);
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.sellingPrice`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...inputRestrictions.positiveDecimal}
+                                    max="999999999.99"
+                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
+                                    {...field}
+                                    onChange={(e) => {
+                                      const value = sanitize.positiveNumber(e.target.value);
+                                      field.onChange(value);
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.mrp`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...inputRestrictions.positiveDecimal}
+                                    max="999999999.99"
+                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
+                                    {...field}
+                                    onChange={(e) => {
+                                      const value = sanitize.positiveNumber(e.target.value);
+                                      field.onChange(value);
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.manufacturingDate`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    type="date"
+                                    max={new Date().toISOString().split("T")[0]}
+                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.expiryDate`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    type="date"
+                                    min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
+                                    {...field}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1">
+                          <FormField
+                            control={form.control}
+                            name={`items.${index}.discountAmount`}
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...inputRestrictions.positiveDecimal}
+                                    max="999999"
+                                    className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
+                                    {...field}
+                                    onChange={(e) => {
+                                      const value = sanitize.positiveNumber(e.target.value);
+                                      field.onChange(value);
+                                    }}
+                                  />
+                                </FormControl>
+                                <FormMessage className="text-xs" />
+                              </FormItem>
+                            )}
+                          />
+                        </td>
+                        <td className="px-1 py-1 text-right">
+                          <span className="text-xs font-semibold text-primary whitespace-nowrap">
+                            {formatCurrency(calculateItemTotal(items[index]))}
+                          </span>
+                        </td>
+                        <td className="px-1 py-1 text-center">
+                          {fields.length > 1 && (
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => remove(index)}
                             >
-                              <FormControl>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select" />
-                                </SelectTrigger>
-                              </FormControl>
-                              <SelectContent>
-                                {products.map((product) => (
-                                  <SelectItem
-                                    key={product.id}
-                                    value={product.id.toString()}
-                                  >
-                                    {product.productName}
-                                  </SelectItem>
-                                ))}
-                              </SelectContent>
-                            </Select>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.batchNumber`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                placeholder="BATCH-001"
-                                className="h-9 text-sm"
-                                maxLength={100}
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.quantity`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                {...inputRestrictions.positiveInteger}
-                                max="100000"
-                                className="h-9 text-sm"
-                                {...field}
-                                onChange={(e) => {
-                                  const value = sanitize.positiveNumber(e.target.value);
-                                  field.onChange(value);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.costPrice`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                {...inputRestrictions.positiveDecimal}
-                                max="999999999.99"
-                                className="h-9 text-sm"
-                                {...field}
-                                onChange={(e) => {
-                                  const value = sanitize.positiveNumber(e.target.value);
-                                  field.onChange(value);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.sellingPrice`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                {...inputRestrictions.positiveDecimal}
-                                max="999999999.99"
-                                className="h-9 text-sm"
-                                {...field}
-                                onChange={(e) => {
-                                  const value = sanitize.positiveNumber(e.target.value);
-                                  field.onChange(value);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.mrp`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                {...inputRestrictions.positiveDecimal}
-                                max="999999999.99"
-                                className="h-9 text-sm"
-                                {...field}
-                                onChange={(e) => {
-                                  const value = sanitize.positiveNumber(e.target.value);
-                                  field.onChange(value);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.manufacturingDate`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                type="date"
-                                max={new Date().toISOString().split("T")[0]}
-                                className="h-9 text-sm"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.expiryDate`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                type="date"
-                                min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
-                                className="h-9 text-sm"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormField
-                        control={form.control}
-                        name={`items.${index}.discountAmount`}
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <Input
-                                {...inputRestrictions.positiveDecimal}
-                                max="999999"
-                                className="h-9 text-sm"
-                                {...field}
-                                onChange={(e) => {
-                                  const value = sanitize.positiveNumber(e.target.value);
-                                  field.onChange(value);
-                                }}
-                              />
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <span className="text-sm font-semibold text-primary">
-                        {formatCurrency(calculateItemTotal(items[index]))}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {fields.length > 1 && (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          className="h-9 w-9 text-destructive hover:text-destructive hover:bg-destructive/10"
-                          onClick={() => remove(index)}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -623,7 +625,7 @@ const DirectStockForm = ({ onSuccess }) => {
                 -{formatCurrency(totalDiscount)}
               </span>
             </div>
-            <div className="flex justify-between text-base sm:text-lg font-bold border-t pt-2 mt-2">
+            <div className="flex justify-between text-sm sm:text-base font-bold border-t pt-2 mt-2">
               <span>Grand Total:</span>
               <span className="text-primary">{formatCurrency(grandTotal)}</span>
             </div>
@@ -636,11 +638,12 @@ const DirectStockForm = ({ onSuccess }) => {
           name="remarks"
           render={({ field }) => (
             <FormItem>
-              <FormLabel className="text-sm sm:text-base">Remarks</FormLabel>
+              <FormLabel className="text-sm font-medium">Remarks</FormLabel>
               <FormControl>
                 <Textarea
                   placeholder="Additional notes or comments..."
                   className="min-h-[80px] sm:min-h-[100px] resize-none"
+                  maxLength={1000}
                   {...field}
                 />
               </FormControl>
@@ -650,12 +653,12 @@ const DirectStockForm = ({ onSuccess }) => {
         />
 
         {/* Submit Button */}
-        <div className="flex justify-end pt-2 border-t">
+        <div className="flex justify-end pt-4 border-t">
           <Button
             type="submit"
             disabled={createMutation.isPending || approveMutation.isPending}
             size="lg"
-            className="w-full sm:w-auto"
+            className="w-full sm:w-auto min-w-[200px]"
           >
             {createMutation.isPending || approveMutation.isPending ? (
               <>

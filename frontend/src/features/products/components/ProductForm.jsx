@@ -600,7 +600,7 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                       {...field}
                     />
                   </FormControl>
-                  <FormDescription>Storage capacity (> reorder)</FormDescription>
+                  <FormDescription>Storage capacity (&gt; reorder)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
