@@ -76,18 +76,16 @@ export const useCreateGRN = () => {
       // Create GRN (will be DRAFT status in backend)
       const createResponse = await grnService.create(data);
       
-      // Note: SUPER_ADMIN created GRNs remain in DRAFT status like all others
-      // They can directly verify and complete without additional approval
-      
+      // Return the full response so calling code can extract the GRN ID
       return createResponse;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: grnKeys.lists() });
       // Automatically refresh ALL inventory data after GRN creation (using partial matching)
+      // Remove refetchType to ensure all inventory queries are invalidated, not just active ones
       queryClient.invalidateQueries({ 
         queryKey: ["inventory"],
-        exact: false,
-        refetchType: 'active'
+        exact: false
       });
       // Refresh purchase orders as GRN affects PO status (partially/fully received)
       queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });
@@ -113,8 +111,7 @@ export const useUpdateGRN = () => {
       // Automatically refresh inventory data after GRN update
       queryClient.invalidateQueries({ 
         queryKey: ["inventory"],
-        exact: false,
-        refetchType: 'active'
+        exact: false
       });
       toast.success("GRN updated successfully");
     },
@@ -165,8 +162,7 @@ export const useApproveGRN = () => {
       // Automatically refresh inventory data after GRN approval
       queryClient.invalidateQueries({ 
         queryKey: ["inventory"],
-        exact: false,
-        refetchType: 'active'
+        exact: false
       });
       // Refresh purchase orders as approving GRN affects PO status
       queryClient.invalidateQueries({ queryKey: ["purchaseOrders"] });

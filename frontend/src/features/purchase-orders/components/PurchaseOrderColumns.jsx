@@ -85,13 +85,12 @@ export const getPurchaseOrderColumns = ({
     ),
   },
   {
-    accessorKey: "supplier",
+    accessorKey: "supplierName",
     header: "Supplier",
     cell: ({ row }) => {
-      const supplier = row.original.supplier;
       return (
         <span className="truncate max-w-[100px] sm:max-w-none block">
-          {supplier?.name || "-"}
+          {row.getValue("supplierName") || "-"}
         </span>
       );
     },
@@ -103,10 +102,10 @@ export const getPurchaseOrderColumns = ({
     cell: ({ row }) => formatDate(row.getValue("orderDate")),
   },
   {
-    accessorKey: "expectedDate",
+    accessorKey: "expectedDeliveryDate",
     header: "Expected",
     meta: { className: "hidden lg:table-cell" },
-    cell: ({ row }) => formatDate(row.getValue("expectedDate")) || "-",
+    cell: ({ row }) => formatDate(row.getValue("expectedDeliveryDate")) || "-",
   },
   {
     accessorKey: "itemCount",

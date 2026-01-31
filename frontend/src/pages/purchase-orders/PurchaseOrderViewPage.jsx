@@ -219,7 +219,7 @@ const PurchaseOrderViewPage = () => {
                   Expected Delivery
                 </p>
                 <p className="font-medium">
-                  {formatDate(po.expectedDate) || "-"}
+                  {formatDate(po.expectedDeliveryDate) || "-"}
                 </p>
               </div>
               <div>
@@ -245,7 +245,7 @@ const PurchaseOrderViewPage = () => {
             <CardTitle>Supplier</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
-            <p className="font-medium">{po.supplier?.name || "-"}</p>
+            <p className="font-medium">{po.supplierName || "-"}</p>
             {po.supplier?.contactPerson && (
               <p className="text-sm text-muted-foreground">
                 {po.supplier.contactPerson}

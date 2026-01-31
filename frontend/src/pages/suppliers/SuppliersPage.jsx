@@ -70,6 +70,8 @@ const SuppliersPage = () => {
 
   // Debug: Log supplier data
   console.log('Suppliers Page - Raw data:', data);
+  console.log('Suppliers Page - Content:', data?.content);
+  console.log('Suppliers Page - First supplier:', data?.content?.[0]);
   console.log('Suppliers Page - Is loading:', isLoading);
 
   // Handlers

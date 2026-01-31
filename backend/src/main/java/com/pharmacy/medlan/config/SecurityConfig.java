@@ -117,8 +117,7 @@ public class SecurityConfig {
                 "http://localhost:*",                    // Local development
                 "https://*.netlify.app",                 // ALL Netlify apps (includes your specific one)
                 "https://medlan.netlify.app",            // Main Netlify URL
-                "https://medlan-project.serveminecraft.net", // Your Backend URL (No-IP)
-                "*"                                      // WILDCARD (Allow everything for testing/demo)
+                "https://medlan-project.serveminecraft.net" // Your Backend URL (No-IP)
         ));
 
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));

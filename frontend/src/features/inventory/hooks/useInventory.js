@@ -53,6 +53,7 @@ export const useInventory = (branchId, params = {}, options = {}) => {
       return response.data?.data || response.data;
     },
     enabled: Boolean(branchId),
+    staleTime: 0, // Always consider data stale to ensure fresh data after mutations
     ...options,
   });
 };

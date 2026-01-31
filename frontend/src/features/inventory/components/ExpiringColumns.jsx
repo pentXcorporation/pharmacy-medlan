@@ -42,7 +42,19 @@ export const getExpiringColumns = () => [
       const expiryDate = row.getValue("expiryDate");
       if (!expiryDate) return "-";
 
-      const expiry = parseISO(expiryDate);
+      // Handle different date formats (string, Date object, or array)
+      let expiry;
+      if (expiryDate instanceof Date) {
+        expiry = expiryDate;
+      } else if (typeof expiryDate === "string") {
+        expiry = parseISO(expiryDate);
+      } else if (Array.isArray(expiryDate)) {
+        // Handle array format [year, month, day] from backend
+        expiry = new Date(expiryDate[0], expiryDate[1] - 1, expiryDate[2]);
+      } else {
+        return "-";
+      }
+
       const daysUntilExpiry = differenceInDays(expiry, new Date());
       const isExpired = isPast(expiry);
 
@@ -75,11 +87,11 @@ export const getExpiringColumns = () => [
     },
   },
   {
-    accessorKey: "quantity",
+    accessorKey: "quantityAvailable",
     header: "Qty",
     meta: { className: "hidden sm:table-cell" },
     cell: ({ row }) => (
-      <span className="text-sm">{row.getValue("quantity") || 0}</span>
+      <span className="text-sm">{row.getValue("quantityAvailable") || 0}</span>
     ),
   },
   {
@@ -97,7 +109,7 @@ export const getExpiringColumns = () => [
     header: "Value",
     meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => {
-      const qty = row.original.quantity || 0;
+      const qty = row.original.quantityAvailable || 0;
       const price = row.original.sellingPrice || 0;
       return <span className="text-sm">{formatCurrency(qty * price)}</span>;
     },
@@ -109,7 +121,19 @@ export const getExpiringColumns = () => [
       const expiryDate = row.original.expiryDate;
       if (!expiryDate) return "-";
 
-      const expiry = parseISO(expiryDate);
+      // Handle different date formats (string, Date object, or array)
+      let expiry;
+      if (expiryDate instanceof Date) {
+        expiry = expiryDate;
+      } else if (typeof expiryDate === "string") {
+        expiry = parseISO(expiryDate);
+      } else if (Array.isArray(expiryDate)) {
+        // Handle array format [year, month, day] from backend
+        expiry = new Date(expiryDate[0], expiryDate[1] - 1, expiryDate[2]);
+      } else {
+        return "-";
+      }
+
       const daysUntilExpiry = differenceInDays(expiry, new Date());
       const isExpired = isPast(expiry);
 

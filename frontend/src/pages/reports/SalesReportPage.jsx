@@ -29,12 +29,14 @@ import { useActiveBranches } from "@/features/branches";
 import { formatCurrency } from "@/utils/formatters";
 import { exportSalesReportCSV, printReport } from "@/utils/reportExport";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store";
 
 const SalesReportPage = () => {
+  const { user } = useAuthStore();
   const [filters, setFilters] = useState({
     startDate: format(subDays(new Date(), 30), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd"),
-    branchId: null,
+    branchId: user?.branchId || null,
   });
 
   const { data: branches } = useActiveBranches();

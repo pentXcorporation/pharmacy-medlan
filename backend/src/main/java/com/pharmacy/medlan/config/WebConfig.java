@@ -15,8 +15,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .allowedOriginPatterns(
                         "http://localhost:*",
                         "https://*.netlify.app",
-                        "https://medlan-project.serveminecraft.net",
-                        "*"
+                        "https://medlan-project.serveminecraft.net"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD")
                 .allowedHeaders("*")

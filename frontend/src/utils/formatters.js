@@ -17,13 +17,27 @@ import { APP_CONFIG } from "@/config/app.config";
 
 /**
  * Format date to display format
- * @param {string|Date} date - Date to format
+ * @param {string|Date|Array} date - Date to format (string, Date object, or [year, month, day] array)
  * @param {string} formatStr - Format string (default from config)
  * @returns {string} Formatted date
  */
 export const formatDate = (date, formatStr = APP_CONFIG.LOCALE.DATE_FORMAT) => {
   if (!date) return "-";
-  const dateObj = typeof date === "string" ? parseISO(date) : date;
+  
+  let dateObj;
+  
+  // Handle different date formats
+  if (date instanceof Date) {
+    dateObj = date;
+  } else if (typeof date === "string") {
+    dateObj = parseISO(date);
+  } else if (Array.isArray(date)) {
+    // Handle array format [year, month, day] from backend (Java LocalDate)
+    dateObj = new Date(date[0], date[1] - 1, date[2]);
+  } else {
+    return "-";
+  }
+  
   if (!isValid(dateObj)) return "-";
   return format(dateObj, formatStr);
 };

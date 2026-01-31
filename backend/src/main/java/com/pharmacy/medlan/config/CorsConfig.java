@@ -14,8 +14,13 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**") // allow all endpoints
-                        .allowedOrigins("https://medlan.vercel.app") // allow your frontend
-                        .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // allow common methods
+                        .allowedOriginPatterns(
+                                "http://localhost:*",
+                                "https://*.netlify.app",
+                                "https://*.vercel.app",
+                                "https://medlan-project.serveminecraft.net"
+                        )
+                        .allowedMethods("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD")
                         .allowedHeaders("*")
                         .allowCredentials(true); // allow cookies/auth headers
             }

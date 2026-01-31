@@ -84,10 +84,10 @@ export const getSupplierColumns = ({
     ),
   },
   {
-    accessorKey: "phone",
+    accessorKey: "phoneNumber",
     header: "Phone",
     meta: { className: "hidden sm:table-cell" },
-    cell: ({ row }) => row.getValue("phone") || row.original.mobile || "-",
+    cell: ({ row }) => row.getValue("phoneNumber") || "-",
   },
   {
     accessorKey: "email",
@@ -102,20 +102,20 @@ export const getSupplierColumns = ({
     cell: ({ row }) => row.getValue("city") || "-",
   },
   {
-    accessorKey: "paymentTerms",
+    accessorKey: "paymentTermDays",
     header: "Payment Terms",
     meta: { className: "hidden xl:table-cell" },
     cell: ({ row }) => {
-      const days = row.getValue("paymentTerms");
+      const days = row.getValue("paymentTermDays");
       return days ? `${days} days` : "-";
     },
   },
   {
-    accessorKey: "outstandingBalance",
+    accessorKey: "currentBalance",
     header: "Outstanding",
     meta: { className: "hidden md:table-cell" },
     cell: ({ row }) => {
-      const balance = row.getValue("outstandingBalance") || 0;
+      const balance = row.getValue("currentBalance") || 0;
       return (
         <span
           className={

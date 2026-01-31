@@ -35,44 +35,107 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { ButtonSpinner } from "@/components/common";
-import { useCreateGRN } from "@/features/grn";
+import { useCreateGRN, useApproveGRN } from "@/features/grn";
 import { useActiveSuppliers } from "@/features/suppliers";
 import { useProducts } from "@/features/products";
 import { useBranch } from "@/hooks";
 import { toast } from "sonner";
 import { formatCurrency } from "@/utils/formatters";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { grnService } from "@/services";
+import {
+  numberValidators,
+  stringValidators,
+  dateValidators,
+  customValidators,
+  inputRestrictions,
+  sanitize,
+} from "@/utils/validationHelpers";
 
-// Validation schema
-const grnItemSchema = z.object({
-  productId: z.string().min(1, "Product is required"),
-  batchNumber: z.string().min(1, "Batch number is required"),
-  quantity: z.number().min(1, "Quantity must be at least 1"),
-  costPrice: z.number().min(0.01, "Cost price is required"),
-  sellingPrice: z.number().min(0.01, "Selling price is required"),
-  manufacturingDate: z.string().optional(),
-  expiryDate: z.string().min(1, "Expiry date is required"),
-  discountAmount: z.number().min(0).default(0),
-});
+// Validation schema with enhanced validations
+const grnItemSchema = z
+  .object({
+    productId: stringValidators.required("Product"),
+    batchNumber: stringValidators.minMaxLength("Batch number", 1, 100),
+    quantity: numberValidators.quantity("Quantity").max(100000, "Quantity is too large"),
+    costPrice: numberValidators.price("Cost price"),
+    sellingPrice: numberValidators.price("Selling price"),
+    mrp: numberValidators.price("MRP"),
+    manufacturingDate: dateValidators.manufacturingDate(),
+    expiryDate: dateValidators.expiryDate(),
+    discountAmount: numberValidators.positiveOrZero("Discount").max(999999, "Discount is too large"),
+  })
+  .refine(
+    (data) => data.sellingPrice >= data.costPrice,
+    {
+      message: "Selling price must be greater than or equal to cost price",
+      path: ["sellingPrice"],
+    }
+  )
+  .refine(
+    (data) => data.mrp >= data.sellingPrice,
+    {
+      message: "MRP must be greater than or equal to selling price",
+      path: ["mrp"],
+    }
+  )
+  .refine(
+    (data) => {
+      if (!data.manufacturingDate || !data.expiryDate) return true;
+      return new Date(data.expiryDate) > new Date(data.manufacturingDate);
+    },
+    {
+      message: "Expiry date must be after manufacturing date",
+      path: ["expiryDate"],
+    }
+  )
+  .refine(
+    (data) => {
+      const totalCost = data.quantity * data.costPrice;
+      return data.discountAmount <= totalCost;
+    },
+    {
+      message: "Discount cannot exceed total item cost",
+      path: ["discountAmount"],
+    }
+  );
 
 const directGRNSchema = z.object({
-  supplierId: z.string().min(1, "Supplier is required"),
+  supplierId: stringValidators.required("Supplier"),
   branchId: z.number().min(1, "Branch is required"),
-  receivedDate: z.string().min(1, "Received date is required"),
-  supplierInvoiceNumber: z.string().optional(),
+  receivedDate: dateValidators.pastOrToday("Received date"),
+  supplierInvoiceNumber: stringValidators.maxLength("Supplier invoice number", 100).optional().or(z.literal("")),
   supplierInvoiceDate: z.string().optional(),
-  remarks: z.string().max(1000).optional(),
-  items: z.array(grnItemSchema).min(1, "At least one item is required"),
+  remarks: stringValidators.maxLength("Remarks", 1000).optional().or(z.literal("")),
+  items: z.array(grnItemSchema).min(1, "At least one item is required").max(100, "Maximum 100 items allowed"),
 });
 
 const DirectStockForm = ({ onSuccess }) => {
   const { selectedBranch } = useBranch();
+  const queryClient = useQueryClient();
 
   // Queries
   const { data: suppliers, isLoading: isLoadingSuppliers } = useActiveSuppliers();
   const { data: productsData, isLoading: isLoadingProducts } = useProducts({
     size: 1000,
   });
-  const createMutation = useCreateGRN();
+  
+  // Create custom mutations without toast messages for direct stock flow
+  const createMutation = useMutation({
+    mutationFn: (data) => grnService.create(data),
+  });
+  
+  const approveMutation = useMutation({
+    mutationFn: (id) => grnService.approve(id),
+    onSuccess: () => {
+      // Invalidate all inventory queries to refresh the available stock page
+      queryClient.invalidateQueries({ 
+        queryKey: ["inventory"],
+        exact: false
+      });
+      queryClient.invalidateQueries({ queryKey: ["grns"] });
+    },
+  });
 
   const products = productsData?.content || [];
 
@@ -92,6 +155,7 @@ const DirectStockForm = ({ onSuccess }) => {
           quantity: 1,
           costPrice: 0,
           sellingPrice: 0,
+          mrp: 0,
           manufacturingDate: "",
           expiryDate: "",
           discountAmount: 0,
@@ -136,6 +200,7 @@ const DirectStockForm = ({ onSuccess }) => {
           quantity: Number(item.quantity),
           costPrice: Number(item.costPrice),
           sellingPrice: Number(item.sellingPrice),
+          mrp: Number(item.mrp),
           manufacturingDate: item.manufacturingDate || null,
           expiryDate: item.expiryDate,
           discountAmount: Number(item.discountAmount) || 0,
@@ -143,8 +208,21 @@ const DirectStockForm = ({ onSuccess }) => {
         supplierId: parseInt(data.supplierId),
       };
 
-      await createMutation.mutateAsync(transformedData);
-      toast.success("Stock added successfully to inventory");
+      // Step 1: Create the GRN (creates in DRAFT status)
+      const createResponse = await createMutation.mutateAsync(transformedData);
+      
+      // Extract GRN ID from response (handle ApiResponse wrapper)
+      const grnId = createResponse?.data?.data?.id || createResponse?.data?.id || createResponse?.id;
+      
+      if (!grnId) {
+        throw new Error("Failed to get GRN ID from response");
+      }
+      
+      // Step 2: Automatically approve the GRN to update inventory
+      // This creates the inventory batches and updates branch inventory
+      await approveMutation.mutateAsync(grnId);
+      
+      toast.success("Stock added and approved successfully - inventory updated");
       form.reset();
       onSuccess?.();
     } catch (error) {
@@ -162,6 +240,7 @@ const DirectStockForm = ({ onSuccess }) => {
       quantity: 1,
       costPrice: 0,
       sellingPrice: 0,
+      mrp: 0,
       manufacturingDate: "",
       expiryDate: "",
       discountAmount: 0,
@@ -228,7 +307,11 @@ const DirectStockForm = ({ onSuccess }) => {
               <FormItem>
                 <FormLabel>Received Date *</FormLabel>
                 <FormControl>
-                  <Input type="date" {...field} />
+                  <Input
+                    type="date"
+                    max={new Date().toISOString().split("T")[0]}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -242,7 +325,11 @@ const DirectStockForm = ({ onSuccess }) => {
               <FormItem>
                 <FormLabel>Supplier Invoice Number</FormLabel>
                 <FormControl>
-                  <Input placeholder="INV-12345" {...field} />
+                  <Input
+                    placeholder="INV-12345"
+                    maxLength={100}
+                    {...field}
+                  />
                 </FormControl>
                 <FormMessage />
               </FormItem>
@@ -284,6 +371,7 @@ const DirectStockForm = ({ onSuccess }) => {
                   <TableHead className="w-[100px] text-xs sm:text-sm font-semibold">Qty *</TableHead>
                   <TableHead className="w-[120px] text-xs sm:text-sm font-semibold">Cost Price *</TableHead>
                   <TableHead className="w-[120px] text-xs sm:text-sm font-semibold">Sell Price *</TableHead>
+                  <TableHead className="w-[120px] text-xs sm:text-sm font-semibold">MRP *</TableHead>
                   <TableHead className="min-w-[150px] text-xs sm:text-sm font-semibold">MFG Date</TableHead>
                   <TableHead className="min-w-[150px] text-xs sm:text-sm font-semibold">Expiry Date *</TableHead>
                   <TableHead className="w-[100px] text-xs sm:text-sm font-semibold">Discount</TableHead>
@@ -332,7 +420,12 @@ const DirectStockForm = ({ onSuccess }) => {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input placeholder="BATCH-001" className="h-9 text-sm" {...field} />
+                              <Input
+                                placeholder="BATCH-001"
+                                className="h-9 text-sm"
+                                maxLength={100}
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -347,13 +440,14 @@ const DirectStockForm = ({ onSuccess }) => {
                           <FormItem>
                             <FormControl>
                               <Input
-                                type="number"
-                                min="1"
+                                {...inputRestrictions.positiveInteger}
+                                max="100000"
                                 className="h-9 text-sm"
                                 {...field}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
+                                onChange={(e) => {
+                                  const value = sanitize.positiveNumber(e.target.value);
+                                  field.onChange(value);
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -369,14 +463,14 @@ const DirectStockForm = ({ onSuccess }) => {
                           <FormItem>
                             <FormControl>
                               <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
+                                {...inputRestrictions.positiveDecimal}
+                                max="999999999.99"
                                 className="h-9 text-sm"
                                 {...field}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
+                                onChange={(e) => {
+                                  const value = sanitize.positiveNumber(e.target.value);
+                                  field.onChange(value);
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -392,14 +486,37 @@ const DirectStockForm = ({ onSuccess }) => {
                           <FormItem>
                             <FormControl>
                               <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
+                                {...inputRestrictions.positiveDecimal}
+                                max="999999999.99"
                                 className="h-9 text-sm"
                                 {...field}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
+                                onChange={(e) => {
+                                  const value = sanitize.positiveNumber(e.target.value);
+                                  field.onChange(value);
+                                }}
+                              />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <FormField
+                        control={form.control}
+                        name={`items.${index}.mrp`}
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input
+                                {...inputRestrictions.positiveDecimal}
+                                max="999999999.99"
+                                className="h-9 text-sm"
+                                {...field}
+                                onChange={(e) => {
+                                  const value = sanitize.positiveNumber(e.target.value);
+                                  field.onChange(value);
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -414,7 +531,12 @@ const DirectStockForm = ({ onSuccess }) => {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input type="date" className="h-9 text-sm" {...field} />
+                              <Input
+                                type="date"
+                                max={new Date().toISOString().split("T")[0]}
+                                className="h-9 text-sm"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -428,7 +550,12 @@ const DirectStockForm = ({ onSuccess }) => {
                         render={({ field }) => (
                           <FormItem>
                             <FormControl>
-                              <Input type="date" className="h-9 text-sm" {...field} />
+                              <Input
+                                type="date"
+                                min={new Date(Date.now() + 86400000).toISOString().split("T")[0]}
+                                className="h-9 text-sm"
+                                {...field}
+                              />
                             </FormControl>
                             <FormMessage />
                           </FormItem>
@@ -443,14 +570,14 @@ const DirectStockForm = ({ onSuccess }) => {
                           <FormItem>
                             <FormControl>
                               <Input
-                                type="number"
-                                step="0.01"
-                                min="0"
+                                {...inputRestrictions.positiveDecimal}
+                                max="999999"
                                 className="h-9 text-sm"
                                 {...field}
-                                onChange={(e) =>
-                                  field.onChange(Number(e.target.value))
-                                }
+                                onChange={(e) => {
+                                  const value = sanitize.positiveNumber(e.target.value);
+                                  field.onChange(value);
+                                }}
                               />
                             </FormControl>
                             <FormMessage />
@@ -526,11 +653,11 @@ const DirectStockForm = ({ onSuccess }) => {
         <div className="flex justify-end pt-2 border-t">
           <Button
             type="submit"
-            disabled={createMutation.isPending}
+            disabled={createMutation.isPending || approveMutation.isPending}
             size="lg"
             className="w-full sm:w-auto"
           >
-            {createMutation.isPending ? (
+            {createMutation.isPending || approveMutation.isPending ? (
               <>
                 <ButtonSpinner />
                 <span className="ml-2">Processing...</span>

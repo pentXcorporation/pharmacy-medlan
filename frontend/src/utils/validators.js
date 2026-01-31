@@ -110,24 +110,73 @@ export const branchSchema = z.object({
 export const productSchema = z.object({
   productName: requiredString("Product name"),
   genericName: optionalString,
-  categoryId: optionalString,
+  categoryId: requiredString("Category"),
+  subCategoryId: optionalString,
   dosageForm: optionalString,
   strength: optionalString,
   drugSchedule: optionalString,
   manufacturer: optionalString,
   barcode: optionalString,
   description: optionalString,
-  costPrice: optionalString,
-  sellingPrice: optionalString,
-  mrp: optionalString,
-  gstRate: optionalString,
-  reorderLevel: optionalString,
-  minimumStock: optionalString,
-  maximumStock: optionalString,
+  costPrice: z.string().optional().or(z.literal("")),
+  sellingPrice: z.string().optional().or(z.literal("")),
+  mrp: z.string().optional().or(z.literal("")),
+  gstRate: z.string().optional().or(z.literal("")),
+  reorderLevel: z.string().optional().or(z.literal("")),
+  minimumStock: z.string().optional().or(z.literal("")),
+  maximumStock: z.string().optional().or(z.literal("")),
   isPrescriptionRequired: z.boolean().default(false),
   isNarcotic: z.boolean().default(false),
   isRefrigerated: z.boolean().default(false),
-});
+})
+.refine(
+  (data) => {
+    if (!data.sellingPrice || !data.costPrice) return true;
+    const selling = parseFloat(data.sellingPrice);
+    const cost = parseFloat(data.costPrice);
+    return isNaN(selling) || isNaN(cost) || selling >= cost;
+  },
+  {
+    message: "Selling price should be greater than or equal to cost price",
+    path: ["sellingPrice"],
+  }
+)
+.refine(
+  (data) => {
+    if (!data.mrp || !data.sellingPrice) return true;
+    const mrp = parseFloat(data.mrp);
+    const selling = parseFloat(data.sellingPrice);
+    return isNaN(mrp) || isNaN(selling) || mrp >= selling;
+  },
+  {
+    message: "MRP should be greater than or equal to selling price",
+    path: ["mrp"],
+  }
+)
+.refine(
+  (data) => {
+    if (!data.minimumStock || !data.reorderLevel) return true;
+    const min = parseInt(data.minimumStock);
+    const reorder = parseInt(data.reorderLevel);
+    return isNaN(min) || isNaN(reorder) || reorder >= min;
+  },
+  {
+    message: "Reorder level should be greater than or equal to minimum stock",
+    path: ["reorderLevel"],
+  }
+)
+.refine(
+  (data) => {
+    if (!data.maximumStock || !data.reorderLevel) return true;
+    const max = parseInt(data.maximumStock);
+    const reorder = parseInt(data.reorderLevel);
+    return isNaN(max) || isNaN(reorder) || max > reorder;
+  },
+  {
+    message: "Maximum stock should be greater than reorder level",
+    path: ["maximumStock"],
+  }
+);
 
 // ============================================
 // CATEGORY SCHEMAS

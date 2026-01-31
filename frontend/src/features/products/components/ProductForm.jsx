@@ -10,6 +10,7 @@ import { Loader2, RefreshCw, Barcode } from "lucide-react";
 import { barcodeService } from "@/services";
 import { toast } from "sonner";
 import { productSchema } from "@/utils/validators";
+import { inputRestrictions, sanitize } from "@/utils/validationHelpers";
 import { useActiveCategories } from "../hooks";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -465,12 +466,13 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                   <FormLabel>Cost Price *</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
+                      {...inputRestrictions.positiveDecimal}
                       placeholder="0.00"
+                      max="999999999.99"
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription>Purchase/cost price</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -484,12 +486,13 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                   <FormLabel>Selling Price *</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
+                      {...inputRestrictions.positiveDecimal}
                       placeholder="0.00"
+                      max="999999999.99"
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription>Retail price (≥ cost)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -503,12 +506,13 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                   <FormLabel>MRP</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
+                      {...inputRestrictions.positiveDecimal}
                       placeholder="0.00"
+                      max="999999999.99"
                       {...field}
                     />
                   </FormControl>
+                  <FormDescription>Maximum Retail Price (≥ selling)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -522,8 +526,7 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                   <FormLabel>GST Rate (%)</FormLabel>
                   <FormControl>
                     <Input
-                      type="number"
-                      step="0.01"
+                      {...inputRestrictions.percentage}
                       placeholder="0"
                       {...field}
                     />
@@ -548,10 +551,15 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                 <FormItem>
                   <FormLabel>Reorder Level</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
+                    <Input
+                      {...inputRestrictions.positiveInteger}
+                      placeholder="0"
+                      max="999999999"
+                      {...field}
+                    />
                   </FormControl>
                   <FormDescription>
-                    Alert when stock falls below
+                    Alert when stock falls below (≥ minimum)
                   </FormDescription>
                   <FormMessage />
                 </FormItem>
@@ -565,8 +573,14 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                 <FormItem>
                   <FormLabel>Minimum Stock</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
+                    <Input
+                      {...inputRestrictions.positiveInteger}
+                      placeholder="0"
+                      max="999999999"
+                      {...field}
+                    />
                   </FormControl>
+                  <FormDescription>Lowest acceptable quantity</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -579,8 +593,14 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                 <FormItem>
                   <FormLabel>Maximum Stock</FormLabel>
                   <FormControl>
-                    <Input type="number" placeholder="0" {...field} />
+                    <Input
+                      {...inputRestrictions.positiveInteger}
+                      placeholder="0"
+                      max="999999999"
+                      {...field}
+                    />
                   </FormControl>
+                  <FormDescription>Storage capacity (> reorder)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

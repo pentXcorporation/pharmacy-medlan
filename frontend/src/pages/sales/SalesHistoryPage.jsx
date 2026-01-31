@@ -137,10 +137,12 @@ const SalesHistoryPage = () => {
       ),
     },
     {
-      accessorKey: "createdAt",
+      accessorKey: "saleDate",
       header: "Date",
-      meta: { className: "hidden md:table-cell" },
-      cell: ({ row }) => formatDateTime(row.getValue("createdAt")),
+      cell: ({ row }) => {
+        const date = row.getValue("saleDate") || row.original.createdAt;
+        return date ? formatDateTime(date) : "-";
+      },
     },
     {
       accessorKey: "customerName",
