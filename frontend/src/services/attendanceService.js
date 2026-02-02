@@ -12,9 +12,9 @@ export const attendanceService = {
    * Get paginated attendance records
    */
   getAll: (params = {}) => {
-    const { page = 0, size = 10, sort = "date,desc", search, date, status } = params;
+    const { page = 0, size = 10, sort = "date,desc", search, date, status, branchId } = params;
     return api.get(BASE_URL, {
-      params: { page, size, sort, search, date, status },
+      params: { page, size, sort, search, date, status, branchId },
     });
   },
 

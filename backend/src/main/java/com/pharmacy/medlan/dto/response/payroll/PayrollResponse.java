@@ -13,6 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class PayrollResponse {
     private Long id;
+    private Long branchId;
     private Long employeeId;
     private String employeeName;
     private String workerName;

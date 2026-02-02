@@ -8,8 +8,10 @@ import com.pharmacy.medlan.exception.ResourceNotFoundException;
 import com.pharmacy.medlan.mapper.AttendanceMapper;
 import com.pharmacy.medlan.model.payroll.Attendance;
 import com.pharmacy.medlan.model.payroll.Employee;
+import com.pharmacy.medlan.model.organization.Branch;
 import com.pharmacy.medlan.repository.payroll.AttendanceRepository;
 import com.pharmacy.medlan.repository.payroll.EmployeeRepository;
+import com.pharmacy.medlan.repository.organization.BranchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -29,11 +31,30 @@ public class AttendanceServiceImpl implements AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final EmployeeRepository employeeRepository;
     private final AttendanceMapper attendanceMapper;
+    private final BranchRepository branchRepository;
+
+    /**
+     * Validates that the branch exists and is active
+     */
+    private Branch validateBranch(Long branchId) {
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found with id: " + branchId));
+        
+        if (!branch.getIsActive()) {
+            throw new IllegalStateException("Branch with id " + branchId + " is not active");
+        }
+        
+        return branch;
+    }
 
     @Override
     @Transactional
     public AttendanceResponse createAttendance(AttendanceRequest request) {
-        log.info("Creating attendance record for employee {} on {}", request.getEmployeeId(), request.getDate());
+        log.info("Creating attendance record for employee {} on {} at branch {}", 
+                request.getEmployeeId(), request.getDate(), request.getBranchId());
+
+        // Validate branch
+        Branch branch = validateBranch(request.getBranchId());
 
         Employee employee = employeeRepository.findById(request.getEmployeeId())
                 .orElseThrow(() -> new ResourceNotFoundException("Employee not found with id: " + request.getEmployeeId()));
@@ -44,7 +65,7 @@ public class AttendanceServiceImpl implements AttendanceService {
                     throw new IllegalStateException("Attendance already marked for this employee on " + request.getDate());
                 });
 
-        Attendance attendance = attendanceMapper.toEntity(request, employee);
+        Attendance attendance = attendanceMapper.toEntity(request, employee, branch);
         Attendance saved = attendanceRepository.save(attendance);
 
         log.info("Attendance record created with id: {}", saved.getId());
@@ -59,6 +80,9 @@ public class AttendanceServiceImpl implements AttendanceService {
         Attendance attendance = attendanceRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Attendance not found with id: " + id));
 
+        // Validate branch
+        Branch branch = validateBranch(request.getBranchId());
+
         // If employee is being changed, verify the new employee exists
         if (!attendance.getEmployee().getId().equals(request.getEmployeeId())) {
             Employee newEmployee = employeeRepository.findById(request.getEmployeeId())
@@ -66,7 +90,7 @@ public class AttendanceServiceImpl implements AttendanceService {
             attendance.setEmployee(newEmployee);
         }
 
-        attendanceMapper.updateEntity(attendance, request);
+        attendanceMapper.updateEntity(attendance, request, branch);
         Attendance updated = attendanceRepository.save(attendance);
 
         log.info("Attendance record updated successfully");

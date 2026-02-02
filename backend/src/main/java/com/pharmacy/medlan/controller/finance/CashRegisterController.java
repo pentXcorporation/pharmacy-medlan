@@ -22,7 +22,6 @@ import java.util.List;
 @RequestMapping("/api/cash-register")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*", maxAge = 3600)
 public class CashRegisterController {
 
     private final CashRegisterService cashRegisterService;

@@ -6,6 +6,7 @@
 import { useForm, Controller } from "react-hook-form";
 import { useQuery } from "@tanstack/react-query";
 import payrollService from "@/services/payrollService";
+import { useAuthStore } from "@/store/authStore";
 import {
   Dialog,
   DialogContent,
@@ -27,6 +28,9 @@ import {
 } from "@/components/ui/select";
 
 const AttendanceFormDialog = ({ open, onOpenChange, onSubmit }) => {
+  const getBranchId = useAuthStore((state) => state.getBranchId);
+  const branchId = getBranchId();
+  
   const {
     register,
     handleSubmit,
@@ -56,6 +60,7 @@ const AttendanceFormDialog = ({ open, onOpenChange, onSubmit }) => {
       // Convert employeeId to number and ensure proper format
       const payload = {
         ...data,
+        branchId: branchId,
         employeeId: Number(data.employeeId),
         date: data.date,
         checkIn: data.checkIn || null,

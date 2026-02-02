@@ -4,6 +4,7 @@ import com.pharmacy.medlan.dto.request.attendance.AttendanceRequest;
 import com.pharmacy.medlan.dto.response.attendance.AttendanceResponse;
 import com.pharmacy.medlan.model.payroll.Attendance;
 import com.pharmacy.medlan.model.payroll.Employee;
+import com.pharmacy.medlan.model.organization.Branch;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
@@ -11,9 +12,11 @@ import java.time.Duration;
 @Component
 public class AttendanceMapper {
 
-    public Attendance toEntity(AttendanceRequest request, Employee employee) {
+    public Attendance toEntity(AttendanceRequest request, Employee employee, Branch branch) {
         Attendance attendance = Attendance.builder()
                 .employee(employee)
+                .branch(branch)
+                .branchId(branch.getId())
                 .date(request.getDate())
                 .checkIn(request.getCheckIn())
                 .checkOut(request.getCheckOut())
@@ -34,6 +37,7 @@ public class AttendanceMapper {
     public AttendanceResponse toResponse(Attendance attendance) {
         return AttendanceResponse.builder()
                 .id(attendance.getId())
+                .branchId(attendance.getBranchId())
                 .employeeId(attendance.getEmployee().getId())
                 .employeeName(attendance.getEmployee().getFullName())
                 .employeeCode(attendance.getEmployee().getEmployeeCode())
@@ -50,7 +54,9 @@ public class AttendanceMapper {
                 .build();
     }
 
-    public void updateEntity(Attendance attendance, AttendanceRequest request) {
+    public void updateEntity(Attendance attendance, AttendanceRequest request, Branch branch) {
+        attendance.setBranch(branch);
+        attendance.setBranchId(branch.getId());
         attendance.setDate(request.getDate());
         attendance.setCheckIn(request.getCheckIn());
         attendance.setCheckOut(request.getCheckOut());

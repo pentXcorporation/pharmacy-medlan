@@ -22,7 +22,6 @@ import java.util.List;
 @RequestMapping("/api/payroll")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class PayrollController {
 
     private final PayrollService payrollService;
@@ -59,11 +58,12 @@ public class PayrollController {
 
     @GetMapping
     public ResponseEntity<Page<PayrollResponse>> getAll(
+            @RequestParam(required = false) Long branchId,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "10") int size,
             @RequestParam(defaultValue = "paymentDate") String sortBy,
             @RequestParam(defaultValue = "DESC") String sortDir) {
-        log.info("Fetching all payroll entries - page: {}, size: {}", page, size);
+        log.info("Fetching all payroll entries - page: {}, size: {}, branchId: {}", page, size, branchId);
         
         Sort sort = sortDir.equalsIgnoreCase("DESC") 
                 ? Sort.by(sortBy).descending() 

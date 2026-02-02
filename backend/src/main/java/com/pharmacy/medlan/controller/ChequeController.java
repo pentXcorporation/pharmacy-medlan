@@ -24,7 +24,6 @@ import java.util.Map;
 @RequestMapping("/api/cheques")
 @RequiredArgsConstructor
 @Slf4j
-@CrossOrigin(origins = "*")
 public class ChequeController {
 
     private final ChequeService chequeService;

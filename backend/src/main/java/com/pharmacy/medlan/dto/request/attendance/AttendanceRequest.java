@@ -16,6 +16,9 @@ import java.time.LocalTime;
 @AllArgsConstructor
 public class AttendanceRequest {
 
+    @NotNull(message = "Branch ID is required")
+    private Long branchId;
+
     @NotNull(message = "Employee ID is required")
     private Long employeeId;
 

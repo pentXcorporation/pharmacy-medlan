@@ -21,8 +21,12 @@ import { formatCurrency, formatDate } from "@/utils/formatters";
 import SalaryPaymentDialog from "./SalaryPaymentDialog";
 import { toast } from "sonner";
 import { payrollService } from "@/services";
+import { useAuthStore } from "@/store/authStore";
 
 const SalariesPage = () => {
+  const getBranchId = useAuthStore((state) => state.getBranchId);
+  const branchId = getBranchId();
+  
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -171,6 +175,7 @@ const SalariesPage = () => {
 
       // Transform data to match backend DTO
       const payload = {
+        branchId: branchId,
         employeeId: parseInt(data.employeeId),
         workerName: data.employeeName,
         paymentDate: paymentDate,

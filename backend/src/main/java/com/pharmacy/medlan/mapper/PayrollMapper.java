@@ -27,6 +27,7 @@ public class PayrollMapper {
 
         return PayrollResponse.builder()
                 .id(payment.getId())
+                .branchId(payment.getBranchId())
                 .employeeId(employeeId)
                 .employeeName(employeeName)
                 .workerName(payment.getWorkerName())

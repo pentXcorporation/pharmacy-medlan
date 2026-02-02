@@ -56,6 +56,7 @@ public class AttendanceController {
 
     @GetMapping
     public ResponseEntity<Page<AttendanceResponse>> searchAttendance(
+            @RequestParam(required = false) Long branchId,
             @RequestParam(required = false) String search,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
             @RequestParam(required = false) AttendanceStatus status,

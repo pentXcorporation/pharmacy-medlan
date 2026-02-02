@@ -17,6 +17,7 @@ import java.time.LocalTime;
 public class AttendanceResponse {
 
     private Long id;
+    private Long branchId;
     private Long employeeId;
     private String employeeName;
     private String employeeCode;

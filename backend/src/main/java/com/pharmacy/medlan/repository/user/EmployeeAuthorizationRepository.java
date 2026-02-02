@@ -13,4 +13,9 @@ public interface EmployeeAuthorizationRepository extends JpaRepository<EmployeeA
     List<EmployeeAuthorization> findByStatus(AuthorizationStatus status);
     Optional<EmployeeAuthorization> findByAuthorizationCode(String authorizationCode);
     List<EmployeeAuthorization> findByEmployeeIdAndStatus(Long employeeId, AuthorizationStatus status);
+    
+    // Branch isolation methods
+    List<EmployeeAuthorization> findByBranchId(Long branchId);
+    List<EmployeeAuthorization> findByBranchIdAndStatus(Long branchId, AuthorizationStatus status);
+    List<EmployeeAuthorization> findByBranchIdAndEmployeeId(Long branchId, Long employeeId);
 }

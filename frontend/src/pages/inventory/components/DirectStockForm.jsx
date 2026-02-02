@@ -55,7 +55,10 @@ const grnItemSchema = z
     mrp: numberValidators.price("MRP"),
     manufacturingDate: dateValidators.manufacturingDate(),
     expiryDate: dateValidators.expiryDate(),
-    discountAmount: numberValidators.positiveOrZero("Discount").max(999999, "Discount is too large"),
+    discountAmount: z.union([
+      z.string().transform(val => val === "" ? 0 : Number(val)),
+      z.number()
+    ]).pipe(z.number().min(0, "Discount must be positive").max(999999, "Discount is too large")).optional().default(0),
   })
   .refine(
     (data) => data.sellingPrice >= data.costPrice,
@@ -144,13 +147,13 @@ const DirectStockForm = ({ onSuccess }) => {
         {
           productId: "",
           batchNumber: "",
-          quantity: 1,
-          costPrice: 0,
-          sellingPrice: 0,
-          mrp: 0,
+          quantity: "",
+          costPrice: "",
+          sellingPrice: "",
+          mrp: "",
           manufacturingDate: "",
           expiryDate: "",
-          discountAmount: 0,
+          discountAmount: "",
         },
       ],
     },
@@ -229,13 +232,13 @@ const DirectStockForm = ({ onSuccess }) => {
     append({
       productId: "",
       batchNumber: "",
-      quantity: 1,
-      costPrice: 0,
-      sellingPrice: 0,
-      mrp: 0,
+      quantity: "",
+      costPrice: "",
+      sellingPrice: "",
+      mrp: "",
       manufacturingDate: "",
       expiryDate: "",
-      discountAmount: 0,
+      discountAmount: "",
     });
   };
 
@@ -301,7 +304,6 @@ const DirectStockForm = ({ onSuccess }) => {
                 <FormControl>
                   <Input
                     type="date"
-                    max={new Date().toISOString().split("T")[0]}
                     className="h-10"
                     {...field}
                   />
@@ -533,7 +535,6 @@ const DirectStockForm = ({ onSuccess }) => {
                                 <FormControl>
                                   <Input
                                     type="date"
-                                    max={new Date().toISOString().split("T")[0]}
                                     className="h-8 text-xs border-0 shadow-none focus-visible:ring-1"
                                     {...field}
                                   />

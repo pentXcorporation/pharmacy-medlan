@@ -2,6 +2,7 @@ package com.pharmacy.medlan.model.payroll;
 
 import com.pharmacy.medlan.enums.AttendanceStatus;
 import com.pharmacy.medlan.model.base.AuditableEntity;
+import com.pharmacy.medlan.model.organization.Branch;
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -24,6 +25,13 @@ public class Attendance extends AuditableEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "employee_id", nullable = false)
     private Employee employee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
+
+    @Column(name = "branch_id", insertable = false, updatable = false)
+    private Long branchId;
 
     @Column(nullable = false)
     private LocalDate date;

@@ -18,7 +18,6 @@ import java.time.LocalDateTime;
 @RestController
 @RequestMapping("/api/inventory-transactions")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*")
 public class InventoryTransactionController {
 
     private final InventoryTransactionService transactionService;

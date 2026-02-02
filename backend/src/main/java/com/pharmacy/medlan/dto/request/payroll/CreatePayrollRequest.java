@@ -13,6 +13,9 @@ import java.time.LocalDate;
 @NoArgsConstructor
 @AllArgsConstructor
 public class CreatePayrollRequest {
+    @NotNull(message = "Branch ID is required")
+    private Long branchId;
+    
     @NotNull(message = "Employee ID is required")
     private Long employeeId;
 

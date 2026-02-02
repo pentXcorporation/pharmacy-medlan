@@ -2,6 +2,7 @@ package com.pharmacy.medlan.model.payroll;
 
 import com.pharmacy.medlan.enums.PaymentMethod;
 import com.pharmacy.medlan.model.base.AuditableEntity;
+import com.pharmacy.medlan.model.organization.Branch;
 import com.pharmacy.medlan.model.user.User;
 import jakarta.persistence.*;
 import lombok.*;
@@ -24,6 +25,13 @@ public class EmployeePayment extends AuditableEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
     private User employee;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
+
+    @Column(name = "branch_id", insertable = false, updatable = false)
+    private Long branchId;
 
     @Column(name = "payment_date", nullable = false)
     private LocalDate paymentDate;

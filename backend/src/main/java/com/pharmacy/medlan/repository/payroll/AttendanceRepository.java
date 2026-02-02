@@ -38,4 +38,23 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     List<Attendance> findByEmployeeAndDateRange(@Param("employeeId") Long employeeId,
                                                 @Param("startDate") LocalDate startDate,
                                                 @Param("endDate") LocalDate endDate);
+    
+    // Branch isolation methods
+    List<Attendance> findByBranchId(Long branchId);
+    
+    @Query("SELECT a FROM Attendance a WHERE a.branchId = :branchId AND a.date = :date AND a.deleted = false")
+    List<Attendance> findByBranchIdAndDate(@Param("branchId") Long branchId, @Param("date") LocalDate date);
+    
+    @Query("SELECT a FROM Attendance a WHERE " +
+           "a.branchId = :branchId AND " +
+           "(:search IS NULL OR LOWER(a.employee.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
+           "LOWER(a.employee.employeeCode) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
+           "(:date IS NULL OR a.date = :date) AND " +
+           "(:status IS NULL OR a.status = :status) AND " +
+           "a.deleted = false")
+    Page<Attendance> searchAttendanceByBranch(@Param("branchId") Long branchId,
+                                             @Param("search") String search,
+                                             @Param("date") LocalDate date,
+                                             @Param("status") AttendanceStatus status,
+                                             Pageable pageable);
 }

@@ -11,6 +11,7 @@ const payrollService = {
    * Get all payroll records with pagination
    */
   getAll: (params = {}) => {
+    // Support branchId parameter
     return api.get(API_ENDPOINTS.PAYROLL.BASE, { params });
   },
 

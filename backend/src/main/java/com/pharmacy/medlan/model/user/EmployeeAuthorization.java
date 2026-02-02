@@ -2,6 +2,7 @@ package com.pharmacy.medlan.model.user;
 
 import com.pharmacy.medlan.enums.AuthorizationStatus;
 import com.pharmacy.medlan.model.base.AuditableEntity;
+import com.pharmacy.medlan.model.organization.Branch;
 import jakarta.persistence.*;
 import lombok.*;
 import java.math.BigDecimal;
@@ -27,6 +28,13 @@ public class EmployeeAuthorization extends AuditableEntity {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "authorized_by")
     private User authorizedBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = false)
+    private Branch branch;
+
+    @Column(name = "branch_id", insertable = false, updatable = false)
+    private Long branchId;
 
     @Column(name = "transaction_type", nullable = false, length = 100)
     private String transactionType; // DISCOUNT, CREDIT_SALE, VOID, etc.

@@ -16,4 +16,13 @@ public interface EmployeePaymentRepository extends JpaRepository<EmployeePayment
     @Query("SELECT SUM(ep.amount) FROM EmployeePayment ep WHERE ep.employee.id = :employeeId " +
             "AND ep.paymentDate BETWEEN :startDate AND :endDate")
     BigDecimal getTotalPaymentsByEmployeeAndDate(Long employeeId, LocalDate startDate, LocalDate endDate);
+    
+    // Branch isolation methods
+    List<EmployeePayment> findByBranchId(Long branchId);
+    List<EmployeePayment> findByBranchIdAndEmployeeId(Long branchId, Long employeeId);
+    List<EmployeePayment> findByBranchIdAndPaymentDateBetween(Long branchId, LocalDate startDate, LocalDate endDate);
+    
+    @Query("SELECT SUM(ep.amount) FROM EmployeePayment ep WHERE ep.branchId = :branchId " +
+            "AND ep.paymentDate BETWEEN :startDate AND :endDate")
+    BigDecimal getTotalPaymentsByBranchAndDate(Long branchId, LocalDate startDate, LocalDate endDate);
 }

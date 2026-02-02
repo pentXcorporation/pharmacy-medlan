@@ -2,11 +2,14 @@ package com.pharmacy.medlan.service.payroll;
 
 import com.pharmacy.medlan.dto.request.payroll.CreatePayrollRequest;
 import com.pharmacy.medlan.dto.response.payroll.PayrollResponse;
+import com.pharmacy.medlan.exception.ResourceNotFoundException;
 import com.pharmacy.medlan.mapper.PayrollMapper;
 import com.pharmacy.medlan.model.payroll.EmployeePayment;
+import com.pharmacy.medlan.model.organization.Branch;
 import com.pharmacy.medlan.model.user.User;
 import com.pharmacy.medlan.repository.payroll.EmployeePaymentRepository;
 import com.pharmacy.medlan.repository.user.UserRepository;
+import com.pharmacy.medlan.repository.organization.BranchRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -26,17 +29,37 @@ public class PayrollServiceImpl implements PayrollService {
     private final EmployeePaymentRepository employeePaymentRepository;
     private final UserRepository userRepository;
     private final PayrollMapper payrollMapper;
+    private final BranchRepository branchRepository;
+
+    /**
+     * Validates that the branch exists and is active
+     */
+    private Branch validateBranch(Long branchId) {
+        Branch branch = branchRepository.findById(branchId)
+                .orElseThrow(() -> new ResourceNotFoundException("Branch not found with id: " + branchId));
+        
+        if (!branch.getIsActive()) {
+            throw new IllegalStateException("Branch with id " + branchId + " is not active");
+        }
+        
+        return branch;
+    }
 
     @Override
     @Transactional
     public PayrollResponse create(CreatePayrollRequest request) {
-        log.info("Creating payroll for user ID: {}", request.getEmployeeId());
+        log.info("Creating payroll for user ID: {} at branch {}", request.getEmployeeId(), request.getBranchId());
+        
+        // Validate branch
+        Branch branch = validateBranch(request.getBranchId());
         
         User user = userRepository.findById(request.getEmployeeId())
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getEmployeeId()));
 
         EmployeePayment payment = EmployeePayment.builder()
                 .employee(user)
+                .branch(branch)
+                .branchId(branch.getId())
                 .workerName(request.getWorkerName())
                 .paymentDate(request.getPaymentDate())
                 .amount(request.getAmount())
@@ -59,10 +82,15 @@ public class PayrollServiceImpl implements PayrollService {
         EmployeePayment payment = employeePaymentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Payment not found with ID: " + id));
 
+        // Validate branch
+        Branch branch = validateBranch(request.getBranchId());
+        
         User user = userRepository.findById(request.getEmployeeId())
                 .orElseThrow(() -> new RuntimeException("User not found with ID: " + request.getEmployeeId()));
 
         payment.setEmployee(user);
+        payment.setBranch(branch);
+        payment.setBranchId(branch.getId());
         payment.setWorkerName(request.getWorkerName());
         payment.setPaymentDate(request.getPaymentDate());
         payment.setAmount(request.getAmount());
