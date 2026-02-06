@@ -4,6 +4,7 @@
  */
 import axios from "axios";
 import { API_CONFIG } from "@/config/api.config";
+import { useAuthStore } from "@/store";
 
 // Create axios instance
 const apiClient = axios.create({
@@ -33,6 +34,22 @@ export const authClient = axios.create({
 const getAccessToken = () => localStorage.getItem(API_CONFIG.TOKEN.ACCESS_KEY);
 const getRefreshToken = () =>
   localStorage.getItem(API_CONFIG.TOKEN.REFRESH_KEY);
+
+const clearAuthState = () => {
+  try {
+    const { clearAuth } = useAuthStore.getState();
+    if (typeof clearAuth === "function") {
+      clearAuth();
+      return;
+    }
+  } catch {
+    // Fall through to localStorage cleanup
+  }
+
+  localStorage.removeItem(API_CONFIG.TOKEN.ACCESS_KEY);
+  localStorage.removeItem(API_CONFIG.TOKEN.REFRESH_KEY);
+  localStorage.removeItem(API_CONFIG.TOKEN.USER_KEY);
+};
 
 // Request interceptor - Add auth token
 const addAuthToken = (config) => {
@@ -93,6 +110,7 @@ const errorInterceptor = async (error) => {
     if (!refreshToken) {
       // No refresh token, redirect to login
       isRefreshing = false;
+      clearAuthState();
       window.location.href = "/login";
       return Promise.reject(error);
     }
@@ -116,9 +134,7 @@ const errorInterceptor = async (error) => {
     } catch (refreshError) {
       processQueue(refreshError, null);
       // Clear tokens and redirect to login
-      localStorage.removeItem(API_CONFIG.TOKEN.ACCESS_KEY);
-      localStorage.removeItem(API_CONFIG.TOKEN.REFRESH_KEY);
-      localStorage.removeItem(API_CONFIG.TOKEN.USER_KEY);
+      clearAuthState();
       window.location.href = "/login";
       return Promise.reject(refreshError);
     } finally {
@@ -138,9 +154,7 @@ const errorInterceptor = async (error) => {
     if (isAuthError && getAccessToken()) {
       // Clear tokens and redirect to login
       console.error("Authentication expired. Redirecting to login...");
-      localStorage.removeItem(API_CONFIG.TOKEN.ACCESS_KEY);
-      localStorage.removeItem(API_CONFIG.TOKEN.REFRESH_KEY);
-      localStorage.removeItem(API_CONFIG.TOKEN.USER_KEY);
+      clearAuthState();
       window.location.href = "/login";
       return Promise.reject(error);
     }
