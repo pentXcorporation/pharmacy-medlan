@@ -1,6 +1,7 @@
 /**
  * POS Totals Component
  * Displays cart totals and checkout controls
+ * Supports keyboard navigation for payment methods, discounts, and actions
  */
 
 import { useState, useMemo, useEffect } from "react";
@@ -31,6 +32,7 @@ import { formatCurrency } from "@/utils/formatters";
 import { usePOSStore } from "../store";
 import { ButtonSpinner } from "@/components/common";
 import { PAYMENT_METHOD } from "@/constants/paymentMethods";
+import { announceKeyboardAction } from "@/hooks/useKeyboardShortcuts";
 
 const paymentMethods = [
   { value: PAYMENT_METHOD.CASH, label: "Cash", icon: Banknote },
@@ -50,7 +52,7 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
 
   const subtotal = usePOSStore((state) => state.getSubtotal());
   const itemDiscountTotal = usePOSStore((state) =>
-    state.getItemDiscountTotal()
+    state.getItemDiscountTotal(),
   );
   const cartDiscount = usePOSStore((state) => state.getCartDiscount());
   const taxTotal = usePOSStore((state) => state.getTaxTotal());
@@ -59,12 +61,19 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
 
   const [discountType, setDiscountType] = useState(discount.type);
   const [discountValue, setDiscountValue] = useState(discount.value);
+  const [selectedPaymentIndex, setSelectedPaymentIndex] = useState(0);
 
   // Sync local discount state with store when cart is cleared
   useEffect(() => {
     setDiscountType(discount.type);
     setDiscountValue(discount.value);
   }, [discount.type, discount.value]);
+
+  // Update selected payment index when payment method changes
+  useEffect(() => {
+    const index = paymentMethods.findIndex((m) => m.value === payment.method);
+    setSelectedPaymentIndex(index >= 0 ? index : 0);
+  }, [payment.method]);
 
   // Check for special product requirements and warnings
   const cartWarnings = useMemo(() => {
@@ -120,18 +129,22 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
   };
 
   const handleCheckout = () => {
-    if (payment.method === PAYMENT_METHOD.CASH && payment.amountTendered < grandTotal) {
+    if (
+      payment.method === PAYMENT_METHOD.CASH &&
+      payment.amountTendered < grandTotal
+    ) {
       return; // Not enough cash
     }
-    
+
     // For non-cash payments, ensure amountTendered equals grandTotal
     const finalPayment = {
       ...payment,
-      amountTendered: payment.method === PAYMENT_METHOD.CASH 
-        ? payment.amountTendered 
-        : grandTotal
+      amountTendered:
+        payment.method === PAYMENT_METHOD.CASH
+          ? payment.amountTendered
+          : grandTotal,
     };
-    
+
     onCheckout?.({
       items,
       customer,
@@ -147,19 +160,74 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
     holdSale();
   };
 
+  // Handle keyboard shortcuts for payment methods
+  const handlePaymentKeyDown = (e) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      const nextIndex = (selectedPaymentIndex + 1) % paymentMethods.length;
+      setSelectedPaymentIndex(nextIndex);
+      setPayment({ method: paymentMethods[nextIndex].value });
+      announceKeyboardAction(
+        `Selected ${paymentMethods[nextIndex].label} payment method`,
+      );
+    } else if (e.key === "ArrowLeft") {
+      e.preventDefault();
+      const prevIndex =
+        selectedPaymentIndex - 1 < 0
+          ? paymentMethods.length - 1
+          : selectedPaymentIndex - 1;
+      setSelectedPaymentIndex(prevIndex);
+      setPayment({ method: paymentMethods[prevIndex].value });
+      announceKeyboardAction(
+        `Selected ${paymentMethods[prevIndex].label} payment method`,
+      );
+    } else if (e.altKey && e.key === "1") {
+      // Alt+1 for Cash
+      e.preventDefault();
+      setSelectedPaymentIndex(0);
+      setPayment({ method: PAYMENT_METHOD.CASH });
+      announceKeyboardAction("Selected Cash payment method");
+    } else if (e.altKey && e.key === "2") {
+      // Alt+2 for Card
+      e.preventDefault();
+      setSelectedPaymentIndex(1);
+      setPayment({ method: PAYMENT_METHOD.CARD });
+      announceKeyboardAction("Selected Card payment method");
+    } else if (e.altKey && e.key === "3") {
+      // Alt+3 for UPI
+      e.preventDefault();
+      setSelectedPaymentIndex(2);
+      setPayment({ method: PAYMENT_METHOD.UPI });
+      announceKeyboardAction("Selected UPI payment method");
+    }
+  };
+
+  // Setup window-level keyboard listener for Alt+1/2/3
+  useEffect(() => {
+    const handleWindowKeyDown = (e) => {
+      if (e.altKey && (e.key === "1" || e.key === "2" || e.key === "3")) {
+        handlePaymentKeyDown(e);
+      }
+    };
+
+    window.addEventListener("keydown", handleWindowKeyDown);
+    return () => window.removeEventListener("keydown", handleWindowKeyDown);
+  }, [selectedPaymentIndex]);
+
   return (
-    <Card>
-      <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4">
+    <Card className="flex flex-col h-full">
+      <CardContent className="p-3 sm:p-4 space-y-3 sm:space-y-4 overflow-y-auto flex-1 flex flex-col">
         {/* Branch Warning */}
         {!hasBranch && (
           <Alert variant="destructive" className="py-2">
             <AlertTriangle className="h-4 w-4" />
             <AlertDescription className="text-xs">
-              ⚠️ No branch selected. Please select a branch from settings to complete sales.
+              ⚠️ No branch selected. Please select a branch from settings to
+              complete sales.
             </AlertDescription>
           </Alert>
         )}
-        
+
         {/* Warnings Section */}
         {(cartWarnings.prescriptionRequired ||
           cartWarnings.narcoticPresent ||
@@ -248,7 +316,7 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
 
         {/* Cart Discount */}
         <div className="space-y-2">
-          <Label className="text-sm">Cart Discount</Label>
+          <Label className="text-sm">Cart Discount (Alt+D)</Label>
           <div className="flex gap-2">
             <Select
               value={discountType}
@@ -275,6 +343,7 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
                 className="pl-9"
                 min={0}
                 max={discountType === "percentage" ? 100 : subtotal}
+                aria-label="Discount amount"
               />
             </div>
           </div>
@@ -283,10 +352,15 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
         <Separator />
 
         {/* Payment Method */}
-        <div className="space-y-2">
-          <Label className="text-sm">Payment Method</Label>
-          <div className="grid grid-cols-3 gap-2">
-            {paymentMethods.map((method) => {
+        <div className="space-y-2" data-tour-payment>
+          <Label className="text-sm">
+            Payment Method (Use ← → arrows or Alt+1/2/3)
+          </Label>
+          <div
+            className="grid grid-cols-3 gap-2"
+            onKeyDown={handlePaymentKeyDown}
+          >
+            {paymentMethods.map((method, index) => {
               const Icon = method.icon;
               return (
                 <Button
@@ -294,8 +368,14 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
                   variant={
                     payment.method === method.value ? "default" : "outline"
                   }
-                  className="flex flex-col h-auto py-3"
+                  className={`flex flex-col h-auto py-3 transition-all ${
+                    payment.method === method.value
+                      ? "ring-2 ring-blue-500 focus-visible:ring-2"
+                      : ""
+                  } focus-visible:ring-2 focus-visible:ring-blue-400 focus-visible:outline-none`}
                   onClick={() => setPayment({ method: method.value })}
+                  tabIndex={payment.method === method.value ? 0 : -1}
+                  title={`${method.label} (Alt+${index + 1})`}
                 >
                   <Icon className="h-5 w-5 mb-1" />
                   <span className="text-xs">{method.label}</span>
@@ -308,7 +388,7 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
         {/* Cash Tendered */}
         {payment.method === PAYMENT_METHOD.CASH && (
           <div className="space-y-2">
-            <Label className="text-sm">Amount Tendered</Label>
+            <Label className="text-sm">Amount Tendered (Alt+T)</Label>
             <Input
               type="number"
               value={payment.amountTendered || ""}
@@ -317,6 +397,7 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
               }
               className="text-lg font-bold"
               min={0}
+              aria-label="Amount tendered"
             />
             {payment.amountTendered >= grandTotal && (
               <div className="flex justify-between text-lg font-bold text-green-600">
@@ -361,14 +442,17 @@ const POSTotals = ({ onCheckout, isProcessing, hasBranch = true }) => {
         </div>
 
         <Button
-          className="w-full h-12 sm:h-14 text-base sm:text-lg"
+          className="w-full h-12 sm:h-14 text-base sm:text-lg mt-auto"
           onClick={handleCheckout}
           disabled={
             !hasBranch ||
             items.length === 0 ||
             isProcessing ||
-            (payment.method === PAYMENT_METHOD.CASH && payment.amountTendered < grandTotal)
+            (payment.method === PAYMENT_METHOD.CASH &&
+              payment.amountTendered < grandTotal)
           }
+          data-complete-sale
+          title="Complete Sale (F9 or Ctrl+Enter)"
         >
           {isProcessing && <ButtonSpinner />}
           Complete Sale

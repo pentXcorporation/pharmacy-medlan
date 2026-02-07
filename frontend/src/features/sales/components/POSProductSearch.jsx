@@ -4,11 +4,25 @@
  */
 
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Search, Barcode } from "lucide-react";
+import { Search, Barcode, ChevronDown } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { formatCurrency } from "@/utils/formatters";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useDebounce } from "@/hooks/useDebounce";
 import { usePOSStore } from "../store";
 import { toast } from "sonner";
@@ -61,28 +75,54 @@ const searchProducts = (products, searchTerm) => {
       matchType = "sku-prefix";
     }
     // Priority 6: Product name OR Generic name exact match
-    else if ((name && name === query) || (genericName && genericName === query)) {
+    else if (
+      (name && name === query) ||
+      (genericName && genericName === query)
+    ) {
       score = 550;
-      matchType = (genericName && genericName === query) ? "generic-exact" : "name-exact";
+      matchType =
+        genericName && genericName === query ? "generic-exact" : "name-exact";
     }
     // Priority 7: Product name OR Generic name starts with query
-    else if ((name && name.startsWith(query)) || (genericName && genericName.startsWith(query))) {
+    else if (
+      (name && name.startsWith(query)) ||
+      (genericName && genericName.startsWith(query))
+    ) {
       score = 500;
-      matchType = (genericName && genericName.startsWith(query)) ? "generic-prefix" : "name-prefix";
+      matchType =
+        genericName && genericName.startsWith(query)
+          ? "generic-prefix"
+          : "name-prefix";
     }
     // Priority 8: Product name OR Generic name contains whole word match
     else if (
-      (name && (name.includes(` ${query} `) || name.startsWith(`${query} `) || name.endsWith(` ${query}`))) ||
-      (genericName && (genericName.includes(` ${query} `) || genericName.startsWith(`${query} `) || genericName.endsWith(` ${query}`)))
+      (name &&
+        (name.includes(` ${query} `) ||
+          name.startsWith(`${query} `) ||
+          name.endsWith(` ${query}`))) ||
+      (genericName &&
+        (genericName.includes(` ${query} `) ||
+          genericName.startsWith(`${query} `) ||
+          genericName.endsWith(` ${query}`)))
     ) {
       score = 450;
-      const genericMatch = genericName && (genericName.includes(` ${query} `) || genericName.startsWith(`${query} `) || genericName.endsWith(` ${query}`));
+      const genericMatch =
+        genericName &&
+        (genericName.includes(` ${query} `) ||
+          genericName.startsWith(`${query} `) ||
+          genericName.endsWith(` ${query}`));
       matchType = genericMatch ? "generic-word" : "name-word";
     }
     // Priority 9: Product name OR Generic name contains query anywhere
-    else if ((name && name.includes(query)) || (genericName && genericName.includes(query))) {
+    else if (
+      (name && name.includes(query)) ||
+      (genericName && genericName.includes(query))
+    ) {
       score = 400;
-      matchType = (genericName && genericName.includes(query)) ? "generic-partial" : "name-partial";
+      matchType =
+        genericName && genericName.includes(query)
+          ? "generic-partial"
+          : "name-partial";
     }
     // Priority 10: Description contains query
     else if (description && description.includes(query)) {
@@ -113,7 +153,11 @@ const searchProducts = (products, searchTerm) => {
 
     if (score > 0) {
       // Boost score for products with good stock
-      const stock = product.quantityAvailable || product.stockQuantity || product.quantity || 0;
+      const stock =
+        product.quantityAvailable ||
+        product.stockQuantity ||
+        product.quantity ||
+        0;
       if (stock > 0) {
         score += 10;
       }
@@ -127,9 +171,7 @@ const searchProducts = (products, searchTerm) => {
   });
 
   // Sort by score (highest first) and return top 10
-  return results
-    .sort((a, b) => b.searchScore - a.searchScore)
-    .slice(0, 10);
+  return results.sort((a, b) => b.searchScore - a.searchScore).slice(0, 10);
 };
 
 /**
@@ -138,7 +180,7 @@ const searchProducts = (products, searchTerm) => {
 const isCloseMatch = (str, query) => {
   // Simple check: if query is found with wildcards
   const words = str.split(" ");
-  return words.some(word => {
+  return words.some((word) => {
     if (word.length < query.length) return false;
     let differences = 0;
     for (let i = 0; i < Math.min(word.length, query.length); i++) {
@@ -149,11 +191,51 @@ const isCloseMatch = (str, query) => {
   });
 };
 
+const getBatchStock = (batch) =>
+  batch.quantityAvailable || batch.quantity || batch.stockQuantity || 0;
+
+const getDefaultBatch = (batches = []) => {
+  if (!batches.length) return null;
+
+  const withStock = batches.filter((batch) => getBatchStock(batch) > 0);
+  const candidates = withStock.length > 0 ? withStock : batches;
+
+  return [...candidates].sort((a, b) => {
+    const aExpiry = a.expiryDate
+      ? new Date(a.expiryDate).getTime()
+      : Number.POSITIVE_INFINITY;
+    const bExpiry = b.expiryDate
+      ? new Date(b.expiryDate).getTime()
+      : Number.POSITIVE_INFINITY;
+    if (aExpiry !== bExpiry) return aExpiry - bExpiry;
+
+    const aMfg = a.manufacturingDate
+      ? new Date(a.manufacturingDate).getTime()
+      : Number.POSITIVE_INFINITY;
+    const bMfg = b.manufacturingDate
+      ? new Date(b.manufacturingDate).getTime()
+      : Number.POSITIVE_INFINITY;
+    if (aMfg !== bMfg) return aMfg - bMfg;
+
+    return String(a.batchNumber || "").localeCompare(
+      String(b.batchNumber || ""),
+    );
+  })[0];
+};
+
 const POSProductSearch = ({ products = [], isLoading }) => {
   const [search, setSearch] = useState("");
   const [showResults, setShowResults] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [showBatchSelector, setShowBatchSelector] = useState(false);
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const [productPendingBatch, setProductPendingBatch] = useState(null);
+  const [showQuantityDialog, setShowQuantityDialog] = useState(false);
+  const [quantityInput, setQuantityInput] = useState(1);
+  const [productPendingQuantity, setProductPendingQuantity] = useState(null);
   const inputRef = useRef(null);
+  const resultsRef = useRef(null);
+  const quantityInputRef = useRef(null);
   const addItem = usePOSStore((state) => state.addItem);
 
   // Debounce search for performance (except for barcodes which should be instant)
@@ -168,16 +250,20 @@ const POSProductSearch = ({ products = [], isLoading }) => {
         query: debouncedSearch,
         totalProducts: products.length,
         sampleProduct: products[0],
-        results: results.length
+        results: results.length,
       });
     }
     return results;
   }, [products, debouncedSearch]);
 
-  // Handle product selection
+  // Handle product selection - open quantity dialog
   const handleSelect = (product) => {
     // Check if product has stock
-    const stockQty = product.quantityAvailable || product.stockQuantity || product.quantity || 0;
+    const stockQty =
+      product.quantityAvailable ||
+      product.stockQuantity ||
+      product.quantity ||
+      0;
     if (stockQty <= 0) {
       toast.error("Out of Stock", {
         description: `${product.name || product.productName} has no available stock.`,
@@ -185,18 +271,64 @@ const POSProductSearch = ({ products = [], isLoading }) => {
       return;
     }
 
-    addItem(product);
-    setSearch("");
+    // Show quantity dialog
+    setProductPendingQuantity(product);
+    setQuantityInput(1);
+    setShowQuantityDialog(true);
     setShowResults(false);
+  };
+
+  // Handle quantity confirmation
+  const handleQuantityConfirm = () => {
+    if (!productPendingQuantity) return;
+
+    const product = productPendingQuantity;
+    const qty = Math.max(1, parseInt(quantityInput) || 1);
+
+    // Add item with quantity (addItem handles batches internally)
+    addItem(product, qty);
+
+    // Reset states
+    setShowQuantityDialog(false);
+    setProductPendingQuantity(null);
+    setQuantityInput(1);
+    setSearch("");
     setSelectedIndex(0);
     inputRef.current?.focus();
   };
 
+  // Handle batch selection confirmation
+  const handleBatchSelect = () => {
+    if (productPendingBatch && selectedBatch) {
+      const selectedBatchData = productPendingBatch.batches.find(
+        (b) => b.id === selectedBatch,
+      );
+      addItem({
+        ...productPendingBatch,
+        selectedBatch: selectedBatchData,
+      });
+
+      setShowBatchSelector(false);
+      setSelectedBatch(null);
+      setProductPendingBatch(null);
+      setSearch("");
+      setShowResults(false);
+      setSelectedIndex(0);
+      inputRef.current?.focus();
+      toast.success("Product added", {
+        description: `Added ${productPendingBatch.name || productPendingBatch.productName} from batch ${selectedBatchData.batchNumber}`,
+      });
+    }
+  };
+
   // Auto-select for exact barcode match
   useEffect(() => {
-    if (filteredProducts.length > 0 && 
-        filteredProducts[0].matchType === "barcode-exact" &&
-        search.length > 8) { // Typical barcode length
+    if (
+      filteredProducts.length > 0 &&
+      filteredProducts[0].matchType === "barcode-exact" &&
+      search.length > 8
+    ) {
+      // Typical barcode length
       handleSelect(filteredProducts[0]);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -204,6 +336,35 @@ const POSProductSearch = ({ products = [], isLoading }) => {
 
   // Handle keyboard navigation
   const handleKeyDown = (e) => {
+    // If quantity dialog is open, handle its keyboard
+    if (showQuantityDialog) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleQuantityConfirm();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setShowQuantityDialog(false);
+        setProductPendingQuantity(null);
+        setQuantityInput(1);
+      }
+      return;
+    }
+
+    // If batch selector is open, handle its keyboard navigation
+    if (showBatchSelector) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        handleBatchSelect();
+      } else if (e.key === "Escape") {
+        e.preventDefault();
+        setShowBatchSelector(false);
+        setSelectedBatch(null);
+        setProductPendingBatch(null);
+      }
+      return;
+    }
+
+    // Handle product search navigation
     if (e.key === "Enter") {
       e.preventDefault();
       if (filteredProducts.length > 0) {
@@ -211,9 +372,13 @@ const POSProductSearch = ({ products = [], isLoading }) => {
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
-      setSelectedIndex((prev) => 
-        Math.min(prev + 1, filteredProducts.length - 1)
-      );
+      if (!showResults) {
+        setShowResults(true);
+      } else {
+        setSelectedIndex((prev) =>
+          Math.min(prev + 1, filteredProducts.length - 1),
+        );
+      }
     } else if (e.key === "ArrowUp") {
       e.preventDefault();
       setSelectedIndex((prev) => Math.max(prev - 1, 0));
@@ -221,6 +386,18 @@ const POSProductSearch = ({ products = [], isLoading }) => {
       setShowResults(false);
       setSearch("");
       setSelectedIndex(0);
+    } else if (e.altKey && e.key.toLowerCase() === "b") {
+      // Alt+B to trigger batch selection if available
+      e.preventDefault();
+      if (filteredProducts.length > 0) {
+        const product = filteredProducts[selectedIndex];
+        if (product.batches && product.batches.length > 0) {
+          const defaultBatch = getDefaultBatch(product.batches);
+          setProductPendingBatch(product);
+          setShowBatchSelector(true);
+          setSelectedBatch(defaultBatch?.id || product.batches[0]?.id || null);
+        }
+      }
     }
   };
 
@@ -228,6 +405,16 @@ const POSProductSearch = ({ products = [], isLoading }) => {
   useEffect(() => {
     setSelectedIndex(0);
   }, [search]);
+
+  // Auto-focus quantity input when dialog opens
+  useEffect(() => {
+    if (showQuantityDialog && quantityInputRef.current) {
+      setTimeout(() => {
+        quantityInputRef.current?.focus();
+        quantityInputRef.current?.select();
+      }, 100);
+    }
+  }, [showQuantityDialog]);
 
   // Close results when clicking outside
   useEffect(() => {
@@ -238,6 +425,58 @@ const POSProductSearch = ({ products = [], isLoading }) => {
 
   return (
     <div className="relative" onClick={(e) => e.stopPropagation()}>
+      {/* Quantity Dialog */}
+      <Dialog open={showQuantityDialog} onOpenChange={setShowQuantityDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Enter Quantity</DialogTitle>
+          </DialogHeader>
+          {productPendingQuantity && (
+            <div className="space-y-4">
+              <div className="p-3 bg-muted rounded-lg">
+                <p className="font-semibold">
+                  {productPendingQuantity.name ||
+                    productPendingQuantity.productName}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  Price: {formatCurrency(productPendingQuantity.unitPrice || 0)}
+                </p>
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Quantity</label>
+                <Input
+                  ref={quantityInputRef}
+                  type="number"
+                  min="1"
+                  value={quantityInput}
+                  onChange={(e) => setQuantityInput(e.target.value)}
+                  className="text-lg font-bold text-center"
+                  placeholder="1"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      handleQuantityConfirm();
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowQuantityDialog(false);
+                setProductPendingQuantity(null);
+                setQuantityInput(1);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleQuantityConfirm}>Add to Cart</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 sm:h-5 sm:w-5 -translate-y-1/2 text-muted-foreground" />
         <Input
@@ -324,26 +563,31 @@ const POSProductSearch = ({ products = [], isLoading }) => {
                 </div>
                 <div className="space-y-0.5 mt-1">
                   <p className="text-xs sm:text-sm text-muted-foreground truncate">
-                    {product.sku || product.productCode} {(product.barcode) && `• ${product.barcode}`}
+                    {product.sku || product.productCode}{" "}
+                    {product.barcode && `• ${product.barcode}`}
                   </p>
                   {product.genericName && (
                     <p className="text-xs text-muted-foreground truncate">
-                      <span className="font-semibold">Generic:</span> {product.genericName}
+                      <span className="font-semibold">Generic:</span>{" "}
+                      {product.genericName}
                     </p>
                   )}
                   {(product.strength || product.dosageForm) && (
                     <p className="text-xs text-muted-foreground truncate">
-                      {product.strength} {product.dosageForm && `• ${product.dosageForm}`}
+                      {product.strength}{" "}
+                      {product.dosageForm && `• ${product.dosageForm}`}
                     </p>
                   )}
                   {product.manufacturer && (
                     <p className="text-xs text-muted-foreground truncate">
-                      <span className="font-semibold">Mfr:</span> {product.manufacturer}
+                      <span className="font-semibold">Mfr:</span>{" "}
+                      {product.manufacturer}
                     </p>
                   )}
                   {product.drugSchedule && (
                     <p className="text-xs text-muted-foreground">
-                      <span className="font-semibold">Schedule:</span> {product.drugSchedule}
+                      <span className="font-semibold">Schedule:</span>{" "}
+                      {product.drugSchedule}
                     </p>
                   )}
                 </div>
@@ -359,15 +603,25 @@ const POSProductSearch = ({ products = [], isLoading }) => {
                 )}
                 <Badge
                   variant={
-                    (product.quantityAvailable || product.stockQuantity || product.quantity || 0) > 10
+                    (product.quantityAvailable ||
+                      product.stockQuantity ||
+                      product.quantity ||
+                      0) > 10
                       ? "default"
-                      : (product.quantityAvailable || product.stockQuantity || product.quantity || 0) > 0
-                      ? "warning"
-                      : "destructive"
+                      : (product.quantityAvailable ||
+                            product.stockQuantity ||
+                            product.quantity ||
+                            0) > 0
+                        ? "warning"
+                        : "destructive"
                   }
                   className="mt-1 text-xs"
                 >
-                  Stock: {product.quantityAvailable || product.stockQuantity || product.quantity || 0}
+                  Stock:{" "}
+                  {product.quantityAvailable ||
+                    product.stockQuantity ||
+                    product.quantity ||
+                    0}
                 </Badge>
               </div>
             </button>
@@ -383,6 +637,66 @@ const POSProductSearch = ({ products = [], isLoading }) => {
             No products found for "{search}"
           </div>
         )}
+
+      {/* Batch Selector Dialog */}
+      {showBatchSelector && productPendingBatch && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="bg-white rounded-lg shadow-lg p-6 w-96 max-w-full">
+            <h2 className="text-lg font-semibold mb-4">
+              Select Batch for{" "}
+              {productPendingBatch.name || productPendingBatch.productName}
+            </h2>
+
+            <div className="mb-4">
+              <label className="text-sm font-medium mb-2 block">
+                Available Batches:
+              </label>
+              <Select
+                value={selectedBatch || ""}
+                onValueChange={setSelectedBatch}
+              >
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Select a batch" />
+                </SelectTrigger>
+                <SelectContent>
+                  {productPendingBatch.batches?.map((batch) => (
+                    <SelectItem key={batch.id} value={batch.id}>
+                      <div className="flex items-center gap-2">
+                        <span className="font-medium">{batch.batchNumber}</span>
+                        <span className="text-sm text-muted-foreground">
+                          Exp: {new Date(batch.expiryDate).toLocaleDateString()}
+                        </span>
+                        <Badge variant="outline" className="text-xs">
+                          Stock: {batch.quantity}
+                        </Badge>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-2 justify-end">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setShowBatchSelector(false);
+                  setSelectedBatch(null);
+                  setProductPendingBatch(null);
+                }}
+              >
+                Cancel (Esc)
+              </Button>
+              <Button
+                onClick={handleBatchSelect}
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+              >
+                Select (Enter)
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
