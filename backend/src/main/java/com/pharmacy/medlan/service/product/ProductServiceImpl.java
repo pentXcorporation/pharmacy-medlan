@@ -3,10 +3,12 @@ package com.pharmacy.medlan.service.product;
 import com.pharmacy.medlan.dto.request.product.CreateProductRequest;
 import com.pharmacy.medlan.dto.request.product.UpdateProductRequest;
 import com.pharmacy.medlan.dto.response.product.ProductResponse;
+import com.pharmacy.medlan.enums.ProductType;
 import com.pharmacy.medlan.exception.DuplicationResourceException;
 import com.pharmacy.medlan.exception.ResourceNotFoundException;
+import com.pharmacy.medlan.exception.ValidationException;
 import com.pharmacy.medlan.mapper.ProductMapper;
-import com.pharmacy.medlan.model.product.Product;
+import com.pharmacy.medlan.model.product.*;
 import com.pharmacy.medlan.repository.product.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -30,18 +32,41 @@ public class ProductServiceImpl implements ProductService {
     private final SubCategoryRepository subCategoryRepository;
     private final UnitRepository unitRepository;
     private final ProductMapper productMapper;
+    
+    // Type-specific repositories
+    private final MedicalProductRepository medicalProductRepository;
+    private final SupplementProductRepository supplementProductRepository;
+    private final FoodProductRepository foodProductRepository;
+    private final BabyCareProductRepository babyCareProductRepository;
+    private final CosmeticProductRepository cosmeticProductRepository;
+    private final MedicalEquipmentProductRepository medicalEquipmentProductRepository;
+    private final SurgicalProductRepository surgicalProductRepository;
+    private final AyurvedicProductRepository ayurvedicProductRepository;
+    private final HomeopathicProductRepository homeopathicProductRepository;
+    private final GeneralProductRepository generalProductRepository;
 
     @Override
     @Transactional
     public ProductResponse createProduct(CreateProductRequest request) {
-        log.info("Creating product: {}", request.getProductName());
+        log.info("Creating product: {} of type: {}", request.getProductName(), request.getProductType());
+
+        // Validate product type is provided
+        if (request.getProductType() == null) {
+            throw new ValidationException("Product type is required");
+        }
 
         if (request.getBarcode() != null && productRepository.existsByBarcodeAndDeletedFalse(request.getBarcode())) {
             throw new DuplicationResourceException("Barcode already exists");
         }
 
-        Product product = productMapper.toEntity(request);
-        product.setProductCode(generateProductCode());
+        // Create product instance using factory pattern
+        Product product = createProductInstance(request.getProductType());
+        
+        // Map common fields
+        productMapper.toEntity(request, product);
+        
+        // Generate product code based on type
+        product.setProductCode(generateProductCode(request.getProductType()));
 
         if (request.getCategoryId() != null) {
             product.setCategory(categoryRepository.findById(request.getCategoryId())
@@ -57,11 +82,40 @@ public class ProductServiceImpl implements ProductService {
             product.setUnit(unitRepository.findById(request.getUnitId())
                     .orElseThrow(() -> new ResourceNotFoundException("Unit not found")));
         }
+        
+        // Set default GST rate based on product type if not provided
+        if (product.getGstRate() == null) {
+            product.setGstRate(request.getProductType().getDefaultGstRate());
+        }
+
+        // Validate product type-specific fields
+        if (!product.isValid()) {
+            throw new ValidationException("Product validation failed. Missing required fields for " + 
+                                        request.getProductType().getDisplayName());
+        }
 
         Product saved = productRepository.save(product);
-        log.info("Product created with code: {}", saved.getProductCode());
+        log.info("Product created with code: {} and type: {}", saved.getProductCode(), saved.getProductType());
 
         return productMapper.toResponse(saved);
+    }
+    
+    /**
+     * Factory method to create appropriate Product subclass instance
+     */
+    private Product createProductInstance(ProductType productType) {
+        return switch (productType) {
+            case MEDICAL -> new MedicalProduct();
+            case SUPPLEMENT -> new SupplementProduct();
+            case FOOD -> new FoodProduct();
+            case BABY_CARE -> new BabyCareProduct();
+            case COSMETIC -> new CosmeticProduct();
+            case MEDICAL_EQUIPMENT -> new MedicalEquipmentProduct();
+            case SURGICAL -> new SurgicalProduct();
+            case AYURVEDIC -> new AyurvedicProduct();
+            case HOMEOPATHIC -> new HomeopathicProduct();
+            case GENERAL -> new GeneralProduct();
+        };
     }
 
     @Override
@@ -157,8 +211,50 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public String generateProductCode() {
-        Long count = productRepository.count();
-        return String.format("MED-%05d", count + 1);
+    public String generateProductCode(ProductType productType) {
+        // Get count for specific product type
+        Class<? extends Product> productClass = getProductClassByType(productType);
+        Long count = productRepository.countByProductType(productClass);
+        return String.format("%s-%05d", productType.getPrefix(), count + 1);
+    }
+    
+    /**
+     * Get Product class by ProductType
+     */
+    private Class<? extends Product> getProductClassByType(ProductType productType) {
+        return switch (productType) {
+            case MEDICAL -> MedicalProduct.class;
+            case SUPPLEMENT -> SupplementProduct.class;
+            case FOOD -> FoodProduct.class;
+            case BABY_CARE -> BabyCareProduct.class;
+            case COSMETIC -> CosmeticProduct.class;
+            case MEDICAL_EQUIPMENT -> MedicalEquipmentProduct.class;
+            case SURGICAL -> SurgicalProduct.class;
+            case AYURVEDIC -> AyurvedicProduct.class;
+            case HOMEOPATHIC -> HomeopathicProduct.class;
+            case GENERAL -> GeneralProduct.class;
+        };
+    }
+    
+    @Override
+    public List<ProductResponse> getProductsByType(ProductType productType) {
+        Class<? extends Product> productClass = getProductClassByType(productType);
+        List<Product> products = productRepository.findByProductTypeAndIsActiveTrue(productClass);
+        return products.stream()
+                .map(productMapper::toResponse)
+                .collect(Collectors.toList());
+    }
+    
+    @Override
+    public Page<ProductResponse> getProductsByType(ProductType productType, Pageable pageable) {
+        Class<? extends Product> productClass = getProductClassByType(productType);
+        return productRepository.findByProductTypePageable(productClass, pageable)
+                .map(productMapper::toResponse);
+    }
+    
+    @Override
+    public Long countProductsByType(ProductType productType) {
+        Class<? extends Product> productClass = getProductClassByType(productType);
+        return productRepository.countByProductType(productClass);
     }
 }

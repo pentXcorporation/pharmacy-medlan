@@ -1,5 +1,6 @@
 package com.pharmacy.medlan.repository.product;
 
+import com.pharmacy.medlan.enums.ProductType;
 import com.pharmacy.medlan.model.product.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -44,6 +45,19 @@ public interface ProductRepository extends JpaRepository<Product, Long>, JpaSpec
 
     boolean existsByProductCodeAndDeletedFalse(String productCode);
     boolean existsByBarcodeAndDeletedFalse(String barcode);
+    
+    // Type-specific queries
+    @Query("SELECT p FROM Product p WHERE p.deleted = false AND TYPE(p) = :productClass")
+    List<Product> findByProductType(@Param("productClass") Class<? extends Product> productClass);
+    
+    @Query("SELECT p FROM Product p WHERE p.deleted = false AND TYPE(p) = :productClass AND p.isActive = true")
+    List<Product> findByProductTypeAndIsActiveTrue(@Param("productClass") Class<? extends Product> productClass);
+    
+    @Query("SELECT p FROM Product p WHERE p.deleted = false AND TYPE(p) = :productClass")
+    Page<Product> findByProductTypePageable(@Param("productClass") Class<? extends Product> productClass, Pageable pageable);
+    
+    @Query("SELECT COUNT(p) FROM Product p WHERE p.deleted = false AND TYPE(p) = :productClass")
+    Long countByProductType(@Param("productClass") Class<? extends Product> productClass);
     
     // Keep legacy methods for backward compatibility
     Optional<Product> findByProductCode(String productCode);

@@ -2,9 +2,11 @@ package com.pharmacy.medlan.model.product;
 
 import com.pharmacy.medlan.enums.DosageForm;
 import com.pharmacy.medlan.enums.DrugSchedule;
+import com.pharmacy.medlan.enums.ProductType;
 import com.pharmacy.medlan.model.base.AuditableEntity;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
@@ -14,14 +16,16 @@ import java.util.List;
         @Index(name = "idx_product_code", columnList = "product_code"),
         @Index(name = "idx_product_name", columnList = "product_name"),
         @Index(name = "idx_barcode", columnList = "barcode"),
-        @Index(name = "idx_is_active", columnList = "is_active")
+        @Index(name = "idx_is_active", columnList = "is_active"),
+        @Index(name = "idx_product_type", columnList = "product_type")
 })
+@Inheritance(strategy = InheritanceType.SINGLE_TABLE)
+@DiscriminatorColumn(name = "product_type", discriminatorType = DiscriminatorType.STRING, length = 50)
 @Getter
 @Setter
 @NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Product extends AuditableEntity {
+@SuperBuilder
+public abstract class Product extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -33,8 +37,8 @@ public class Product extends AuditableEntity {
     @Column(name = "product_name", nullable = false, length = 200)
     private String productName;
 
-    @Column(name = "generic_name", length = 200)
-    private String genericName; // Scientific/generic name
+    @Column(name = "generic_name", length = 200, nullable = true)
+    private String genericName; // Scientific/generic name - mainly for medical products
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -48,15 +52,16 @@ public class Product extends AuditableEntity {
     @JoinColumn(name = "unit_id")
     private Unit unit;
 
+    // Medical-specific fields (nullable for non-medical products)
     @Enumerated(EnumType.STRING)
-    @Column(name = "dosage_form", length = 50)
+    @Column(name = "dosage_form", length = 50, nullable = true)
     private DosageForm dosageForm; // TABLET, CAPSULE, SYRUP, etc.
 
-    @Column(name = "strength", length = 100)
+    @Column(name = "strength", length = 100, nullable = true)
     private String strength; // e.g., "500mg", "10ml"
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "drug_schedule", length = 20)
+    @Column(name = "drug_schedule", length = 20, nullable = true)
     private DrugSchedule drugSchedule; // H, H1, G, X (Indian pharmacy regulation)
 
     @Column(name = "manufacturer", length = 200)
@@ -102,8 +107,8 @@ public class Product extends AuditableEntity {
     private Integer maximumStock = 1000;
 
     // Flags
-    @Column(name = "is_prescription_required", nullable = false)
-    private Boolean isPrescriptionRequired = false;
+    @Column(name = "is_prescription_required", nullable = true)
+    private Boolean isPrescriptionRequired; // Nullable for non-medical products
 
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
@@ -111,11 +116,24 @@ public class Product extends AuditableEntity {
     @Column(name = "is_discontinued", nullable = false)
     private Boolean isDiscontinued = false;
 
-    @Column(name = "is_narcotic", nullable = false)
-    private Boolean isNarcotic = false; // Schedule X drugs
+    @Column(name = "is_narcotic", nullable = true)
+    private Boolean isNarcotic; // Schedule X drugs - nullable for non-medical
 
-    @Column(name = "is_refrigerated", nullable = false)
-    private Boolean isRefrigerated = false; // Cold storage required
+    @Column(name = "is_refrigerated", nullable = true)
+    private Boolean isRefrigerated; // Cold storage required - nullable for non-medical
+
+    // Common additional fields for all product types
+    @Column(name = "country_of_origin", length = 100)
+    private String countryOfOrigin;
+
+    @Column(name = "package_dimensions", length = 200)
+    private String packageDimensions; // e.g., "10x5x2 cm"
+
+    @Column(name = "weight_grams")
+    private Integer weightGrams;
+
+    @Column(name = "additional_attributes", columnDefinition = "TEXT")
+    private String additionalAttributes; // JSON string for flexible attributes
 
     // Relationships
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
@@ -129,4 +147,16 @@ public class Product extends AuditableEntity {
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ProductPricing> pricingHistory = new ArrayList<>();
+
+    /**
+     * Validate product type-specific fields
+     * Each subclass implements its own validation logic
+     */
+    public abstract boolean isValid();
+
+    /**
+     * Get the product type
+     * Each subclass returns its specific type
+     */
+    public abstract ProductType getProductType();
 }
