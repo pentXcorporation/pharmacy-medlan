@@ -5,6 +5,7 @@ import com.pharmacy.medlan.model.inventory.RGRN;
 import com.pharmacy.medlan.model.inventory.RGRNLine;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -21,20 +22,19 @@ public class RGRNMapper {
                 .rgrnNumber(rgrn.getRgrnNumber())
                 .originalGrnId(rgrn.getOriginalGrn() != null ? rgrn.getOriginalGrn().getId() : null)
                 .originalGrnNumber(rgrn.getOriginalGrn() != null ? rgrn.getOriginalGrn().getGrnNumber() : null)
-                .supplierId(rgrn.getSupplier().getId())
-                .supplierName(rgrn.getSupplier().getSupplierName())
-                .branchId(rgrn.getBranch().getId())
-                .branchName(rgrn.getBranch().getBranchName())
+                .supplierId(rgrn.getSupplier() != null ? rgrn.getSupplier().getId() : null)
+                .supplierName(rgrn.getSupplier() != null ? rgrn.getSupplier().getSupplierName() : null)
+                .branchId(rgrn.getBranch() != null ? rgrn.getBranch().getId() : null)
+                .branchName(rgrn.getBranch() != null ? rgrn.getBranch().getBranchName() : null)
                 .returnDate(rgrn.getReturnDate())
                 .totalReturnAmount(rgrn.getTotalReturnAmount())
                 .refundStatus(rgrn.getRefundStatus())
                 .returnReason(rgrn.getReturnReason())
                 .returnedByName(rgrn.getReturnedBy() != null ? rgrn.getReturnedBy().getFullName() : null)
                 .remarks(rgrn.getRemarks())
-                .lines(rgrn.getRgrnLines() != null ? 
-                        rgrn.getRgrnLines().stream()
-                                .map(this::toLineResponse)
-                                .collect(Collectors.toList()) : null)
+                .lines(rgrn.getRgrnLines() != null
+                        ? rgrn.getRgrnLines().stream().map(this::toLineResponse).collect(Collectors.toList())
+                        : Collections.emptyList())
                 .createdAt(rgrn.getCreatedAt())
                 .updatedAt(rgrn.getUpdatedAt())
                 .build();
@@ -45,10 +45,15 @@ public class RGRNMapper {
             return null;
         }
 
+        // Prefer denormalized productName; fall back to the associated entity
+        String productName = line.getProductName() != null
+                ? line.getProductName()
+                : (line.getProduct() != null ? line.getProduct().getProductName() : null);
+
         return RGRNResponse.RGRNLineResponse.builder()
                 .id(line.getId())
-                .productId(line.getProduct().getId())
-                .productName(line.getProductName() != null ? line.getProductName() : line.getProduct().getProductName())
+                .productId(line.getProduct() != null ? line.getProduct().getId() : null)
+                .productName(productName)
                 .inventoryBatchId(line.getInventoryBatch() != null ? line.getInventoryBatch().getId() : null)
                 .batchNumber(line.getBatchNumber())
                 .quantityReturned(line.getQuantityReturned())
@@ -60,7 +65,7 @@ public class RGRNMapper {
 
     public List<RGRNResponse> toResponseList(List<RGRN> rgrns) {
         if (rgrns == null) {
-            return null;
+            return Collections.emptyList();
         }
         return rgrns.stream()
                 .map(this::toResponse)

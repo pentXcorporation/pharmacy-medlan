@@ -5,6 +5,7 @@ public enum GRNStatus {
     PENDING_APPROVAL("Pending Approval"),
     APPROVED("Approved"),
     RECEIVED("Received"),
+    COMPLETED("Completed"),
     REJECTED("Rejected"),
     CANCELLED("Cancelled");
 

@@ -7,6 +7,7 @@ public enum PurchaseOrderStatus {
     SENT("Sent to Supplier"),
     PARTIALLY_RECEIVED("Partially Received"),
     FULLY_RECEIVED("Fully Received"),
+    COMPLETED("Completed"),
     CANCELLED("Cancelled"),
     CLOSED("Closed");
 

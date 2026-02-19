@@ -70,6 +70,7 @@ export const useAuth = () => {
 
       const roleFeatures = {
         [ROLES.SUPER_ADMIN]: ["*"],
+        [ROLES.ADMIN]: ["*"],
         [ROLES.OWNER]: ["*"],
         [ROLES.BRANCH_ADMIN]: [
           "dashboard",
@@ -82,6 +83,18 @@ export const useAuth = () => {
           "employees",
           "reports",
           "settings",
+          "finance",
+          "payroll",
+        ],
+        [ROLES.MANAGER]: [
+          "dashboard",
+          "pos",
+          "inventory",
+          "products",
+          "categories",
+          "suppliers",
+          "customers",
+          "reports",
         ],
         [ROLES.PHARMACIST]: [
           "pos",

@@ -70,13 +70,13 @@ public class CreateProductRequest {
     private Boolean isPrescriptionRequired;
     private Boolean isNarcotic;
     private Boolean isRefrigerated;
-    
+
     // Common additional fields
     private String countryOfOrigin;
     private String packageDimensions;
     private Integer weightGrams;
     private String additionalAttributes; // JSON string
-    
+
     // === SUPPLEMENT FIELDS ===
     private String supplementType; // Vitamin, Mineral, Protein, Herbal
     private String activeIngredients;
@@ -87,7 +87,7 @@ public class CreateProductRequest {
     private String warnings;
     private Boolean isFdaApproved;
     private Boolean isCertifiedOrganic;
-    
+
     // === FOOD FIELDS ===
     private String ingredients;
     private String nutritionalInfo; // JSON string
@@ -99,7 +99,7 @@ public class CreateProductRequest {
     private Boolean isGlutenFree;
     private String fssaiLicense;
     private String foodCategory;
-    
+
     // === BABY CARE FIELDS ===
     private String ageRange; // "0-6 months", etc.
     private String productSubType; // Diaper, Food, Oil, etc.
@@ -109,7 +109,7 @@ public class CreateProductRequest {
     private Boolean isFragranceFree;
     private Integer packQuantity;
     private String usageInstructions;
-    
+
     // === COSMETIC FIELDS ===
     private String skinType; // All, Oily, Dry, Combination, Sensitive
     private Boolean dermatologicallyTested;
@@ -119,7 +119,7 @@ public class CreateProductRequest {
     private String fragranceType;
     private Integer expiryMonthsAfterOpening;
     private String cosmeticCategory;
-    
+
     // === MEDICAL EQUIPMENT FIELDS ===
     private String equipmentType; // Diagnostic, Therapeutic, Monitoring
     private Integer warrantyMonths;
@@ -130,7 +130,7 @@ public class CreateProductRequest {
     private String brandModel;
     private Boolean isCertified;
     private String certificationNumber;
-    
+
     // === SURGICAL FIELDS ===
     private Boolean sterilized;
     private Boolean singleUse;
@@ -138,7 +138,7 @@ public class CreateProductRequest {
     private Boolean isLatexFree;
     private String sterilizationMethod;
     private String surgicalCategory;
-    
+
     // === AYURVEDIC FIELDS ===
     private String ayurvedicType; // Classical, Patent, Proprietary
     private String ayushLicense;
@@ -146,7 +146,7 @@ public class CreateProductRequest {
     private String therapeuticUses;
     private String preparationMethod;
     private Boolean isClassicalFormulation;
-    
+
     // === HOMEOPATHIC FIELDS ===
     private String potency; // 6CH, 30CH, 200CH, 1M, etc.
     private String motherTincture;
@@ -154,7 +154,7 @@ public class CreateProductRequest {
     private String form; // Dilution, Tablet, Globules, etc.
     private String homeopathicPharmacopoeia;
     private Boolean isCombinationRemedy;
-    
+
     // === GENERAL FIELDS ===
     private String productCategory;
 }

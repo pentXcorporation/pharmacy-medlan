@@ -2,10 +2,9 @@ package com.pharmacy.medlan.model.supplier;
 
 import com.pharmacy.medlan.model.base.AuditableEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "suppliers", indexes = {
@@ -17,16 +16,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"purchaseOrders", "payments"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Supplier extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(name = "supplier_code", nullable = false, unique = true, length = 50)
+    @NotBlank(message = "Supplier code is required")
+    @EqualsAndHashCode.Include
     private String supplierCode;
 
     @Column(name = "supplier_name", nullable = false, length = 200)
+    @NotBlank(message = "Supplier name is required")
     private String supplierName;
 
     @Column(name = "contact_person", length = 100)
@@ -36,6 +41,7 @@ public class Supplier extends AuditableEntity {
     private String phoneNumber;
 
     @Column(name = "email", length = 100)
+    @Email(message = "Invalid email format")
     private String email;
 
     @Column(name = "address", columnDefinition = "TEXT")
@@ -60,25 +66,22 @@ public class Supplier extends AuditableEntity {
     private String drugLicenseNumber;
 
     @Column(name = "default_discount_percent", precision = 5, scale = 2)
+    @Builder.Default
     private BigDecimal defaultDiscountPercent = BigDecimal.ZERO;
 
     @Column(name = "payment_term_days")
-    private Integer paymentTermDays = 30; // Default 30 days
+    @Builder.Default
+    private Integer paymentTermDays = 30;
 
     @Column(name = "credit_limit", precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal creditLimit = BigDecimal.ZERO;
 
     @Column(name = "current_balance", precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal currentBalance = BigDecimal.ZERO;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
-
-    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<PurchaseOrder> purchaseOrders = new ArrayList<>();
-
-    @OneToMany(mappedBy = "supplier", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<SupplierPayment> payments = new ArrayList<>();
 }

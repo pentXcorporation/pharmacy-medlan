@@ -8,6 +8,7 @@ import com.pharmacy.medlan.model.supplier.PurchaseOrder;
 import com.pharmacy.medlan.model.supplier.Supplier;
 import com.pharmacy.medlan.model.user.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -19,21 +20,27 @@ import java.util.List;
 @Table(name = "grns", indexes = {
         @Index(name = "idx_grn_number", columnList = "grn_number"),
         @Index(name = "idx_grn_status", columnList = "status"),
-        @Index(name = "idx_grn_date", columnList = "received_date")
+        @Index(name = "idx_grn_date", columnList = "received_date"),
+        @Index(name = "idx_grn_supplier", columnList = "supplier_id")
 })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"purchaseOrder", "supplier", "branch", "receivedBy", "approvedBy", "grnLines"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class GRN extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(name = "grn_number", nullable = false, unique = true, length = 50)
-    private String grnNumber; // GRN-2024-00001
+    @NotBlank(message = "GRN number is required")
+    @EqualsAndHashCode.Include
+    private String grnNumber;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "purchase_order_id")
@@ -41,13 +48,16 @@ public class GRN extends AuditableEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "supplier_id", nullable = false)
+    @NotNull(message = "Supplier is required")
     private Supplier supplier;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
+    @NotNull(message = "Branch is required")
     private Branch branch;
 
     @Column(name = "received_date", nullable = false)
+    @NotNull(message = "Received date is required")
     private LocalDate receivedDate;
 
     @Column(name = "supplier_invoice_number", length = 100)
@@ -57,19 +67,25 @@ public class GRN extends AuditableEntity {
     private LocalDate supplierInvoiceDate;
 
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
+    @NotNull
+    @DecimalMin(value = "0.0", message = "Total amount must be positive")
     private BigDecimal totalAmount;
 
     @Column(name = "discount_amount", precision = 10, scale = 2)
+    @Builder.Default
     private BigDecimal discountAmount = BigDecimal.ZERO;
 
     @Column(name = "tax_amount", precision = 10, scale = 2)
+    @Builder.Default
     private BigDecimal taxAmount = BigDecimal.ZERO;
 
     @Column(name = "net_amount", nullable = false, precision = 12, scale = 2)
+    @NotNull
     private BigDecimal netAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
+    @Builder.Default
     private GRNStatus status = GRNStatus.DRAFT;
 
     @Column(name = "remarks", columnDefinition = "TEXT")
@@ -86,18 +102,28 @@ public class GRN extends AuditableEntity {
     @Column(name = "approved_at")
     private LocalDateTime approvedAt;
 
-    @OneToMany(mappedBy = "grn", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<GRNLine> grnLines = new ArrayList<>();
-
-    // Payment tracking
     @Column(name = "paid_amount", precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal paidAmount = BigDecimal.ZERO;
 
     @Column(name = "balance_amount", precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal balanceAmount = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_status", length = 50)
+    @Builder.Default
     private PaymentStatus paymentStatus = PaymentStatus.UNPAID;
+
+    @OneToMany(mappedBy = "grn", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<GRNLine> grnLines = new ArrayList<>();
+
+    public boolean isApproved() {
+        return status == GRNStatus.COMPLETED;
+    }
+
+    public boolean isPaid() {
+        return paymentStatus == PaymentStatus.PAID;
+    }
 }

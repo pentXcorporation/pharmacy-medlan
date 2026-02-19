@@ -6,7 +6,7 @@
 import { lazy, Suspense } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 import { ROUTES } from "@/config";
-import { ROLES } from "@/constants";
+import { ROLES, ADMIN_ROLES } from "@/constants";
 import { MainLayout, AuthLayout } from "@/components/layout";
 import { PageLoader } from "@/components/common";
 import ErrorBoundary from "@/components/common/ErrorBoundary";
@@ -208,9 +208,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.ADMIN,
+              ...ADMIN_ROLES,
               ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
               ROLES.CASHIER,
             ]}
@@ -226,9 +226,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.ADMIN,
+              ...ADMIN_ROLES,
               ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
               ROLES.CASHIER,
             ]}
@@ -244,9 +244,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.ADMIN,
+              ...ADMIN_ROLES,
               ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
               ROLES.CASHIER,
             ]}
@@ -262,9 +262,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.ADMIN,
+              ...ADMIN_ROLES,
               ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
               ROLES.CASHIER,
             ]}
@@ -280,9 +280,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.ADMIN,
+              ...ADMIN_ROLES,
               ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
             ]}
           >
@@ -299,9 +299,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.OWNER,
-              ROLES.BRANCH_ADMIN,
+              ...ADMIN_ROLES,
+              ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
               ROLES.CASHIER,
             ]}
@@ -317,9 +317,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.OWNER,
-              ROLES.BRANCH_ADMIN,
+              ...ADMIN_ROLES,
+              ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
               ROLES.CASHIER,
             ]}
@@ -337,9 +337,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.ADMIN,
+              ...ADMIN_ROLES,
               ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
             ]}
           >
@@ -354,9 +354,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.ADMIN,
+              ...ADMIN_ROLES,
               ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
             ]}
           >
@@ -371,9 +371,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.ADMIN,
+              ...ADMIN_ROLES,
               ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.PHARMACIST,
             ]}
           >
@@ -593,7 +593,7 @@ const router = createBrowserRouter([
         path: ROUTES.CUSTOMERS.CREDITS,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER]}
           >
             <SuspenseWrapper>
               <CreditAccountsPage />
@@ -607,7 +607,7 @@ const router = createBrowserRouter([
         path: ROUTES.FINANCE.ROOT,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <FinancePage />
@@ -619,7 +619,7 @@ const router = createBrowserRouter([
         path: ROUTES.FINANCE.TRANSACTIONS,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <TransactionsPage />
@@ -631,7 +631,7 @@ const router = createBrowserRouter([
         path: ROUTES.FINANCE.INVOICES,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <InvoicesPage />
@@ -643,7 +643,7 @@ const router = createBrowserRouter([
         path: ROUTES.FINANCE.CHEQUES,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <ChequesPage />
@@ -655,7 +655,7 @@ const router = createBrowserRouter([
         path: ROUTES.FINANCE.BANKS,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.MANAGER]}
           >
             <SuspenseWrapper>
               <BanksPage />
@@ -667,7 +667,7 @@ const router = createBrowserRouter([
         path: ROUTES.FINANCE.CASH_REGISTER,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER, ROLES.ACCOUNTANT, ROLES.CASHIER]}
           >
             <SuspenseWrapper>
               <CashRegisterPage />
@@ -679,7 +679,7 @@ const router = createBrowserRouter([
         path: ROUTES.FINANCE.CASH_BOOK,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.MANAGER, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <CashBookPage />
@@ -691,7 +691,7 @@ const router = createBrowserRouter([
         path: ROUTES.FINANCE.SUMMARY,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <FinancialSummaryPage />
@@ -705,7 +705,7 @@ const router = createBrowserRouter([
         path: ROUTES.PAYROLL.ROOT,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <PayrollPage />
@@ -717,7 +717,7 @@ const router = createBrowserRouter([
         path: ROUTES.PAYROLL.SALARIES,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <SalariesPage />
@@ -729,7 +729,7 @@ const router = createBrowserRouter([
         path: ROUTES.PAYROLL.ATTENDANCE,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <AttendancePage />
@@ -741,7 +741,7 @@ const router = createBrowserRouter([
         path: ROUTES.PAYROLL.ADVANCES,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <AdvancesPage />
@@ -756,9 +756,9 @@ const router = createBrowserRouter([
         element: (
           <RoleGuard
             allowedRoles={[
-              ROLES.SUPER_ADMIN,
-              ROLES.OWNER,
-              ROLES.BRANCH_ADMIN,
+              ...ADMIN_ROLES,
+              ROLES.BRANCH_MANAGER,
+              ROLES.MANAGER,
               ROLES.ACCOUNTANT,
             ]}
           >
@@ -792,7 +792,7 @@ const router = createBrowserRouter([
         path: ROUTES.REPORTS.FINANCIAL,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.ACCOUNTANT]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.ACCOUNTANT]}
           >
             <SuspenseWrapper>
               <FinancialReportPage />
@@ -804,7 +804,7 @@ const router = createBrowserRouter([
         path: ROUTES.REPORTS.EMPLOYEES,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER]}
           >
             <SuspenseWrapper>
               <EmployeeReportPage />
@@ -815,7 +815,7 @@ const router = createBrowserRouter([
       {
         path: ROUTES.REPORTS.AUDIT,
         element: (
-          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.OWNER]}>
             <SuspenseWrapper>
               <AuditPage />
             </SuspenseWrapper>
@@ -828,7 +828,7 @@ const router = createBrowserRouter([
         path: ROUTES.EMPLOYEES.LIST,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER]}
           >
             <SuspenseWrapper>
               <EmployeesPage />
@@ -840,7 +840,7 @@ const router = createBrowserRouter([
         path: ROUTES.EMPLOYEES.NEW,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER]}
           >
             <SuspenseWrapper>
               <EmployeeFormPage />
@@ -852,7 +852,7 @@ const router = createBrowserRouter([
         path: ROUTES.EMPLOYEES.EDIT(":id"),
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER]}
           >
             <SuspenseWrapper>
               <EmployeeFormPage />
@@ -864,7 +864,7 @@ const router = createBrowserRouter([
         path: ROUTES.EMPLOYEES.VIEW(":id"),
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER]}
           >
             <SuspenseWrapper>
               <EmployeeViewPage />
@@ -876,7 +876,7 @@ const router = createBrowserRouter([
         path: ROUTES.EMPLOYEES.ATTENDANCE,
         element: (
           <RoleGuard
-            allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER, ROLES.BRANCH_ADMIN]}
+            allowedRoles={[...ADMIN_ROLES, ROLES.BRANCH_MANAGER, ROLES.MANAGER]}
           >
             <SuspenseWrapper>
               <EmployeeAttendancePage />
@@ -889,7 +889,7 @@ const router = createBrowserRouter([
       {
         path: ROUTES.BRANCHES.LIST,
         element: (
-          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+          <RoleGuard allowedRoles={ADMIN_ROLES}>
             <SuspenseWrapper>
               <BranchesPage />
             </SuspenseWrapper>
@@ -899,7 +899,7 @@ const router = createBrowserRouter([
       {
         path: ROUTES.BRANCHES.NEW,
         element: (
-          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+          <RoleGuard allowedRoles={ADMIN_ROLES}>
             <SuspenseWrapper>
               <BranchFormPage />
             </SuspenseWrapper>
@@ -909,7 +909,7 @@ const router = createBrowserRouter([
       {
         path: ROUTES.BRANCHES.EDIT(":id"),
         element: (
-          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+          <RoleGuard allowedRoles={ADMIN_ROLES}>
             <SuspenseWrapper>
               <BranchFormPage />
             </SuspenseWrapper>
@@ -917,11 +917,11 @@ const router = createBrowserRouter([
         ),
       },
 
-      // Users Routes (Super Admin only)
+      // Users Routes (Admin level and above)
       {
         path: ROUTES.USERS.LIST,
         element: (
-          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+          <RoleGuard allowedRoles={ADMIN_ROLES}>
             <SuspenseWrapper>
               <UsersPage />
             </SuspenseWrapper>
@@ -931,7 +931,7 @@ const router = createBrowserRouter([
       {
         path: ROUTES.USERS.NEW,
         element: (
-          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN]}>
+          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.OWNER]}>
             <SuspenseWrapper>
               <UserFormPage />
             </SuspenseWrapper>
@@ -941,7 +941,7 @@ const router = createBrowserRouter([
       {
         path: ROUTES.USERS.EDIT(":id"),
         element: (
-          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+          <RoleGuard allowedRoles={ADMIN_ROLES}>
             <SuspenseWrapper>
               <UserFormPage />
             </SuspenseWrapper>
@@ -951,7 +951,7 @@ const router = createBrowserRouter([
       {
         path: ROUTES.USERS.VIEW(":id"),
         element: (
-          <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.OWNER]}>
+          <RoleGuard allowedRoles={ADMIN_ROLES}>
             <SuspenseWrapper>
               <UserViewPage />
             </SuspenseWrapper>

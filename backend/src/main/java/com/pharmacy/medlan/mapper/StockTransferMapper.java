@@ -5,6 +5,7 @@ import com.pharmacy.medlan.model.inventory.StockTransfer;
 import com.pharmacy.medlan.model.inventory.StockTransferItem;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -40,7 +41,7 @@ public class StockTransferMapper {
 
     public List<StockTransferResponse> toResponseList(List<StockTransfer> stockTransfers) {
         if (stockTransfers == null) {
-            return null;
+            return Collections.emptyList();
         }
         return stockTransfers.stream()
                 .map(this::toResponse)
@@ -49,7 +50,7 @@ public class StockTransferMapper {
 
     private List<StockTransferResponse.StockTransferItemResponse> mapItems(List<StockTransferItem> items) {
         if (items == null) {
-            return null;
+            return Collections.emptyList();
         }
         return items.stream()
                 .map(this::mapItem)

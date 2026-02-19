@@ -11,116 +11,61 @@ import org.springframework.context.annotation.Primary;
 import java.util.Arrays;
 import java.util.concurrent.TimeUnit;
 
-/**
- * Cache configuration using Caffeine for high-performance caching.
- * 
- * Cache Strategies:
- * - Short-lived: Session data, real-time inventory
- * - Medium-lived: Product catalogs, categories
- * - Long-lived: System configuration, static data
- */
 @Configuration
 @EnableCaching
 public class CacheConfig {
 
-    /**
-     * Default cache manager with moderate expiration
-     */
+    // Cache Names Constants
+    public static final String PRODUCTS = "products";
+    public static final String PRODUCTS_BY_CODE = "productsByCode";
+    public static final String PRODUCTS_BY_BARCODE = "productsByBarcode";
+    public static final String INVENTORY_BATCHES = "inventoryBatches";
+    public static final String BRANCHES = "branches";
+    public static final String CATEGORIES = "categories";
+    public static final String USERS = "users";
+    public static final String SYSTEM_CONFIG = "systemConfig";
+    public static final String REALTIME_INVENTORY = "realtimeInventory";
+
     @Bean
     @Primary
     public CacheManager cacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager();
-        cacheManager.setCaffeine(Caffeine.newBuilder()
+        CaffeineCacheManager manager = new CaffeineCacheManager();
+        manager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(1000)
                 .expireAfterWrite(30, TimeUnit.MINUTES)
                 .recordStats());
-        
-        // Register all cache names
-        cacheManager.setCacheNames(Arrays.asList(
-                // Product caches
-                "products",
-                "productsByCode",
-                "productsByBarcode",
-                "productQRCodes",
-                
-                // Inventory caches
-                "inventoryBatches",
-                "batchQRCodes",
-                "lowStockAlerts",
-                "expiryAlerts",
-                
-                // Organization caches
-                "branches",
-                "categories",
-                "subCategories",
-                "units",
-                "suppliers",
-                
-                // User caches
-                "users",
-                "userRoles",
-                
-                // Finance caches
-                "invoiceQRCodes",
-                "dailySummaries",
-                
-                // System caches
-                "systemConfig",
-                "taxCategories"
+
+        manager.setCacheNames(Arrays.asList(
+                PRODUCTS, PRODUCTS_BY_CODE, PRODUCTS_BY_BARCODE,
+                "productQRCodes", INVENTORY_BATCHES, "batchQRCodes",
+                "lowStockAlerts", "expiryAlerts", BRANCHES,
+                CATEGORIES, "subCategories", "units", "suppliers",
+                USERS, "userRoles", "invoiceQRCodes", "dailySummaries",
+                SYSTEM_CONFIG, "taxCategories"
         ));
-        
-        return cacheManager;
+
+        return manager;
     }
 
-    /**
-     * Short-lived cache for real-time data (5 minutes)
-     */
     @Bean
     public CacheManager shortLivedCacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-                "realtimeInventory",
-                "activeSessions",
-                "pendingTransactions"
-        );
-        cacheManager.setCaffeine(Caffeine.newBuilder()
+        CaffeineCacheManager manager = new CaffeineCacheManager(
+                REALTIME_INVENTORY, "activeSessions", "pendingTransactions");
+        manager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(500)
                 .expireAfterWrite(5, TimeUnit.MINUTES)
                 .recordStats());
-        return cacheManager;
+        return manager;
     }
 
-    /**
-     * Long-lived cache for static/rarely changing data (2 hours)
-     */
     @Bean
     public CacheManager longLivedCacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-                "staticConfig",
-                "drugSchedules",
-                "dosageForms",
-                "taxRates"
-        );
-        cacheManager.setCaffeine(Caffeine.newBuilder()
+        CaffeineCacheManager manager = new CaffeineCacheManager(
+                "staticConfig", "drugSchedules", "dosageForms", "taxRates");
+        manager.setCaffeine(Caffeine.newBuilder()
                 .maximumSize(200)
                 .expireAfterWrite(2, TimeUnit.HOURS)
                 .recordStats());
-        return cacheManager;
-    }
-
-    /**
-     * Barcode/QR code cache (1 hour)
-     */
-    @Bean
-    public CacheManager barcodeCacheManager() {
-        CaffeineCacheManager cacheManager = new CaffeineCacheManager(
-                "barcodeImages",
-                "qrCodeImages",
-                "shelfLabels"
-        );
-        cacheManager.setCaffeine(Caffeine.newBuilder()
-                .maximumSize(500)
-                .expireAfterWrite(1, TimeUnit.HOURS)
-                .recordStats());
-        return cacheManager;
+        return manager;
     }
 }

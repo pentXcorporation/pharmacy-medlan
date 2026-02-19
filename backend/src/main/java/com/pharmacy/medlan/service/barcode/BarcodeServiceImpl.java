@@ -16,6 +16,7 @@ import com.pharmacy.medlan.exception.BusinessRuleViolationException;
 import com.pharmacy.medlan.exception.ResourceNotFoundException;
 import com.pharmacy.medlan.model.pos.Invoice;
 import com.pharmacy.medlan.model.product.InventoryBatch;
+import com.pharmacy.medlan.model.product.MedicalProduct;
 import com.pharmacy.medlan.model.product.Product;
 import com.pharmacy.medlan.repository.product.InventoryBatchRepository;
 import com.pharmacy.medlan.repository.pos.InvoiceRepository;
@@ -30,12 +31,9 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 
 @Service
@@ -53,15 +51,16 @@ public class BarcodeServiceImpl implements BarcodeService {
     private static final int DEFAULT_BARCODE_HEIGHT = 100;
     private static final int DEFAULT_QR_SIZE = 250;
 
-    // Thread-safe counter for unique barcode generation
-    private final AtomicLong barcodeCounter = new AtomicLong(System.currentTimeMillis() % 1000000000L);
+    // Thread-safe counter seed for unique barcode generation
+    private final AtomicLong barcodeCounter = new AtomicLong(System.currentTimeMillis() % 1_000_000_000L);
+
+    // ==================== Barcode Generation ====================
 
     @Override
     public BarcodeResponse generateBarcode(String content, BarcodeFormat format, int width, int height) {
         log.debug("Generating barcode for content: {} with format: {}", content, format);
 
         try {
-            // Validate content for fixed-length formats
             validateContentForFormat(content, format);
 
             BitMatrix bitMatrix = new MultiFormatWriter().encode(
@@ -72,11 +71,9 @@ public class BarcodeServiceImpl implements BarcodeService {
                     getEncodingHints()
             );
 
-            String base64Image = matrixToBase64(bitMatrix);
-
             return BarcodeResponse.builder()
                     .content(content)
-                    .imageBase64(base64Image)
+                    .imageBase64(matrixToBase64(bitMatrix))
                     .mimeType(MIME_TYPE_PNG)
                     .format(format)
                     .width(bitMatrix.getWidth())
@@ -102,14 +99,12 @@ public class BarcodeServiceImpl implements BarcodeService {
             hints.put(EncodeHintType.CHARACTER_SET, "UTF-8");
             hints.put(EncodeHintType.MARGIN, 2);
 
-            QRCodeWriter qrCodeWriter = new QRCodeWriter();
-            BitMatrix bitMatrix = qrCodeWriter.encode(data, com.google.zxing.BarcodeFormat.QR_CODE, qrSize, qrSize, hints);
-
-            String base64Image = matrixToBase64(bitMatrix);
+            BitMatrix bitMatrix = new QRCodeWriter()
+                    .encode(data, com.google.zxing.BarcodeFormat.QR_CODE, qrSize, qrSize, hints);
 
             return QRCodeResponse.builder()
                     .content(data)
-                    .imageBase64(base64Image)
+                    .imageBase64(matrixToBase64(bitMatrix))
                     .mimeType(MIME_TYPE_PNG)
                     .size(qrSize)
                     .errorCorrectionLevel("H")
@@ -141,25 +136,29 @@ public class BarcodeServiceImpl implements BarcodeService {
         qrData.put("mrp", product.getMrp());
         qrData.put("sellingPrice", product.getSellingPrice());
 
-        if (product.getDrugSchedule() != null) {
-            qrData.put("drugSchedule", product.getDrugSchedule().name());
+        // Medical-specific fields — only available on MedicalProduct subtype
+        if (product instanceof MedicalProduct medical) {
+            if (medical.getDrugSchedule() != null)
+                qrData.put("drugSchedule", medical.getDrugSchedule().name());
+            if (medical.getDosageForm() != null)
+                qrData.put("dosageForm", medical.getDosageForm().name());
+            qrData.put("strength", medical.getStrength());
+            qrData.put("prescriptionRequired", medical.getIsPrescriptionRequired());
+            qrData.put("isNarcotic", medical.getIsNarcotic());
         }
-        if (product.getDosageForm() != null) {
-            qrData.put("dosageForm", product.getDosageForm().name());
-        }
-        qrData.put("strength", product.getStrength());
-        qrData.put("prescriptionRequired", product.getIsPrescriptionRequired());
-        qrData.put("isNarcotic", product.getIsNarcotic());
 
         if (includeBatchInfo) {
             List<Map<String, Object>> batches = new ArrayList<>();
             product.getInventoryBatches().stream()
-                    .filter(b -> b.getIsActive() && !b.getIsExpired() && b.getQuantityAvailable() > 0)
-                    .limit(5) // Limit to keep QR size manageable
+                    .filter(b -> Boolean.TRUE.equals(b.getIsActive())
+                            && !Boolean.TRUE.equals(b.getIsExpired())
+                            && b.getQuantityAvailable() > 0)
+                    .limit(5) // Keep QR payload manageable
                     .forEach(batch -> {
                         Map<String, Object> batchData = new HashMap<>();
                         batchData.put("batchNo", batch.getBatchNumber());
-                        batchData.put("expiry", batch.getExpiryDate().toString());
+                        batchData.put("expiry", batch.getExpiryDate() != null
+                                ? batch.getExpiryDate().toString() : null);
                         batchData.put("available", batch.getQuantityAvailable());
                         batches.add(batchData);
                     });
@@ -168,17 +167,9 @@ public class BarcodeServiceImpl implements BarcodeService {
 
         qrData.put("generatedAt", LocalDateTime.now().toString());
 
-        try {
-            String jsonData = objectMapper.writeValueAsString(qrData);
-            QRCodeResponse response = generateQRCode(jsonData, size);
-            response.setQrType("PRODUCT");
-            response.setEntityId(productId);
-            response.setEntityReference(product.getProductCode());
-            response.setMetadata(qrData);
-            return response;
-        } catch (JsonProcessingException e) {
-            throw new BusinessRuleViolationException("Failed to serialize product data for QR code");
-        }
+        QRCodeResponse response = toQRResponse(qrData, size, "PRODUCT", productId, product.getProductCode());
+        response.setMetadata(qrData);
+        return response;
     }
 
     @Override
@@ -193,13 +184,14 @@ public class BarcodeServiceImpl implements BarcodeService {
         qrData.put("type", "BATCH");
         qrData.put("batchId", batch.getId());
         qrData.put("batchNumber", batch.getBatchNumber());
-        qrData.put("productId", batch.getProduct().getId());
-        qrData.put("productCode", batch.getProduct().getProductCode());
-        qrData.put("productName", batch.getProduct().getProductName());
-        qrData.put("branchId", batch.getBranch().getId());
-        qrData.put("branchName", batch.getBranch().getBranchName());
-        qrData.put("manufacturingDate", batch.getManufacturingDate().toString());
-        qrData.put("expiryDate", batch.getExpiryDate().toString());
+        qrData.put("productId", batch.getProduct() != null ? batch.getProduct().getId() : null);
+        qrData.put("productCode", batch.getProduct() != null ? batch.getProduct().getProductCode() : null);
+        qrData.put("productName", batch.getProduct() != null ? batch.getProduct().getProductName() : null);
+        qrData.put("branchId", batch.getBranch() != null ? batch.getBranch().getId() : null);
+        qrData.put("branchName", batch.getBranch() != null ? batch.getBranch().getBranchName() : null);
+        qrData.put("manufacturingDate", batch.getManufacturingDate() != null
+                ? batch.getManufacturingDate().toString() : null);
+        qrData.put("expiryDate", batch.getExpiryDate() != null ? batch.getExpiryDate().toString() : null);
         qrData.put("quantityReceived", batch.getQuantityReceived());
         qrData.put("quantityAvailable", batch.getQuantityAvailable());
         qrData.put("quantitySold", batch.getQuantitySold());
@@ -208,20 +200,13 @@ public class BarcodeServiceImpl implements BarcodeService {
         qrData.put("sellingPrice", batch.getSellingPrice());
         qrData.put("rackLocation", batch.getRackLocation());
         qrData.put("isExpired", batch.getIsExpired());
-        qrData.put("daysToExpiry", calculateDaysToExpiry(batch.getExpiryDate()));
+        qrData.put("daysToExpiry", batch.getExpiryDate() != null
+                ? java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), batch.getExpiryDate()) : null);
         qrData.put("generatedAt", LocalDateTime.now().toString());
 
-        try {
-            String jsonData = objectMapper.writeValueAsString(qrData);
-            QRCodeResponse response = generateQRCode(jsonData, size);
-            response.setQrType("BATCH");
-            response.setEntityId(batchId);
-            response.setEntityReference(batch.getBatchNumber());
-            response.setMetadata(qrData);
-            return response;
-        } catch (JsonProcessingException e) {
-            throw new BusinessRuleViolationException("Failed to serialize batch data for QR code");
-        }
+        QRCodeResponse response = toQRResponse(qrData, size, "BATCH", batchId, batch.getBatchNumber());
+        response.setMetadata(qrData);
+        return response;
     }
 
     @Override
@@ -232,54 +217,50 @@ public class BarcodeServiceImpl implements BarcodeService {
                 .orElseThrow(() -> new ResourceNotFoundException("Product not found with ID: " + productId));
 
         String barcodeContent = product.getBarcode() != null ? product.getBarcode() : product.getProductCode();
-
         BarcodeResponse response = generateBarcode(barcodeContent, format, 200, 80);
         response.setProductId(product.getId());
         response.setProductName(product.getProductName());
         response.setProductCode(product.getProductCode());
 
         if (product.getSellingPrice() != null) {
-            response.setPrice("₹" + product.getSellingPrice().setScale(2).toPlainString());
+            response.setPrice("\u20B9" + product.getSellingPrice().setScale(2).toPlainString());
         }
         if (product.getMrp() != null) {
-            response.setMrp("MRP: ₹" + product.getMrp().setScale(2).toPlainString());
+            response.setMrp("MRP: \u20B9" + product.getMrp().setScale(2).toPlainString());
         }
 
         return response;
     }
 
+    /**
+     * Generates barcodes for multiple products sequentially.
+     * Uses sequential stream to avoid shared Spring bean state issues with parallelStream.
+     * For large volumes, consider offloading to an async executor.
+     */
     @Override
     public Map<Long, BarcodeResponse> generateBulkBarcodes(List<Long> productIds, BarcodeFormat format) {
         log.info("Generating bulk barcodes for {} products", productIds.size());
 
-        Map<Long, BarcodeResponse> results = new ConcurrentHashMap<>();
-
-        productIds.parallelStream().forEach(productId -> {
+        Map<Long, BarcodeResponse> results = new LinkedHashMap<>();
+        for (Long productId : productIds) {
             try {
-                BarcodeResponse response = generateShelfLabel(productId, format);
-                results.put(productId, response);
+                results.put(productId, generateShelfLabel(productId, format));
             } catch (Exception e) {
                 log.error("Failed to generate barcode for product {}: {}", productId, e.getMessage());
             }
-        });
-
+        }
         return results;
     }
+
+    // ==================== Barcode Reading ====================
 
     @Override
     public String readBarcode(String base64Image) {
         log.debug("Reading barcode from image");
-
         try {
-            BufferedImage image = decodeBase64ToImage(base64Image);
-            LuminanceSource source = new BufferedImageLuminanceSource(image);
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-
-            Result result = new MultiFormatReader().decode(bitmap);
-            return result.getText();
-
+            BinaryBitmap bitmap = toBitmap(base64Image);
+            return new MultiFormatReader().decode(bitmap).getText();
         } catch (NotFoundException e) {
-            log.error("No barcode found in image");
             throw new BusinessRuleViolationException("No barcode found in the provided image");
         }
     }
@@ -287,37 +268,29 @@ public class BarcodeServiceImpl implements BarcodeService {
     @Override
     public String readQRCode(String base64Image) {
         log.debug("Reading QR code from image");
-
         try {
-            BufferedImage image = decodeBase64ToImage(base64Image);
-            LuminanceSource source = new BufferedImageLuminanceSource(image);
-            BinaryBitmap bitmap = new BinaryBitmap(new HybridBinarizer(source));
-
+            BinaryBitmap bitmap = toBitmap(base64Image);
             Map<DecodeHintType, Object> hints = new EnumMap<>(DecodeHintType.class);
-            hints.put(DecodeHintType.POSSIBLE_FORMATS, Collections.singletonList(com.google.zxing.BarcodeFormat.QR_CODE));
-
-            Result result = new MultiFormatReader().decode(bitmap, hints);
-            return result.getText();
-
+            hints.put(DecodeHintType.POSSIBLE_FORMATS,
+                    Collections.singletonList(com.google.zxing.BarcodeFormat.QR_CODE));
+            return new MultiFormatReader().decode(bitmap, hints).getText();
         } catch (NotFoundException e) {
-            log.error("No QR code found in image");
             throw new BusinessRuleViolationException("No QR code found in the provided image");
         }
     }
 
+    // ==================== Validation & Generation Utilities ====================
+
     @Override
     public boolean validateBarcodeFormat(String barcode, BarcodeFormat format) {
-        if (barcode == null || barcode.isEmpty()) {
-            return false;
-        }
-
+        if (barcode == null || barcode.isEmpty()) return false;
         return switch (format) {
-            case EAN_13 -> validateEAN13(barcode);
-            case EAN_8 -> validateEAN8(barcode);
-            case UPC_A -> validateUPCA(barcode);
-            case CODE_128, CODE_39 -> barcode.length() > 0 && barcode.length() <= 80;
-            case ITF_14 -> barcode.length() == 14 && barcode.matches("\\d+");
-            default -> true;
+            case EAN_13  -> validateEAN13(barcode);
+            case EAN_8   -> validateEAN8(barcode);
+            case UPC_A   -> validateUPCA(barcode);
+            case CODE_128, CODE_39 -> barcode.length() <= 80;
+            case ITF_14  -> barcode.length() == 14 && barcode.matches("\\d+");
+            default      -> true;
         };
     }
 
@@ -325,16 +298,12 @@ public class BarcodeServiceImpl implements BarcodeService {
     public String generateUniqueBarcode(String prefix) {
         String basePrefix = (prefix != null && !prefix.isEmpty()) ? prefix : "MED";
         long counter = barcodeCounter.incrementAndGet();
-        String timestamp = String.valueOf(System.currentTimeMillis() % 100000000L);
+        String base = basePrefix + String.format("%06d", counter % 1_000_000);
 
-        // Format: PREFIX + Counter (padded to 6 digits)
-        String base = basePrefix + String.format("%06d", counter % 1000000);
-
-        // If needed, make it EAN-13 compatible
+        // Pad or truncate to exactly 12 characters for EAN-12 base
         if (base.length() < 12) {
             base = String.format("%-12s", base).replace(' ', '0');
         }
-
         return base.substring(0, 12);
     }
 
@@ -343,19 +312,10 @@ public class BarcodeServiceImpl implements BarcodeService {
         if (baseNumber == null || baseNumber.length() != 12) {
             throw new BusinessRuleViolationException("EAN-13 base number must be exactly 12 digits");
         }
-
         if (!baseNumber.matches("\\d+")) {
             throw new BusinessRuleViolationException("EAN-13 base number must contain only digits");
         }
-
-        int sum = 0;
-        for (int i = 0; i < 12; i++) {
-            int digit = Character.getNumericValue(baseNumber.charAt(i));
-            sum += (i % 2 == 0) ? digit : digit * 3;
-        }
-
-        int checkDigit = (10 - (sum % 10)) % 10;
-        return baseNumber + checkDigit;
+        return baseNumber + calculateEAN13CheckDigit(baseNumber);
     }
 
     @Override
@@ -366,15 +326,15 @@ public class BarcodeServiceImpl implements BarcodeService {
         Invoice invoice = invoiceRepository.findById(invoiceId)
                 .orElseThrow(() -> new ResourceNotFoundException("Invoice not found with ID: " + invoiceId));
 
-        // GST Invoice QR Code format (simplified for Indian GST compliance)
         Map<String, Object> qrData = new LinkedHashMap<>();
         qrData.put("type", "INVOICE");
         qrData.put("invoiceNo", invoice.getInvoiceNumber());
         qrData.put("invoiceDate", invoice.getInvoiceDate().toString());
         qrData.put("customerId", invoice.getCustomer() != null ? invoice.getCustomer().getId() : null);
-        qrData.put("customerName", invoice.getCustomer() != null ? invoice.getCustomer().getCustomerName() : "Walk-in");
-        qrData.put("branchId", invoice.getBranch().getId());
-        qrData.put("branchName", invoice.getBranch().getBranchName());
+        qrData.put("customerName", invoice.getCustomer() != null
+                ? invoice.getCustomer().getCustomerName() : "Walk-in");
+        qrData.put("branchId", invoice.getBranch() != null ? invoice.getBranch().getId() : null);
+        qrData.put("branchName", invoice.getBranch() != null ? invoice.getBranch().getBranchName() : null);
         qrData.put("subtotal", invoice.getSubtotal());
         qrData.put("discount", invoice.getDiscount());
         qrData.put("totalAmount", invoice.getTotalAmount());
@@ -383,61 +343,59 @@ public class BarcodeServiceImpl implements BarcodeService {
         qrData.put("status", invoice.getStatus().name());
         qrData.put("generatedAt", LocalDateTime.now().toString());
 
-        try {
-            String jsonData = objectMapper.writeValueAsString(qrData);
-            QRCodeResponse response = generateQRCode(jsonData, DEFAULT_QR_SIZE);
-            response.setQrType("INVOICE");
-            response.setEntityId(invoiceId);
-            response.setEntityReference(invoice.getInvoiceNumber());
-            response.setMetadata(qrData);
-            return response;
-        } catch (JsonProcessingException e) {
-            throw new BusinessRuleViolationException("Failed to serialize invoice data for QR code");
-        }
+        QRCodeResponse response = toQRResponse(qrData, DEFAULT_QR_SIZE, "INVOICE", invoiceId,
+                invoice.getInvoiceNumber());
+        response.setMetadata(qrData);
+        return response;
     }
 
     @Override
     public QRCodeResponse generatePrescriptionQRCode(Long prescriptionId) {
-        // Prescription QR code implementation
         Map<String, Object> qrData = new LinkedHashMap<>();
         qrData.put("type", "PRESCRIPTION");
         qrData.put("prescriptionId", prescriptionId);
         qrData.put("generatedAt", LocalDateTime.now().toString());
 
+        QRCodeResponse response = toQRResponse(qrData, DEFAULT_QR_SIZE, "PRESCRIPTION", prescriptionId, null);
+        response.setMetadata(qrData);
+        return response;
+    }
+
+    // ==================== Private Helpers ====================
+
+    /** Serialise qrData to JSON, generate the QR image, and populate metadata fields. */
+    private QRCodeResponse toQRResponse(Map<String, Object> qrData, int size,
+                                        String qrType, Long entityId, String entityReference) {
         try {
             String jsonData = objectMapper.writeValueAsString(qrData);
-            QRCodeResponse response = generateQRCode(jsonData, DEFAULT_QR_SIZE);
-            response.setQrType("PRESCRIPTION");
-            response.setEntityId(prescriptionId);
+            QRCodeResponse response = generateQRCode(jsonData, size);
+            response.setQrType(qrType);
+            response.setEntityId(entityId);
+            response.setEntityReference(entityReference);
             return response;
         } catch (JsonProcessingException e) {
-            throw new BusinessRuleViolationException("Failed to serialize prescription data for QR code");
+            throw new BusinessRuleViolationException(
+                    "Failed to serialize " + qrType + " data for QR code");
         }
     }
-
-    // ==================== Private Helper Methods ====================
 
     private String matrixToBase64(BitMatrix bitMatrix) {
-        try {
-            BufferedImage image = MatrixToImageWriter.toBufferedImage(bitMatrix);
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            ImageIO.write(image, "PNG", outputStream);
-            return Base64.getEncoder().encodeToString(outputStream.toByteArray());
+        try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            ImageIO.write(MatrixToImageWriter.toBufferedImage(bitMatrix), "PNG", out);
+            return Base64.getEncoder().encodeToString(out.toByteArray());
         } catch (IOException e) {
-            throw new BusinessRuleViolationException("Failed to convert barcode to image");
+            throw new BusinessRuleViolationException("Failed to convert barcode matrix to image");
         }
     }
 
-    private BufferedImage decodeBase64ToImage(String base64Image) {
+    private BinaryBitmap toBitmap(String base64Image) {
         try {
-            // Remove data URL prefix if present
-            String base64Data = base64Image;
-            if (base64Image.contains(",")) {
-                base64Data = base64Image.split(",")[1];
-            }
-
-            byte[] imageBytes = Base64.getDecoder().decode(base64Data);
-            return ImageIO.read(new ByteArrayInputStream(imageBytes));
+            String base64Data = base64Image.contains(",")
+                    ? base64Image.split(",")[1]
+                    : base64Image;
+            byte[] bytes = Base64.getDecoder().decode(base64Data);
+            BufferedImage image = ImageIO.read(new ByteArrayInputStream(bytes));
+            return new BinaryBitmap(new HybridBinarizer(new BufferedImageLuminanceSource(image)));
         } catch (IOException e) {
             throw new BusinessRuleViolationException("Failed to decode base64 image");
         }
@@ -452,68 +410,56 @@ public class BarcodeServiceImpl implements BarcodeService {
 
     private void validateContentForFormat(String content, BarcodeFormat format) {
         if (format.isFixedLength() && content.length() != format.getFixedLength()) {
-            // For EAN-13, allow 12 digits (we'll add check digit) or 13 digits
+            // Allow 12-digit input for EAN-13 (check digit will be appended by ZXing)
             if (format == BarcodeFormat.EAN_13 && (content.length() == 12 || content.length() == 13)) {
                 return;
             }
-            throw new BusinessRuleViolationException(
-                    String.format("Content must be %d characters for %s format", format.getFixedLength(), format.getDisplayName())
-            );
+            throw new BusinessRuleViolationException(String.format(
+                    "Content must be %d character(s) for %s format",
+                    format.getFixedLength(), format.getDisplayName()));
         }
     }
+
+    // ==================== Check-digit Validation ====================
 
     private boolean validateEAN13(String barcode) {
-        if (barcode.length() != 13 || !barcode.matches("\\d+")) {
-            return false;
-        }
-
-        int sum = 0;
-        for (int i = 0; i < 12; i++) {
-            int digit = Character.getNumericValue(barcode.charAt(i));
-            sum += (i % 2 == 0) ? digit : digit * 3;
-        }
-
-        int calculatedCheckDigit = (10 - (sum % 10)) % 10;
-        int actualCheckDigit = Character.getNumericValue(barcode.charAt(12));
-
-        return calculatedCheckDigit == actualCheckDigit;
+        if (barcode.length() != 13 || !barcode.matches("\\d+")) return false;
+        return calculateEAN13CheckDigit(barcode.substring(0, 12))
+                == Character.getNumericValue(barcode.charAt(12));
     }
 
-    private boolean validateEAN8(String barcode) {
-        if (barcode.length() != 8 || !barcode.matches("\\d+")) {
-            return false;
+    private int calculateEAN13CheckDigit(String twelve) {
+        int sum = 0;
+        for (int i = 0; i < 12; i++) {
+            int digit = Character.getNumericValue(twelve.charAt(i));
+            sum += (i % 2 == 0) ? digit : digit * 3;
         }
+        return (10 - (sum % 10)) % 10;
+    }
 
+    /**
+     * EAN-8 check digit: odd positions (1,3,5,7) × 3, even positions (2,4,6) × 1.
+     * Positions are 1-indexed from left; in 0-indexed terms: even indices × 3, odd indices × 1.
+     */
+    private boolean validateEAN8(String barcode) {
+        if (barcode.length() != 8 || !barcode.matches("\\d+")) return false;
         int sum = 0;
         for (int i = 0; i < 7; i++) {
             int digit = Character.getNumericValue(barcode.charAt(i));
             sum += (i % 2 == 0) ? digit * 3 : digit;
         }
-
-        int calculatedCheckDigit = (10 - (sum % 10)) % 10;
-        int actualCheckDigit = Character.getNumericValue(barcode.charAt(7));
-
-        return calculatedCheckDigit == actualCheckDigit;
+        int checkDigit = (10 - (sum % 10)) % 10;
+        return checkDigit == Character.getNumericValue(barcode.charAt(7));
     }
 
     private boolean validateUPCA(String barcode) {
-        if (barcode.length() != 12 || !barcode.matches("\\d+")) {
-            return false;
-        }
-
+        if (barcode.length() != 12 || !barcode.matches("\\d+")) return false;
         int sum = 0;
         for (int i = 0; i < 11; i++) {
             int digit = Character.getNumericValue(barcode.charAt(i));
             sum += (i % 2 == 0) ? digit * 3 : digit;
         }
-
-        int calculatedCheckDigit = (10 - (sum % 10)) % 10;
-        int actualCheckDigit = Character.getNumericValue(barcode.charAt(11));
-
-        return calculatedCheckDigit == actualCheckDigit;
-    }
-
-    private long calculateDaysToExpiry(LocalDate expiryDate) {
-        return java.time.temporal.ChronoUnit.DAYS.between(LocalDate.now(), expiryDate);
+        int checkDigit = (10 - (sum % 10)) % 10;
+        return checkDigit == Character.getNumericValue(barcode.charAt(11));
     }
 }

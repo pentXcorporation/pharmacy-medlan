@@ -5,6 +5,7 @@ import com.pharmacy.medlan.enums.DrugSchedule;
 import com.pharmacy.medlan.enums.ProductType;
 import com.pharmacy.medlan.model.base.AuditableEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
@@ -17,7 +18,8 @@ import java.util.List;
         @Index(name = "idx_product_name", columnList = "product_name"),
         @Index(name = "idx_barcode", columnList = "barcode"),
         @Index(name = "idx_is_active", columnList = "is_active"),
-        @Index(name = "idx_product_type", columnList = "product_type")
+        @Index(name = "idx_product_type", columnList = "product_type"),
+        @Index(name = "idx_category_id", columnList = "category_id")
 })
 @Inheritance(strategy = InheritanceType.SINGLE_TABLE)
 @DiscriminatorColumn(name = "product_type", discriminatorType = DiscriminatorType.STRING, length = 50)
@@ -25,20 +27,26 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @SuperBuilder
+@ToString(exclude = {"category", "subCategory", "unit", "taxCategory"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public abstract class Product extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(name = "product_code", nullable = false, unique = true, length = 50)
-    private String productCode; // e.g., "MED-00001"
+    @NotBlank(message = "Product code is required")
+    @EqualsAndHashCode.Include
+    private String productCode;
 
     @Column(name = "product_name", nullable = false, length = 200)
+    @NotBlank(message = "Product name is required")
     private String productName;
 
-    @Column(name = "generic_name", length = 200, nullable = true)
-    private String genericName; // Scientific/generic name - mainly for medical products
+    @Column(name = "generic_name", length = 200)
+    private String genericName;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
@@ -52,17 +60,16 @@ public abstract class Product extends AuditableEntity {
     @JoinColumn(name = "unit_id")
     private Unit unit;
 
-    // Medical-specific fields (nullable for non-medical products)
     @Enumerated(EnumType.STRING)
-    @Column(name = "dosage_form", length = 50, nullable = true)
-    private DosageForm dosageForm; // TABLET, CAPSULE, SYRUP, etc.
+    @Column(name = "dosage_form", length = 50)
+    private DosageForm dosageForm;
 
-    @Column(name = "strength", length = 100, nullable = true)
-    private String strength; // e.g., "500mg", "10ml"
+    @Column(name = "strength", length = 100)
+    private String strength;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "drug_schedule", length = 20, nullable = true)
-    private DrugSchedule drugSchedule; // H, H1, G, X (Indian pharmacy regulation)
+    @Column(name = "drug_schedule", length = 20)
+    private DrugSchedule drugSchedule;
 
     @Column(name = "manufacturer", length = 200)
     private String manufacturer;
@@ -76,87 +83,87 @@ public abstract class Product extends AuditableEntity {
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
-    // Pricing
     @Column(name = "cost_price", precision = 10, scale = 2)
-    private BigDecimal costPrice; // Last purchase price
+    @DecimalMin(value = "0.0", message = "Cost price must be positive")
+    private BigDecimal costPrice;
 
     @Column(name = "selling_price", precision = 10, scale = 2)
+    @DecimalMin(value = "0.0", message = "Selling price must be positive")
     private BigDecimal sellingPrice;
 
     @Column(name = "mrp", precision = 10, scale = 2)
-    private BigDecimal mrp; // Maximum Retail Price
+    @DecimalMin(value = "0.0", message = "MRP must be positive")
+    private BigDecimal mrp;
 
     @Column(name = "profit_margin", precision = 5, scale = 2)
-    private BigDecimal profitMargin = BigDecimal.valueOf(15.00); // Default 15%
+    @Builder.Default
+    private BigDecimal profitMargin = BigDecimal.valueOf(15.00);
 
     @Column(name = "gst_rate", precision = 5, scale = 2)
+    @Builder.Default
     private BigDecimal gstRate = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "tax_category_id")
     private TaxCategory taxCategory;
 
-    // Inventory thresholds
     @Column(name = "reorder_level", nullable = false)
+    @Min(value = 0, message = "Reorder level must be non-negative")
+    @Builder.Default
     private Integer reorderLevel = 10;
 
     @Column(name = "minimum_stock", nullable = false)
+    @Min(value = 0, message = "Minimum stock must be non-negative")
+    @Builder.Default
     private Integer minimumStock = 5;
 
     @Column(name = "maximum_stock", nullable = false)
+    @Min(value = 1, message = "Maximum stock must be positive")
+    @Builder.Default
     private Integer maximumStock = 1000;
 
-    // Flags
-    @Column(name = "is_prescription_required", nullable = true)
-    private Boolean isPrescriptionRequired; // Nullable for non-medical products
+    @Column(name = "is_prescription_required")
+    private Boolean isPrescriptionRequired;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "is_discontinued", nullable = false)
+    @Builder.Default
     private Boolean isDiscontinued = false;
 
-    @Column(name = "is_narcotic", nullable = true)
-    private Boolean isNarcotic; // Schedule X drugs - nullable for non-medical
+    @Column(name = "is_narcotic")
+    private Boolean isNarcotic;
 
-    @Column(name = "is_refrigerated", nullable = true)
-    private Boolean isRefrigerated; // Cold storage required - nullable for non-medical
+    @Column(name = "is_refrigerated")
+    private Boolean isRefrigerated;
 
-    // Common additional fields for all product types
     @Column(name = "country_of_origin", length = 100)
     private String countryOfOrigin;
 
     @Column(name = "package_dimensions", length = 200)
-    private String packageDimensions; // e.g., "10x5x2 cm"
+    private String packageDimensions;
 
     @Column(name = "weight_grams")
+    @Min(value = 0, message = "Weight must be non-negative")
     private Integer weightGrams;
 
     @Column(name = "additional_attributes", columnDefinition = "TEXT")
-    private String additionalAttributes; // JSON string for flexible attributes
-
-    // Relationships
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<InventoryBatch> inventoryBatches = new ArrayList<>();
+    private String additionalAttributes;
 
     @OneToMany(mappedBy = "product")
     @Builder.Default
-    private List<BranchInventory> branchInventories = new ArrayList<>();
+    private List<InventoryBatch> inventoryBatches = new ArrayList<>();
 
-    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<ProductPricing> pricingHistory = new ArrayList<>();
-
-    /**
-     * Validate product type-specific fields
-     * Each subclass implements its own validation logic
-     */
     public abstract boolean isValid();
-
-    /**
-     * Get the product type
-     * Each subclass returns its specific type
-     */
     public abstract ProductType getProductType();
+
+    public boolean isLowStock(int currentStock) {
+        return currentStock <= reorderLevel;
+    }
+
+    public boolean requiresPrescription() {
+        return Boolean.TRUE.equals(isPrescriptionRequired);
+    }
 }

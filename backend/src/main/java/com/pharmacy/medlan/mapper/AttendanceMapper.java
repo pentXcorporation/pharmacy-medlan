@@ -16,7 +16,6 @@ public class AttendanceMapper {
         Attendance attendance = Attendance.builder()
                 .employee(employee)
                 .branch(branch)
-                .branchId(branch.getId())
                 .date(request.getDate())
                 .checkIn(request.getCheckIn())
                 .checkOut(request.getCheckOut())
@@ -37,7 +36,7 @@ public class AttendanceMapper {
     public AttendanceResponse toResponse(Attendance attendance) {
         return AttendanceResponse.builder()
                 .id(attendance.getId())
-                .branchId(attendance.getBranchId())
+                .branchId(attendance.getBranch() != null ? attendance.getBranch().getId() : null)
                 .employeeId(attendance.getEmployee().getId())
                 .employeeName(attendance.getEmployee().getFullName())
                 .employeeCode(attendance.getEmployee().getEmployeeCode())
@@ -56,7 +55,6 @@ public class AttendanceMapper {
 
     public void updateEntity(Attendance attendance, AttendanceRequest request, Branch branch) {
         attendance.setBranch(branch);
-        attendance.setBranchId(branch.getId());
         attendance.setDate(request.getDate());
         attendance.setCheckIn(request.getCheckIn());
         attendance.setCheckOut(request.getCheckOut());

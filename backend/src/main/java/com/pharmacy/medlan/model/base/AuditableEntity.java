@@ -37,11 +37,21 @@ public abstract class AuditableEntity extends BaseEntity {
     private String lastModifiedBy;
 
     @Column(name = "deleted", nullable = false)
-    private Boolean deleted = false; // Soft delete flag
+    private Boolean deleted = false;
 
     @Column(name = "deleted_at")
     private LocalDateTime deletedAt;
 
     @Column(name = "deleted_by", length = 100)
     private String deletedBy;
+
+    public void markAsDeleted(String deletedByUser) {
+        this.deleted = true;
+        this.deletedAt = LocalDateTime.now();
+        this.deletedBy = deletedByUser;
+    }
+
+    public boolean isDeleted() {
+        return Boolean.TRUE.equals(deleted);
+    }
 }

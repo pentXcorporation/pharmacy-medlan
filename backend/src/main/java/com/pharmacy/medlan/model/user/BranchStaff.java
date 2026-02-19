@@ -4,29 +4,39 @@ import com.pharmacy.medlan.enums.EmploymentType;
 import com.pharmacy.medlan.model.base.AuditableEntity;
 import com.pharmacy.medlan.model.organization.Branch;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.time.LocalDate;
 
 @Entity
 @Table(name = "branch_staff",
-        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "branch_id"}))
+        uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "branch_id"}),
+        indexes = {
+                @Index(name = "idx_staff_user", columnList = "user_id"),
+                @Index(name = "idx_staff_branch", columnList = "branch_id")
+        })
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"user", "branch"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class BranchStaff extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
+    @NotNull(message = "User is required")
     private User user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
+    @NotNull(message = "Branch is required")
     private Branch branch;
 
     @Column(name = "designation", length = 100)
@@ -34,17 +44,24 @@ public class BranchStaff extends AuditableEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "employment_type", length = 50)
-    private EmploymentType employmentType; // FULL_TIME, PART_TIME, CONTRACT
+    private EmploymentType employmentType;
 
     @Column(name = "joining_date", nullable = false)
+    @NotNull(message = "Joining date is required")
     private LocalDate joiningDate;
 
     @Column(name = "leaving_date")
     private LocalDate leavingDate;
 
     @Column(name = "is_primary_branch", nullable = false)
+    @Builder.Default
     private Boolean isPrimaryBranch = false;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
+
+    public boolean isStillEmployed() {
+        return leavingDate == null || LocalDate.now().isBefore(leavingDate);
+    }
 }

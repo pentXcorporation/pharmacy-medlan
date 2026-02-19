@@ -83,13 +83,21 @@ export const API_ENDPOINTS = {
     BASE: "/branch-staff",
     BY_ID: (id) => `/branch-staff/${id}`,
     BY_BRANCH: (branchId) => `/branch-staff/branch/${branchId}`,
+    BY_USER: (userId) => `/branch-staff/user/${userId}`,
+    PRIMARY: (userId) => `/branch-staff/user/${userId}/primary`,
   },
 
   // Smart Scanning
   SCAN: {
-    PROCESS: "/inventory/scan",
-    VERIFY_QR: "/inventory/scan/verify",
-    HISTORY: "/inventory/scan/history",
+    PROCESS: "/scan",
+    POS_LOOKUP: (barcode) => `/scan/pos/${barcode}`,
+    RECEIVING_LOOKUP: (barcode) => `/scan/receiving/${barcode}`,
+    STOCK_TAKING: (barcode) => `/scan/stock-taking/${barcode}`,
+    VERIFY: "/scan/verify",
+    BATCH_QR: "/scan/batch-qr",
+    BULK: "/scan/bulk",
+    HISTORY: "/scan/history",
+    CONTEXTS: "/scan/contexts",
   },
 
   // Products
@@ -115,15 +123,16 @@ export const API_ENDPOINTS = {
 
   // Sub-Categories
   SUB_CATEGORIES: {
-    BASE: "/subcategories",
-    BY_ID: (id) => `/subcategories/${id}`,
-    BY_CATEGORY: (categoryId) => `/subcategories/category/${categoryId}`,
+    BASE: "/sub-categories",
+    BY_ID: (id) => `/sub-categories/${id}`,
+    BY_CATEGORY: (categoryId) => `/sub-categories/category/${categoryId}`,
   },
 
   // Units
   UNITS: {
     BASE: "/units",
     BY_ID: (id) => `/units/${id}`,
+    ACTIVE: "/units/active",
   },
 
   // Inventory
@@ -301,18 +310,60 @@ export const API_ENDPOINTS = {
   BANKS: {
     BASE: "/banks",
     BY_ID: (id) => `/banks/${id}`,
+    ACTIVE: "/banks/active",
+    TOTAL_BALANCE: "/banks/total-balance",
   },
 
   // Finance - Cash Book
   CASH_BOOK: {
     BASE: "/cashbook",
+    BY_ID: (id) => `/cashbook/${id}`,
     BY_BRANCH: (branchId) => `/cashbook/branch/${branchId}`,
+    DATE_RANGE: "/cashbook/date-range",
+    BRANCH_DATE_RANGE: (branchId) => `/cashbook/branch/${branchId}/date-range`,
+    SUMMARY: "/cashbook/summary",
+    EXPORT: "/cashbook/export",
   },
 
   // Finance - Cheques
   CHEQUES: {
     BASE: "/cheques",
     BY_ID: (id) => `/cheques/${id}`,
+    UPDATE_STATUS: (id) => `/cheques/${id}/status`,
+    DEPOSIT: (id) => `/cheques/${id}/deposit`,
+    CLEAR: (id) => `/cheques/${id}/clear`,
+    BOUNCE: (id) => `/cheques/${id}/bounce`,
+    CANCEL: (id) => `/cheques/${id}/cancel`,
+    RECONCILE: (id) => `/cheques/${id}/reconcile`,
+    STATS: "/cheques/stats",
+    STATS_DATE_RANGE: "/cheques/stats/date-range",
+  },
+
+  // Finance - Cash Register
+  CASH_REGISTER: {
+    BASE: "/cash-register",
+    OPEN: "/cash-register/open",
+    CLOSE: (id) => `/cash-register/${id}/close`,
+    CASH_IN: (id) => `/cash-register/${id}/cash-in`,
+    CASH_OUT: (id) => `/cash-register/${id}/cash-out`,
+    DEPOSIT: (id) => `/cash-register/${id}/deposit`,
+    CURRENT: "/cash-register/current",
+    BY_ID: (id) => `/cash-register/${id}`,
+    BY_BRANCH: (branchId) => `/cash-register/branch/${branchId}`,
+    BRANCH_DATE_RANGE: (branchId) => `/cash-register/branch/${branchId}/date-range`,
+    TRANSACTIONS: (id) => `/cash-register/${id}/transactions`,
+    DAILY_SUMMARY: "/cash-register/daily-summary",
+  },
+
+  // Transaction Types
+  TRANSACTION_TYPES: {
+    BASE: "/transaction-types",
+    BY_ID: (id) => `/transaction-types/${id}`,
+    BY_NAME: (name) => `/transaction-types/name/${name}`,
+    ACTIVE: "/transaction-types/active",
+    BY_INCOME_TYPE: (isIncome) => `/transaction-types/income-type/${isIncome}`,
+    ACTIVATE: (id) => `/transaction-types/${id}/activate`,
+    DEACTIVATE: (id) => `/transaction-types/${id}/deactivate`,
   },
 
   // Payroll
@@ -320,6 +371,36 @@ export const API_ENDPOINTS = {
     BASE: "/payroll",
     BY_ID: (id) => `/payroll/${id}`,
     BY_EMPLOYEE: (employeeId) => `/payroll/employee/${employeeId}`,
+    DATE_RANGE: "/payroll/date-range",
+    EXPORT: "/payroll/export",
+  },
+
+  // Employees
+  EMPLOYEES: {
+    BASE: "/employees",
+    BY_ID: (id) => `/employees/${id}`,
+  },
+
+  // Attendance
+  ATTENDANCE: {
+    BASE: "/attendance",
+    BY_ID: (id) => `/attendance/${id}`,
+    STATS_TODAY: "/attendance/stats/today",
+    BY_EMPLOYEE: (id) => `/attendance/employee/${id}`,
+    APPROVE: (id) => `/attendance/${id}/approve`,
+  },
+
+  // Employee Authorization
+  EMPLOYEE_AUTH: {
+    REQUEST: "/employee-authorizations/request",
+    APPROVE: (id) => `/employee-authorizations/${id}/approve`,
+    REJECT: (id) => `/employee-authorizations/${id}/reject`,
+    BY_ID: (id) => `/employee-authorizations/${id}`,
+    BY_CODE: (code) => `/employee-authorizations/code/${code}`,
+    BY_EMPLOYEE: (id) => `/employee-authorizations/employee/${id}`,
+    BY_STATUS: (status) => `/employee-authorizations/status/${status}`,
+    PENDING: (branchId) => `/employee-authorizations/branch/${branchId}/pending`,
+    VALIDATE: (code) => `/employee-authorizations/validate/${code}`,
   },
 
   // Dashboard
@@ -327,6 +408,19 @@ export const API_ENDPOINTS = {
     STATS: "/dashboard/summary",
     SUMMARY: "/dashboard/summary",
     SALES_CHART: "/dashboard/sales-chart",
+  },
+
+  // Super Admin Dashboard
+  SUPER_ADMIN_DASHBOARD: {
+    BASE: "/dashboard/super-admin",
+    SYSTEM_METRICS: "/dashboard/super-admin/system-metrics",
+    BRANCH_ANALYTICS: "/dashboard/super-admin/branch-analytics",
+    BUSINESS_METRICS: "/dashboard/super-admin/business-metrics",
+    INVENTORY_OVERVIEW: "/dashboard/super-admin/inventory-overview",
+    USER_STATISTICS: "/dashboard/super-admin/user-statistics",
+    FINANCIAL_SUMMARY: "/dashboard/super-admin/financial-summary",
+    RECENT_ACTIVITIES: "/dashboard/super-admin/recent-activities",
+    HEALTH: "/dashboard/super-admin/health",
   },
 
   // Reports
@@ -378,22 +472,71 @@ export const API_ENDPOINTS = {
     BASE: "/notifications",
     BY_ID: (id) => `/notifications/${id}`,
     UNREAD: "/notifications/unread",
+    UNREAD_COUNT: "/notifications/count",
     MARK_READ: (id) => `/notifications/${id}/read`,
     MARK_ALL_READ: "/notifications/read-all",
-    ACTION: (id, action) => `/notifications/${id}/action/${action}`,
+    SEND_BULK: "/notifications/bulk",
+    SEND_TO_BRANCH: (branchId) => `/notifications/branch/${branchId}`,
+    SEND_TO_ROLE: "/notifications/role",
+    DELETE_ALL: "/notifications/all",
   },
 
   // System Config
   SYSTEM_CONFIG: {
     BASE: "/system-config",
-    BY_KEY: (key) => `/system-config/${key}`,
+    BY_ID: (id) => `/system-config/${id}`,
+    BY_KEY: (key) => `/system-config/key/${key}`,
+    BY_CATEGORY: (cat) => `/system-config/category/${cat}`,
+    EDITABLE: "/system-config/editable",
   },
 
   // Bin Cards
   BIN_CARDS: {
-    BASE: "/bin-cards",
     BY_PRODUCT: (productId) => `/bin-cards/product/${productId}`,
-    BY_BRANCH_PRODUCT: (branchId, productId) =>
-      `/bin-cards/branch/${branchId}/product/${productId}`,
+    BY_PRODUCT_BRANCH: (productId, branchId) =>
+      `/bin-cards/product/${productId}/branch/${branchId}`,
+    BY_PRODUCT_BRANCH_DATE: (productId, branchId) =>
+      `/bin-cards/product/${productId}/branch/${branchId}/date-range`,
+    BY_BRANCH: (branchId) => `/bin-cards/branch/${branchId}`,
+    BALANCE: (productId, branchId) =>
+      `/bin-cards/product/${productId}/branch/${branchId}/balance`,
+  },
+
+  // Barcode & QR
+  BARCODES: {
+    GENERATE: "/barcodes/generate",
+    PRODUCT_BARCODE: (productId) => `/barcodes/product/${productId}`,
+    BULK: "/barcodes/bulk",
+    SHELF_LABEL: (productId) => `/barcodes/shelf-label/${productId}`,
+    QR_GENERATE: "/barcodes/qr/generate",
+    QR_PRODUCT: (productId) => `/barcodes/qr/product/${productId}`,
+    QR_BATCH: (batchId) => `/barcodes/qr/batch/${batchId}`,
+    QR_INVOICE: (invoiceId) => `/barcodes/qr/invoice/${invoiceId}`,
+    QR_PRESCRIPTION: (prescriptionId) => `/barcodes/qr/prescription/${prescriptionId}`,
+    DECODE_BARCODE: "/barcodes/decode/barcode",
+    DECODE_QR: "/barcodes/decode/qr",
+    VALIDATE: "/barcodes/validate",
+    GENERATE_UNIQUE: "/barcodes/generate-unique",
+    GENERATE_EAN13: "/barcodes/generate-ean13",
+    FORMATS: "/barcodes/formats",
+  },
+
+  // Inventory Maintenance
+  INVENTORY_MAINTENANCE: {
+    SYNC_BRANCH: "/inventory/maintenance/sync-branch-inventory",
+    STATUS: "/inventory/maintenance/branch-inventory-status",
+    DIAGNOSTIC: (productId, branchId) =>
+      `/inventory/maintenance/diagnostic/${productId}/${branchId}`,
+  },
+
+  // Sync
+  SYNC: {
+    START: "/sync/start",
+    COMPLETE: (id) => `/sync/${id}/complete`,
+    FAIL: (id) => `/sync/${id}/fail`,
+    BY_BRANCH: (branchId) => `/sync/branch/${branchId}`,
+    BY_TYPE: (type) => `/sync/type/${type}`,
+    BY_STATUS: (status) => `/sync/status/${status}`,
+    LATEST: (type) => `/sync/latest/${type}`,
   },
 };

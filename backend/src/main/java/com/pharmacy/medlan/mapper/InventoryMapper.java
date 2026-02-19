@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -20,9 +21,10 @@ public class InventoryMapper {
         }
 
         LocalDate today = LocalDate.now();
-        boolean isExpired = batch.getExpiryDate() != null && batch.getExpiryDate().isBefore(today);
-        int daysToExpiry = batch.getExpiryDate() != null ? 
-                (int) ChronoUnit.DAYS.between(today, batch.getExpiryDate()) : 0;
+        LocalDate expiryDate = batch.getExpiryDate();
+        boolean isExpired = expiryDate != null && expiryDate.isBefore(today);
+        // Negative when expired; callers can use isExpired flag to interpret sign
+        int daysToExpiry = expiryDate != null ? (int) ChronoUnit.DAYS.between(today, expiryDate) : Integer.MAX_VALUE;
 
         return InventoryBatchResponse.builder()
                 .id(batch.getId())
@@ -33,7 +35,7 @@ public class InventoryMapper {
                 .branchName(batch.getBranch() != null ? batch.getBranch().getBranchName() : null)
                 .batchNumber(batch.getBatchNumber())
                 .manufacturingDate(batch.getManufacturingDate())
-                .expiryDate(batch.getExpiryDate())
+                .expiryDate(expiryDate)
                 .quantityReceived(batch.getQuantityReceived())
                 .quantityAvailable(batch.getQuantityAvailable())
                 .quantitySold(batch.getQuantitySold())
@@ -47,6 +49,9 @@ public class InventoryMapper {
     }
 
     public List<InventoryBatchResponse> toBatchResponseList(List<InventoryBatch> batches) {
+        if (batches == null) {
+            return Collections.emptyList();
+        }
         return batches.stream()
                 .map(this::toBatchResponse)
                 .collect(Collectors.toList());
@@ -57,11 +62,14 @@ public class InventoryMapper {
             return null;
         }
 
-        String stockStatus = "IN_STOCK";
-        if (inventory.getQuantityAvailable() <= 0) {
+        int qty = inventory.getQuantityAvailable();
+        String stockStatus;
+        if (qty <= 0) {
             stockStatus = "OUT_OF_STOCK";
-        } else if (inventory.getQuantityAvailable() <= inventory.getReorderLevel()) {
+        } else if (qty <= inventory.getReorderLevel()) {
             stockStatus = "LOW_STOCK";
+        } else {
+            stockStatus = "IN_STOCK";
         }
 
         return InventoryResponse.builder()
@@ -70,8 +78,8 @@ public class InventoryMapper {
                 .productName(inventory.getProduct() != null ? inventory.getProduct().getProductName() : null)
                 .branchId(inventory.getBranch() != null ? inventory.getBranch().getId() : null)
                 .branchName(inventory.getBranch() != null ? inventory.getBranch().getBranchName() : null)
-                .totalQuantity(inventory.getQuantityAvailable())
-                .quantityAvailable(inventory.getQuantityAvailable())
+                .totalQuantity(qty)
+                .quantityAvailable(qty)
                 .quantityOnHand(inventory.getQuantityOnHand())
                 .quantityAllocated(inventory.getQuantityAllocated())
                 .minimumStock(inventory.getMinimumStock())

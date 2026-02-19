@@ -71,7 +71,7 @@ export const isSuperAdmin = (user) => {
  * @returns {boolean}
  */
 export const isAdmin = (user) => {
-  return hasAnyRole(user, [ROLES.SUPER_ADMIN, ROLES.ADMIN]);
+  return hasAnyRole(user, [ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.OWNER]);
 };
 
 /**
@@ -81,11 +81,13 @@ export const isAdmin = (user) => {
  */
 export const canAccessPOS = (user) => {
   return hasAnyRole(user, [
+    ROLES.SUPER_ADMIN,
+    ROLES.ADMIN,
+    ROLES.OWNER,
+    ROLES.BRANCH_MANAGER,
+    ROLES.MANAGER,
     ROLES.PHARMACIST,
     ROLES.CASHIER,
-    ROLES.BRANCH_MANAGER,
-    ROLES.ADMIN,
-    ROLES.SUPER_ADMIN,
   ]);
 };
 

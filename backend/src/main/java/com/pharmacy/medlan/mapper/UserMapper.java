@@ -3,8 +3,13 @@ package com.pharmacy.medlan.mapper;
 import com.pharmacy.medlan.dto.request.user.CreateUserRequest;
 import com.pharmacy.medlan.dto.request.user.UpdateUserRequest;
 import com.pharmacy.medlan.dto.response.user.UserResponse;
+import com.pharmacy.medlan.model.user.BranchStaff;
 import com.pharmacy.medlan.model.user.User;
 import org.springframework.stereotype.Component;
+
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Component
 public class UserMapper {
@@ -14,21 +19,22 @@ public class UserMapper {
             return null;
         }
 
-        // Get primary branch from branch assignments
         Long branchId = null;
         String branchName = null;
+
         if (user.getBranchAssignments() != null && !user.getBranchAssignments().isEmpty()) {
-            var primaryAssignment = user.getBranchAssignments().stream()
-                    .filter(bs -> bs.getIsPrimaryBranch() && bs.getIsActive())
+            // Prefer the primary active assignment; fall back to any active assignment
+            BranchStaff assignment = user.getBranchAssignments().stream()
+                    .filter(bs -> Boolean.TRUE.equals(bs.getIsPrimaryBranch()) && Boolean.TRUE.equals(bs.getIsActive()))
                     .findFirst()
-                    .orElse(user.getBranchAssignments().stream()
-                            .filter(bs -> bs.getIsActive())
+                    .orElseGet(() -> user.getBranchAssignments().stream()
+                            .filter(bs -> Boolean.TRUE.equals(bs.getIsActive()))
                             .findFirst()
                             .orElse(null));
-            
-            if (primaryAssignment != null && primaryAssignment.getBranch() != null) {
-                branchId = primaryAssignment.getBranch().getId();
-                branchName = primaryAssignment.getBranch().getBranchName();
+
+            if (assignment != null && assignment.getBranch() != null) {
+                branchId = assignment.getBranch().getId();
+                branchName = assignment.getBranch().getBranchName();
             }
         }
 
@@ -51,6 +57,11 @@ public class UserMapper {
                 .build();
     }
 
+    public List<UserResponse> toUserResponseList(List<User> users) {
+        if (users == null) return Collections.emptyList();
+        return users.stream().map(this::toUserResponse).collect(Collectors.toList());
+    }
+
     public User toEntity(CreateUserRequest request) {
         if (request == null) {
             return null;
@@ -69,31 +80,16 @@ public class UserMapper {
                 .build();
     }
 
+    /** Applies only non-null fields — safe for PATCH-style partial updates. */
     public void updateEntityFromRequest(UpdateUserRequest request, User user) {
-        if (request == null || user == null) {
-            return;
-        }
+        if (request == null || user == null) return;
 
-        if (request.getFullName() != null) {
-            user.setFullName(request.getFullName());
-        }
-        if (request.getEmail() != null) {
-            user.setEmail(request.getEmail());
-        }
-        if (request.getPhoneNumber() != null) {
-            user.setPhoneNumber(request.getPhoneNumber());
-        }
-        if (request.getRole() != null) {
-            user.setRole(request.getRole());
-        }
-        if (request.getIsActive() != null) {
-            user.setIsActive(request.getIsActive());
-        }
-        if (request.getDiscountLimit() != null) {
-            user.setDiscountLimit(request.getDiscountLimit());
-        }
-        if (request.getCreditTransactionLimit() != null) {
-            user.setCreditTransactionLimit(request.getCreditTransactionLimit());
-        }
+        if (request.getFullName() != null)                user.setFullName(request.getFullName());
+        if (request.getEmail() != null)                   user.setEmail(request.getEmail());
+        if (request.getPhoneNumber() != null)             user.setPhoneNumber(request.getPhoneNumber());
+        if (request.getRole() != null)                    user.setRole(request.getRole());
+        if (request.getIsActive() != null)                user.setIsActive(request.getIsActive());
+        if (request.getDiscountLimit() != null)           user.setDiscountLimit(request.getDiscountLimit());
+        if (request.getCreditTransactionLimit() != null)  user.setCreditTransactionLimit(request.getCreditTransactionLimit());
     }
 }

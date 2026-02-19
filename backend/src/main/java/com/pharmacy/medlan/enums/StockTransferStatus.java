@@ -5,6 +5,7 @@ public enum StockTransferStatus {
     APPROVED("Approved"),
     IN_TRANSIT("In Transit"),
     RECEIVED("Received"),
+    COMPLETED("Completed"),
     REJECTED("Rejected"),
     CANCELLED("Cancelled");
 

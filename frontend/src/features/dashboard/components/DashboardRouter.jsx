@@ -20,7 +20,9 @@ import {
 const DASHBOARD_BY_ROLE = {
   [ROLES.SUPER_ADMIN]: SuperAdminDashboard,
   [ROLES.ADMIN]: AdminDashboard,
+  [ROLES.OWNER]: SuperAdminDashboard,
   [ROLES.BRANCH_MANAGER]: AdminDashboard,
+  [ROLES.MANAGER]: AdminDashboard,
   [ROLES.PHARMACIST]: PharmacistDashboard,
   [ROLES.CASHIER]: CashierDashboard,
   [ROLES.INVENTORY_MANAGER]: InventoryManagerDashboard,

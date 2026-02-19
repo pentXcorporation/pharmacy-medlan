@@ -5,15 +5,12 @@ import com.pharmacy.medlan.model.base.AuditableEntity;
 import com.pharmacy.medlan.model.organization.Branch;
 import com.pharmacy.medlan.model.user.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
-/**
- * Cash Register Entity
- * Represents daily cash register operations (opening/closing, cash in/out)
- */
 @Entity
 @Table(name = "cash_registers", indexes = {
         @Index(name = "idx_register_date", columnList = "register_date"),
@@ -25,21 +22,27 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"branch", "openedBy", "closedBy", "bank"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class CashRegister extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(name = "register_date", nullable = false)
+    @NotNull(message = "Register date is required")
     private LocalDate registerDate;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "branch_id", nullable = false)
+    @NotNull(message = "Branch is required")
     private Branch branch;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "opened_by", nullable = false)
+    @NotNull(message = "Opened by user is required")
     private User openedBy;
 
     @ManyToOne(fetch = FetchType.LAZY)
@@ -47,6 +50,8 @@ public class CashRegister extends AuditableEntity {
     private User closedBy;
 
     @Column(name = "opening_balance", nullable = false, precision = 12, scale = 2)
+    @NotNull
+    @DecimalMin(value = "0.0", message = "Opening balance must be non-negative")
     private BigDecimal openingBalance;
 
     @Column(name = "closing_balance", precision = 12, scale = 2)
@@ -68,6 +73,7 @@ public class CashRegister extends AuditableEntity {
     private BigDecimal salesTotal = BigDecimal.ZERO;
 
     @Column(name = "opened_at", nullable = false)
+    @NotNull
     private LocalDateTime openedAt;
 
     @Column(name = "closed_at")
@@ -84,7 +90,6 @@ public class CashRegister extends AuditableEntity {
     @Column(name = "discrepancy", precision = 12, scale = 2)
     private BigDecimal discrepancy;
 
-    // Reference to bank account if cash is deposited
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "bank_id")
     private Bank bank;
@@ -97,4 +102,16 @@ public class CashRegister extends AuditableEntity {
 
     @Column(name = "reference_number", length = 100)
     private String referenceNumber;
+
+    public boolean isOpen() {
+        return status == CashRegisterStatus.OPEN;
+    }
+
+    public boolean isClosed() {
+        return status == CashRegisterStatus.CLOSED;
+    }
+
+    public BigDecimal calculateExpectedBalance() {
+        return openingBalance.add(cashInTotal).add(salesTotal).subtract(cashOutTotal);
+    }
 }

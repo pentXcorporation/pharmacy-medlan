@@ -8,12 +8,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-/**
- * Data Initializer - Seeds default users for development/testing
- * Creates default admin user if no users exist in database
- */
 @Configuration
 @RequiredArgsConstructor
 @Slf4j
@@ -21,139 +18,74 @@ public class DataInitializer {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final Environment environment;
 
     @Bean
     public ApplicationRunner initializeData() {
         return args -> {
-            // Only seed data if no users exist
             if (userRepository.count() == 0) {
                 log.info("No users found. Creating default users...");
                 createDefaultUsers();
             } else {
-                log.info("Users already exist. Resetting superadmin password for development...");
-                resetSuperAdminPassword();
+                log.info("Users already exist. Database is initialized.");
+
+                // Only reset in dev profile
+                if (isDevelopmentMode()) {
+                    log.warn("DEV MODE: Resetting superadmin password to default");
+                    resetSuperAdminPassword();
+                }
             }
         };
+    }
+
+    private boolean isDevelopmentMode() {
+        String[] activeProfiles = environment.getActiveProfiles();
+        return activeProfiles.length == 0 ||
+                java.util.Arrays.asList(activeProfiles).contains("dev");
     }
 
     private void resetSuperAdminPassword() {
         userRepository.findByUsername("superadmin").ifPresent(user -> {
             user.setPassword(passwordEncoder.encode("admin123"));
             userRepository.save(user);
-            log.info("Reset superadmin password to: admin123");
+            log.info("Superadmin password reset to: admin123");
         });
     }
 
     private void createDefaultUsers() {
-        // Create Super Admin
-        User superAdmin = User.builder()
-                .username("superadmin")
-                .password(passwordEncoder.encode("admin123"))
-                .fullName("Super Administrator")
-                .email("admin@medlan.com")
-                .phoneNumber("0771234567")
-                .role(Role.SUPER_ADMIN)
-                .employeeCode("EMP001")
-                .isActive(true)
-                .build();
-        userRepository.save(superAdmin);
-        log.info("Created Super Admin user: superadmin / admin123");
-
-        // Create Admin
-        User admin = User.builder()
-                .username("admin")
-                .password(passwordEncoder.encode("admin123"))
-                .fullName("Administrator")
-                .email("administrator@medlan.com")
-                .phoneNumber("0772345678")
-                .role(Role.ADMIN)
-                .employeeCode("EMP002")
-                .isActive(true)
-                .build();
-        userRepository.save(admin);
-        log.info("Created Admin user: admin / admin123");
-
-        // Create Branch Manager
-        User branchManager = User.builder()
-                .username("branchmanager")
-                .password(passwordEncoder.encode("branch123"))
-                .fullName("Branch Manager")
-                .email("branch@medlan.com")
-                .phoneNumber("0773456789")
-                .role(Role.BRANCH_MANAGER)
-                .employeeCode("EMP003")
-                .isActive(true)
-                .build();
-        userRepository.save(branchManager);
-        log.info("Created Branch Manager user: branchmanager / branch123");
-
-        // Create Pharmacist
-        User pharmacist = User.builder()
-                .username("pharmacist")
-                .password(passwordEncoder.encode("pharm123"))
-                .fullName("Pharmacist User")
-                .email("pharmacist@medlan.com")
-                .phoneNumber("0774567890")
-                .role(Role.PHARMACIST)
-                .employeeCode("EMP004")
-                .isActive(true)
-                .build();
-        userRepository.save(pharmacist);
-        log.info("Created Pharmacist user: pharmacist / pharm123");
-
-        // Create Cashier
-        User cashier = User.builder()
-                .username("cashier")
-                .password(passwordEncoder.encode("cash123"))
-                .fullName("Cashier User")
-                .email("cashier@medlan.com")
-                .phoneNumber("0775678901")
-                .role(Role.CASHIER)
-                .employeeCode("EMP005")
-                .isActive(true)
-                .build();
-        userRepository.save(cashier);
-        log.info("Created Cashier user: cashier / cash123");
-
-        // Create Inventory Manager
-        User inventoryManager = User.builder()
-                .username("inventory")
-                .password(passwordEncoder.encode("inv123"))
-                .fullName("Inventory Manager")
-                .email("inventory@medlan.com")
-                .phoneNumber("0776789012")
-                .role(Role.INVENTORY_MANAGER)
-                .employeeCode("EMP006")
-                .isActive(true)
-                .build();
-        userRepository.save(inventoryManager);
-        log.info("Created Inventory Manager user: inventory / inv123");
-
-        // Create Accountant
-        User accountant = User.builder()
-                .username("accountant")
-                .password(passwordEncoder.encode("acc123"))
-                .fullName("Accountant User")
-                .email("accountant@medlan.com")
-                .phoneNumber("0777890123")
-                .role(Role.ACCOUNTANT)
-                .employeeCode("EMP007")
-                .isActive(true)
-                .build();
-        userRepository.save(accountant);
-        log.info("Created Accountant user: accountant / acc123");
+        createUser("superadmin", "admin123", "Super Administrator",
+                "admin@medlan.com", "0771234567", Role.SUPER_ADMIN, "EMP001");
+        createUser("admin", "admin123", "Administrator",
+                "administrator@medlan.com", "0772345678", Role.ADMIN, "EMP002");
+        createUser("branchmanager", "branch123", "Branch Manager",
+                "branch@medlan.com", "0773456789", Role.BRANCH_MANAGER, "EMP003");
+        createUser("pharmacist", "pharm123", "Pharmacist User",
+                "pharmacist@medlan.com", "0774567890", Role.PHARMACIST, "EMP004");
+        createUser("cashier", "cash123", "Cashier User",
+                "cashier@medlan.com", "0775678901", Role.CASHIER, "EMP005");
+        createUser("inventory", "inv123", "Inventory Manager",
+                "inventory@medlan.com", "0776789012", Role.INVENTORY_MANAGER, "EMP006");
+        createUser("accountant", "acc123", "Accountant User",
+                "accountant@medlan.com", "0777890123", Role.ACCOUNTANT, "EMP007");
 
         log.info("===========================================");
         log.info("Default users created successfully!");
         log.info("===========================================");
-        log.info("Login Credentials:");
-        log.info("  Super Admin:     superadmin / admin123");
-        log.info("  Admin:           admin / admin123");
-        log.info("  Branch Manager:  branchmanager / branch123");
-        log.info("  Pharmacist:      pharmacist / pharm123");
-        log.info("  Cashier:         cashier / cash123");
-        log.info("  Inventory:       inventory / inv123");
-        log.info("  Accountant:      accountant / acc123");
-        log.info("===========================================");
+    }
+
+    private void createUser(String username, String password, String fullName,
+                            String email, String phone, Role role, String empCode) {
+        User user = User.builder()
+                .username(username)
+                .password(passwordEncoder.encode(password))
+                .fullName(fullName)
+                .email(email)
+                .phoneNumber(phone)
+                .role(role)
+                .employeeCode(empCode)
+                .isActive(true)
+                .build();
+        userRepository.save(user);
+        log.info("Created user: {} / {} ({})", username, password, role);
     }
 }

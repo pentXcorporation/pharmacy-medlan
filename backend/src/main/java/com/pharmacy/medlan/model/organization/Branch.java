@@ -1,13 +1,10 @@
 package com.pharmacy.medlan.model.organization;
 
 import com.pharmacy.medlan.model.base.AuditableEntity;
-import com.pharmacy.medlan.model.product.BranchInventory;
-import com.pharmacy.medlan.model.user.BranchStaff;
 import com.pharmacy.medlan.model.user.User;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "branches")
@@ -16,16 +13,22 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"manager", "staff", "inventory"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Branch extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(name = "branch_code", nullable = false, unique = true, length = 50)
+    @NotBlank(message = "Branch code is required")
+    @EqualsAndHashCode.Include
     private String branchCode;
 
     @Column(name = "branch_name", nullable = false, length = 200)
+    @NotBlank(message = "Branch name is required")
     private String branchName;
 
     @Column(name = "address", columnDefinition = "TEXT")
@@ -57,16 +60,10 @@ public class Branch extends AuditableEntity {
     private User manager;
 
     @Column(name = "is_active", nullable = false)
+    @Builder.Default
     private Boolean isActive = true;
 
     @Column(name = "is_main_branch", nullable = false)
+    @Builder.Default
     private Boolean isMainBranch = false;
-
-    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<BranchStaff> staff = new ArrayList<>();
-
-    @OneToMany(mappedBy = "branch", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<BranchInventory> inventory = new ArrayList<>();
 }

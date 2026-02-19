@@ -46,7 +46,7 @@ const getRoleBadgeVariant = (role) => {
     case "OWNER":
       return "default";
     case "BRANCH_MANAGER":
-    case "BRANCH_ADMIN":
+    case "MANAGER":
       return "secondary";
     default:
       return "outline";

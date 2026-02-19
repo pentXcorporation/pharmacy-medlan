@@ -1,0 +1,1106 @@
+.
+├── 5_YEAR_STRATEGIC_SUSTAINABILITY_PLAN.md
+├── FINAL_BACKEND_REVIEW_SUMMARY.md
+├── IMPLEMENTATION_CHECKLIST.md
+├── IMPLEMENTATION_COMPLETE.md
+├── PRODUCT_REFACTORING_PROGRESS.md
+├── SYSTEM_ARCHITECTURE_FINAL.md
+├── backend
+│   ├── API_TESTING_GUIDE.md
+│   ├── CheckSchema.class
+│   ├── CheckSchema.java
+│   ├── Dockerfile
+│   ├── README.md
+│   ├── SimpleMigration.class
+│   ├── SimpleMigration.java
+│   ├── branch_isolation_migration.sql
+│   ├── cheque_financial_integration.sql
+│   ├── docs
+│   │   └── API_TESTING_GUIDE.pdf
+│   ├── fix_employee_id_column.sql
+│   ├── migrate_employee_payments.sql
+│   ├── mvnw
+│   ├── mvnw.cmd
+│   ├── pom.xml
+│   ├── product_refactoring_migration_final.sql
+│   ├── src
+│   │   └── main
+│   │       ├── java
+│   │       │   └── com
+│   │       │       └── pharmacy
+│   │       │           ├── all.txt
+│   │       │           ├── medlan
+│   │       │           │   ├── MedlanApplication.java
+│   │       │           │   ├── aspect
+│   │       │           │   │   ├── AuditAspect.java
+│   │       │           │   │   ├── LoggingAspect.java
+│   │       │           │   │   ├── PerformanceAspect.java
+│   │       │           │   │   └── RateLimitAspect.java
+│   │       │           │   ├── config
+│   │       │           │   │   ├── AsyncConfig.java
+│   │       │           │   │   ├── AuditConfig.java
+│   │       │           │   │   ├── CacheConfig.java
+│   │       │           │   │   ├── CorsConfig.java
+│   │       │           │   │   ├── DataInitializer.java
+│   │       │           │   │   ├── DatabaseConfig.java
+│   │       │           │   │   ├── JwtConfig.java
+│   │       │           │   │   ├── RateLimitConfig.java
+│   │       │           │   │   ├── SecurityConfig.java
+│   │       │           │   │   ├── SwaggerConfig.java
+│   │       │           │   │   ├── WebConfig.java
+│   │       │           │   │   └── WebSocketConfig.java
+│   │       │           │   ├── controller
+│   │       │           │   │   ├── AttendanceController.java
+│   │       │           │   │   ├── AuthController.java
+│   │       │           │   │   ├── BankController.java
+│   │       │           │   │   ├── BarcodeController.java
+│   │       │           │   │   ├── BranchController.java
+│   │       │           │   │   ├── BranchStaffController.java
+│   │       │           │   │   ├── CashBookController.java
+│   │       │           │   │   ├── CategoryController.java
+│   │       │           │   │   ├── ChequeController.java
+│   │       │           │   │   ├── CustomerController.java
+│   │       │           │   │   ├── CustomerPrescriptionController.java
+│   │       │           │   │   ├── DashboardController.java
+│   │       │           │   │   ├── EmployeeAuthController.java
+│   │       │           │   │   ├── GRNController.java
+│   │       │           │   │   ├── GoodsReceiptController.java
+│   │       │           │   │   ├── InventoryController.java
+│   │       │           │   │   ├── InventoryMaintenanceController.java
+│   │       │           │   │   ├── InventoryTransactionController.java
+│   │       │           │   │   ├── InvoiceController.java
+│   │       │           │   │   ├── LegacyMigrationController.java
+│   │       │           │   │   ├── NotificationController.java
+│   │       │           │   │   ├── PayrollController.java
+│   │       │           │   │   ├── PrescriptionController.java
+│   │       │           │   │   ├── ProductBinCardController.java
+│   │       │           │   │   ├── ProductController.java
+│   │       │           │   │   ├── PurchaseOrderController.java
+│   │       │           │   │   ├── RGRNController.java
+│   │       │           │   │   ├── ReportController.java
+│   │       │           │   │   ├── SaleController.java
+│   │       │           │   │   ├── SaleReturnController.java
+│   │       │           │   │   ├── ScanController.java
+│   │       │           │   │   ├── StockTransferController.java
+│   │       │           │   │   ├── SubCategoryController.java
+│   │       │           │   │   ├── SupplierController.java
+│   │       │           │   │   ├── SupplierPaymentController.java
+│   │       │           │   │   ├── SyncController.java
+│   │       │           │   │   ├── SystemConfigController.java
+│   │       │           │   │   ├── TransactionTypeController.java
+│   │       │           │   │   ├── UnitController.java
+│   │       │           │   │   ├── UserController.java
+│   │       │           │   │   ├── dashboard
+│   │       │           │   │   │   └── SuperAdminDashboardController.java
+│   │       │           │   │   └── finance
+│   │       │           │   │       └── CashRegisterController.java
+│   │       │           │   ├── dto
+│   │       │           │   │   ├── finance
+│   │       │           │   │   │   ├── BankDepositRequest.java
+│   │       │           │   │   │   ├── CashRegisterResponse.java
+│   │       │           │   │   │   ├── CashRegisterSummaryResponse.java
+│   │       │           │   │   │   ├── CashRegisterTransactionResponse.java
+│   │       │           │   │   │   ├── CashTransactionRequest.java
+│   │       │           │   │   │   ├── CloseCashRegisterRequest.java
+│   │       │           │   │   │   └── OpenCashRegisterRequest.java
+│   │       │           │   │   ├── request
+│   │       │           │   │   │   ├── NotificationRequest.java
+│   │       │           │   │   │   ├── attendance
+│   │       │           │   │   │   │   └── AttendanceRequest.java
+│   │       │           │   │   │   ├── auth
+│   │       │           │   │   │   │   ├── ChangePasswordRequest.java
+│   │       │           │   │   │   │   ├── LoginRequest.java
+│   │       │           │   │   │   │   └── RegisterRequest.java
+│   │       │           │   │   │   ├── barcode
+│   │       │           │   │   │   │   ├── BarcodeGenerateRequest.java
+│   │       │           │   │   │   │   ├── BulkBarcodeRequest.java
+│   │       │           │   │   │   │   └── DecodeRequest.java
+│   │       │           │   │   │   ├── branch
+│   │       │           │   │   │   │   ├── CreateBranchRequest.java
+│   │       │           │   │   │   │   └── UpdateBranchRequest.java
+│   │       │           │   │   │   ├── finance
+│   │       │           │   │   │   │   ├── CreateBankRequest.java
+│   │       │           │   │   │   │   ├── CreateCashBookEntryRequest.java
+│   │       │           │   │   │   │   └── CreateChequeRequest.java
+│   │       │           │   │   │   ├── inventory
+│   │       │           │   │   │   │   ├── ApproveStockTransferRequest.java
+│   │       │           │   │   │   │   ├── ApproveTransactionRequest.java
+│   │       │           │   │   │   │   ├── BarcodeScanRequest.java
+│   │       │           │   │   │   │   ├── CreateGRNRequest.java
+│   │       │           │   │   │   │   ├── CreateInventoryTransactionRequest.java
+│   │       │           │   │   │   │   ├── CreateRGRNRequest.java
+│   │       │           │   │   │   │   └── CreateStockTransferRequest.java
+│   │       │           │   │   │   ├── payroll
+│   │       │           │   │   │   │   └── CreatePayrollRequest.java
+│   │       │           │   │   │   ├── pos
+│   │       │           │   │   │   │   ├── CreateCustomerPrescriptionRequest.java
+│   │       │           │   │   │   │   ├── CreateCustomerRequest.java
+│   │       │           │   │   │   │   ├── CreateInvoiceRequest.java
+│   │       │           │   │   │   │   ├── CreatePrescriptionRequest.java
+│   │       │           │   │   │   │   ├── CreateSaleRequest.java
+│   │       │           │   │   │   │   └── CreateSaleReturnRequest.java
+│   │       │           │   │   │   ├── product
+│   │       │           │   │   │   │   ├── CreateProductRequest.java
+│   │       │           │   │   │   │   ├── UpdatePricingRequest.java
+│   │       │           │   │   │   │   └── UpdateProductRequest.java
+│   │       │           │   │   │   ├── report
+│   │       │           │   │   │   │   ├── FinancialReportRequest.java
+│   │       │           │   │   │   │   ├── InventoryReportRequest.java
+│   │       │           │   │   │   │   └── SalesReportRequest.java
+│   │       │           │   │   │   ├── supplier
+│   │       │           │   │   │   │   ├── CreateGoodsReceiptRequest.java
+│   │       │           │   │   │   │   ├── CreatePurchaseOrderRequest.java
+│   │       │           │   │   │   │   ├── CreateSupplierPaymentRequest.java
+│   │       │           │   │   │   │   └── CreateSupplierRequest.java
+│   │       │           │   │   │   └── user
+│   │       │           │   │   │       ├── AuthorizeEmployeeRequest.java
+│   │       │           │   │   │       ├── CreateUserRequest.java
+│   │       │           │   │   │       └── UpdateUserRequest.java
+│   │       │           │   │   └── response
+│   │       │           │   │       ├── attendance
+│   │       │           │   │       │   ├── AttendanceResponse.java
+│   │       │           │   │       │   └── AttendanceStatsResponse.java
+│   │       │           │   │       ├── auth
+│   │       │           │   │       │   ├── LoginResponse.java
+│   │       │           │   │       │   └── UserDetailsResponse.java
+│   │       │           │   │       ├── barcode
+│   │       │           │   │       │   ├── BarcodeResponse.java
+│   │       │           │   │       │   └── QRCodeResponse.java
+│   │       │           │   │       ├── branch
+│   │       │           │   │       │   ├── BranchResponse.java
+│   │       │           │   │       │   └── BranchStaffResponse.java
+│   │       │           │   │       ├── common
+│   │       │           │   │       │   ├── ApiResponse.java
+│   │       │           │   │       │   ├── ErrorResponse.java
+│   │       │           │   │       │   └── PageResponse.java
+│   │       │           │   │       ├── dashboard
+│   │       │           │   │       │   ├── BranchAnalyticsResponse.java
+│   │       │           │   │       │   ├── DashboardSummaryResponse.java
+│   │       │           │   │       │   ├── InventoryAnalyticsResponse.java
+│   │       │           │   │       │   ├── SalesAnalyticsResponse.java
+│   │       │           │   │       │   ├── SuperAdminDashboardResponse.java
+│   │       │           │   │       │   └── SystemMetricsResponse.java
+│   │       │           │   │       ├── finance
+│   │       │           │   │       │   ├── BankResponse.java
+│   │       │           │   │       │   ├── CashBookResponse.java
+│   │       │           │   │       │   └── ChequeResponse.java
+│   │       │           │   │       ├── inventory
+│   │       │           │   │       │   ├── ExpiryAlertResponse.java
+│   │       │           │   │       │   ├── GRNResponse.java
+│   │       │           │   │       │   ├── InventoryBatchResponse.java
+│   │       │           │   │       │   ├── InventoryResponse.java
+│   │       │           │   │       │   ├── InventoryTransactionResponse.java
+│   │       │           │   │       │   ├── LowStockAlertResponse.java
+│   │       │           │   │       │   ├── ProductBinCardResponse.java
+│   │       │           │   │       │   ├── RGRNResponse.java
+│   │       │           │   │       │   ├── ScanResultResponse.java
+│   │       │           │   │       │   └── StockTransferResponse.java
+│   │       │           │   │       ├── notification
+│   │       │           │   │       │   └── NotificationResponse.java
+│   │       │           │   │       ├── payroll
+│   │       │           │   │       │   └── PayrollResponse.java
+│   │       │           │   │       ├── pos
+│   │       │           │   │       │   ├── CustomerPrescriptionResponse.java
+│   │       │           │   │       │   ├── CustomerResponse.java
+│   │       │           │   │       │   ├── InvoiceResponse.java
+│   │       │           │   │       │   ├── PrescriptionResponse.java
+│   │       │           │   │       │   ├── SaleItemResponse.java
+│   │       │           │   │       │   ├── SaleResponse.java
+│   │       │           │   │       │   └── SaleReturnResponse.java
+│   │       │           │   │       ├── product
+│   │       │           │   │       │   ├── CategoryResponse.java
+│   │       │           │   │       │   ├── ProductPricingResponse.java
+│   │       │           │   │       │   ├── ProductResponse.java
+│   │       │           │   │       │   └── SubCategoryResponse.java
+│   │       │           │   │       ├── report
+│   │       │           │   │       │   ├── DailySalesSummaryResponse.java
+│   │       │           │   │       │   ├── ExpiryAlertResponse.java
+│   │       │           │   │       │   ├── ExportResponse.java
+│   │       │           │   │       │   ├── FinancialReportResponse.java
+│   │       │           │   │       │   ├── InventoryReportResponse.java
+│   │       │           │   │       │   ├── LowStockAlertResponse.java
+│   │       │           │   │       │   └── SalesReportResponse.java
+│   │       │           │   │       ├── supplier
+│   │       │           │   │       │   ├── GoodsReceiptResponse.java
+│   │       │           │   │       │   ├── PurchaseOrderResponse.java
+│   │       │           │   │       │   ├── SupplierPaymentResponse.java
+│   │       │           │   │       │   └── SupplierResponse.java
+│   │       │           │   │       └── user
+│   │       │           │   │           ├── EmployeeAuthorizationResponse.java
+│   │       │           │   │           └── UserResponse.java
+│   │       │           │   ├── enums
+│   │       │           │   │   ├── AlertLevel.java
+│   │       │           │   │   ├── AttendanceStatus.java
+│   │       │           │   │   ├── AuthorizationStatus.java
+│   │       │           │   │   ├── BarcodeFormat.java
+│   │       │           │   │   ├── CashRegisterStatus.java
+│   │       │           │   │   ├── CashRegisterTransactionType.java
+│   │       │           │   │   ├── ChequeStatus.java
+│   │       │           │   │   ├── CustomerStatus.java
+│   │       │           │   │   ├── DosageForm.java
+│   │       │           │   │   ├── DrugSchedule.java
+│   │       │           │   │   ├── EmploymentType.java
+│   │       │           │   │   ├── GRNStatus.java
+│   │       │           │   │   ├── InvoiceStatus.java
+│   │       │           │   │   ├── NotificationType.java
+│   │       │           │   │   ├── PaymentMethod.java
+│   │       │           │   │   ├── PaymentStatus.java
+│   │       │           │   │   ├── ProductType.java
+│   │       │           │   │   ├── PurchaseOrderStatus.java
+│   │       │           │   │   ├── Role.java
+│   │       │           │   │   ├── SaleStatus.java
+│   │       │           │   │   ├── ScanContext.java
+│   │       │           │   │   ├── StockTransferStatus.java
+│   │       │           │   │   ├── SyncStatus.java
+│   │       │           │   │   ├── TransactionType.java
+│   │       │           │   │   └── UnitOfMeasure.java
+│   │       │           │   ├── event
+│   │       │           │   │   ├── listener
+│   │       │           │   │   │   ├── InventoryEventListener.java
+│   │       │           │   │   │   ├── SaleEventListener.java
+│   │       │           │   │   │   └── SyncEventListener.java
+│   │       │           │   │   └── publisher
+│   │       │           │   │       ├── InventoryEventPublisher.java
+│   │       │           │   │       ├── NotificationEventPublisher.java
+│   │       │           │   │       └── SaleEventPublisher.java
+│   │       │           │   ├── exception
+│   │       │           │   │   ├── BusinessRuleViolationException.java
+│   │       │           │   │   ├── DuplicationResourceException.java
+│   │       │           │   │   ├── GlobalExceptionHandler.java
+│   │       │           │   │   ├── InsufficientStockException.java
+│   │       │           │   │   ├── LegacyDataMigrationException.java
+│   │       │           │   │   ├── ResourceNotFoundException.java
+│   │       │           │   │   ├── SyncException.java
+│   │       │           │   │   ├── UnauthorizedException.java
+│   │       │           │   │   └── ValidationException.java
+│   │       │           │   ├── mapper
+│   │       │           │   │   ├── AttendanceMapper.java
+│   │       │           │   │   ├── BranchMapper.java
+│   │       │           │   │   ├── CustomerMapper.java
+│   │       │           │   │   ├── FinanceMapper.java
+│   │       │           │   │   ├── GRNMapper.java
+│   │       │           │   │   ├── InventoryMapper.java
+│   │       │           │   │   ├── InvoiceMapper.java
+│   │       │           │   │   ├── NotificationMapper.java
+│   │       │           │   │   ├── PayrollMapper.java
+│   │       │           │   │   ├── ProductMapper.java
+│   │       │           │   │   ├── PurchaseOrderMapper.java
+│   │       │           │   │   ├── RGRNMapper.java
+│   │       │           │   │   ├── SaleMapper.java
+│   │       │           │   │   ├── SaleReturnMapper.java
+│   │       │           │   │   ├── StockTransferMapper.java
+│   │       │           │   │   ├── SupplierMapper.java
+│   │       │           │   │   └── UserMapper.java
+│   │       │           │   ├── model
+│   │       │           │   │   ├── audit
+│   │       │           │   │   │   ├── AuditLog.java
+│   │       │           │   │   │   └── SyncLog.java
+│   │       │           │   │   ├── base
+│   │       │           │   │   │   ├── AuditableEntity.java
+│   │       │           │   │   │   └── BaseEntity.java
+│   │       │           │   │   ├── finance
+│   │       │           │   │   │   ├── Bank.java
+│   │       │           │   │   │   ├── BankData.java
+│   │       │           │   │   │   ├── CashBook.java
+│   │       │           │   │   │   ├── CashRegister.java
+│   │       │           │   │   │   ├── CashRegisterTransaction.java
+│   │       │           │   │   │   ├── IncomingCheque.java
+│   │       │           │   │   │   └── TransactionType.java
+│   │       │           │   │   ├── inventory
+│   │       │           │   │   │   ├── ExpiryData.java
+│   │       │           │   │   │   ├── GRN.java
+│   │       │           │   │   │   ├── GRNLine.java
+│   │       │           │   │   │   ├── GRNTemp.java
+│   │       │           │   │   │   ├── InventoryTransaction.java
+│   │       │           │   │   │   ├── ProductBinCard.java
+│   │       │           │   │   │   ├── RGRN.java
+│   │       │           │   │   │   ├── RGRNLine.java
+│   │       │           │   │   │   ├── StockTransfer.java
+│   │       │           │   │   │   └── StockTransferItem.java
+│   │       │           │   │   ├── notification
+│   │       │           │   │   │   └── Notification.java
+│   │       │           │   │   ├── organization
+│   │       │           │   │   │   └── Branch.java
+│   │       │           │   │   ├── payroll
+│   │       │           │   │   │   ├── Attendance.java
+│   │       │           │   │   │   ├── Employee.java
+│   │       │           │   │   │   └── EmployeePayment.java
+│   │       │           │   │   ├── pos
+│   │       │           │   │   │   ├── Customer.java
+│   │       │           │   │   │   ├── CustomerData.java
+│   │       │           │   │   │   ├── CustomerPrescription.java
+│   │       │           │   │   │   ├── Invoice.java
+│   │       │           │   │   │   ├── InvoiceData.java
+│   │       │           │   │   │   ├── InvoiceReturn.java
+│   │       │           │   │   │   ├── PatientNumber.java
+│   │       │           │   │   │   ├── Payment.java
+│   │       │           │   │   │   ├── ReturnInvoiceData.java
+│   │       │           │   │   │   ├── Sale.java
+│   │       │           │   │   │   ├── SaleItem.java
+│   │       │           │   │   │   ├── SaleReturn.java
+│   │       │           │   │   │   └── SaleReturnItem.java
+│   │       │           │   │   ├── product
+│   │       │           │   │   │   ├── AyurvedicProduct.java
+│   │       │           │   │   │   ├── BabyCareProduct.java
+│   │       │           │   │   │   ├── BranchInventory.java
+│   │       │           │   │   │   ├── Category.java
+│   │       │           │   │   │   ├── CosmeticProduct.java
+│   │       │           │   │   │   ├── FoodProduct.java
+│   │       │           │   │   │   ├── GeneralProduct.java
+│   │       │           │   │   │   ├── HomeopathicProduct.java
+│   │       │           │   │   │   ├── InventoryBatch.java
+│   │       │           │   │   │   ├── MedicalEquipmentProduct.java
+│   │       │           │   │   │   ├── MedicalProduct.java
+│   │       │           │   │   │   ├── Product.java
+│   │       │           │   │   │   ├── ProductPricing.java
+│   │       │           │   │   │   ├── SubCategory.java
+│   │       │           │   │   │   ├── SupplementProduct.java
+│   │       │           │   │   │   ├── SurgicalProduct.java
+│   │       │           │   │   │   ├── TaxCategory.java
+│   │       │           │   │   │   └── Unit.java
+│   │       │           │   │   ├── report
+│   │       │           │   │   │   ├── DailySalesSummary.java
+│   │       │           │   │   │   ├── ExpiryAlert.java
+│   │       │           │   │   │   └── LowStockAlert.java
+│   │       │           │   │   ├── supplier
+│   │       │           │   │   │   ├── GoodsReceipt.java
+│   │       │           │   │   │   ├── GoodsReceiptItem.java
+│   │       │           │   │   │   ├── PurchaseOrder.java
+│   │       │           │   │   │   ├── PurchaseOrderItem.java
+│   │       │           │   │   │   ├── Supplier.java
+│   │       │           │   │   │   ├── SupplierPayment.java
+│   │       │           │   │   │   └── SupplierPaymentDetail.java
+│   │       │           │   │   ├── system
+│   │       │           │   │   │   └── SystemConfig.java
+│   │       │           │   │   └── user
+│   │       │           │   │       ├── BranchStaff.java
+│   │       │           │   │       ├── EmployeeAuthorization.java
+│   │       │           │   │       ├── User.java
+│   │       │           │   │       └── UserSession.java
+│   │       │           │   ├── ngrok.exe
+│   │       │           │   ├── repository
+│   │       │           │   │   ├── audit
+│   │       │           │   │   │   ├── AuditLogRepository.java
+│   │       │           │   │   │   └── SyncLogRepository.java
+│   │       │           │   │   ├── finance
+│   │       │           │   │   │   ├── BankDataRepository.java
+│   │       │           │   │   │   ├── BankRepository.java
+│   │       │           │   │   │   ├── CashBookRepository.java
+│   │       │           │   │   │   ├── CashRegisterRepository.java
+│   │       │           │   │   │   ├── CashRegisterTransactionRepository.java
+│   │       │           │   │   │   ├── IncomingChequeRepository.java
+│   │       │           │   │   │   ├── PaymentRepository.java
+│   │       │           │   │   │   └── TransactionTypeRepository.java
+│   │       │           │   │   ├── inventory
+│   │       │           │   │   │   ├── ExpiryDataRepository.java
+│   │       │           │   │   │   ├── GRNLineRepository.java
+│   │       │           │   │   │   ├── GRNRepository.java
+│   │       │           │   │   │   ├── GRNTempRepository.java
+│   │       │           │   │   │   ├── InventoryTransactionRepository.java
+│   │       │           │   │   │   ├── ProductBinCardRepository.java
+│   │       │           │   │   │   ├── RGRNLineRepository.java
+│   │       │           │   │   │   ├── RGRNRepository.java
+│   │       │           │   │   │   ├── StockTransferItemRepository.java
+│   │       │           │   │   │   └── StockTransferRepository.java
+│   │       │           │   │   ├── notification
+│   │       │           │   │   │   └── NotificationRepository.java
+│   │       │           │   │   ├── organization
+│   │       │           │   │   │   └── BranchRepository.java
+│   │       │           │   │   ├── payroll
+│   │       │           │   │   │   ├── AttendanceRepository.java
+│   │       │           │   │   │   ├── EmployeePaymentRepository.java
+│   │       │           │   │   │   └── EmployeeRepository.java
+│   │       │           │   │   ├── pos
+│   │       │           │   │   │   ├── CustomerDataRepository.java
+│   │       │           │   │   │   ├── CustomerPrescriptionRepository.java
+│   │       │           │   │   │   ├── CustomerRepository.java
+│   │       │           │   │   │   ├── InvoiceDataRepository.java
+│   │       │           │   │   │   ├── InvoiceRepository.java
+│   │       │           │   │   │   ├── InvoiceReturnRepository.java
+│   │       │           │   │   │   ├── PatientNumberRepository.java
+│   │       │           │   │   │   ├── PaymentRepository.java
+│   │       │           │   │   │   ├── PrescriptionRepository.java
+│   │       │           │   │   │   ├── ReturnInvoiceDataRepository.java
+│   │       │           │   │   │   ├── SaleItemRepository.java
+│   │       │           │   │   │   ├── SaleRepository.java
+│   │       │           │   │   │   ├── SaleReturnItemRepository.java
+│   │       │           │   │   │   └── SaleReturnRepository.java
+│   │       │           │   │   ├── product
+│   │       │           │   │   │   ├── AyurvedicProductRepository.java
+│   │       │           │   │   │   ├── BabyCareProductRepository.java
+│   │       │           │   │   │   ├── BranchInventoryRepository.java
+│   │       │           │   │   │   ├── CategoryRepository.java
+│   │       │           │   │   │   ├── CosmeticProductRepository.java
+│   │       │           │   │   │   ├── FoodProductRepository.java
+│   │       │           │   │   │   ├── GeneralProductRepository.java
+│   │       │           │   │   │   ├── HomeopathicProductRepository.java
+│   │       │           │   │   │   ├── InventoryBatchRepository.java
+│   │       │           │   │   │   ├── MedicalEquipmentProductRepository.java
+│   │       │           │   │   │   ├── MedicalProductRepository.java
+│   │       │           │   │   │   ├── ProductPricingRepository.java
+│   │       │           │   │   │   ├── ProductRepository.java
+│   │       │           │   │   │   ├── SubCategoryRepository.java
+│   │       │           │   │   │   ├── SupplementProductRepository.java
+│   │       │           │   │   │   ├── SurgicalProductRepository.java
+│   │       │           │   │   │   ├── TaxCategoryRepository.java
+│   │       │           │   │   │   └── UnitRepository.java
+│   │       │           │   │   ├── report
+│   │       │           │   │   │   ├── DailySalesSummaryRepository.java
+│   │       │           │   │   │   ├── ExpiryAlertRepository.java
+│   │       │           │   │   │   └── LowStockAlertRepository.java
+│   │       │           │   │   ├── supplier
+│   │       │           │   │   │   ├── GoodsReceiptItemRepository.java
+│   │       │           │   │   │   ├── GoodsReceiptRepository.java
+│   │       │           │   │   │   ├── PurchaseOrderItemRepository.java
+│   │       │           │   │   │   ├── PurchaseOrderRepository.java
+│   │       │           │   │   │   ├── SupplierPaymentDetailRepository.java
+│   │       │           │   │   │   ├── SupplierPaymentRepository.java
+│   │       │           │   │   │   └── SupplierRepository.java
+│   │       │           │   │   ├── system
+│   │       │           │   │   │   └── SystemConfigRepository.java
+│   │       │           │   │   └── user
+│   │       │           │   │       ├── BranchStaffRepository.java
+│   │       │           │   │       ├── EmployeeAuthorizationRepository.java
+│   │       │           │   │       ├── UserRepository.java
+│   │       │           │   │       └── UserSessionRepository.java
+│   │       │           │   ├── scheduler
+│   │       │           │   │   ├── ExpiryAlertScheduler.java
+│   │       │           │   │   ├── LowStockAlertScheduler.java
+│   │       │           │   │   ├── ReportGenerationScheduler.java
+│   │       │           │   │   ├── SessionCleanupScheduler.java
+│   │       │           │   │   └── SyncScheduler.java
+│   │       │           │   ├── security
+│   │       │           │   │   ├── AuthorizationAspect.java
+│   │       │           │   │   ├── CustomerUserDetails.java
+│   │       │           │   │   ├── JwtAuthenticationFilter.java
+│   │       │           │   │   ├── JwtTokenProvider.java
+│   │       │           │   │   ├── SecurityUtils.java
+│   │       │           │   │   └── UserDetailsServiceImpl.java
+│   │       │           │   ├── service
+│   │       │           │   │   ├── attendance
+│   │       │           │   │   │   ├── AttendanceService.java
+│   │       │           │   │   │   └── AttendanceServiceImpl.java
+│   │       │           │   │   ├── audit
+│   │       │           │   │   │   ├── AuditService.java
+│   │       │           │   │   │   └── AuditServiceImpl.java
+│   │       │           │   │   ├── barcode
+│   │       │           │   │   │   ├── BarcodeService.java
+│   │       │           │   │   │   └── BarcodeServiceImpl.java
+│   │       │           │   │   ├── branch
+│   │       │           │   │   │   ├── BranchService.java
+│   │       │           │   │   │   ├── BranchServiceImpl.java
+│   │       │           │   │   │   ├── BranchStaffService.java
+│   │       │           │   │   │   └── BranchStaffServiceImpl.java
+│   │       │           │   │   ├── dashboard
+│   │       │           │   │   │   ├── DashboardService.java
+│   │       │           │   │   │   ├── DashboardServiceImpl.java
+│   │       │           │   │   │   └── SuperAdminDashboardService.java
+│   │       │           │   │   ├── finance
+│   │       │           │   │   │   ├── BankService.java
+│   │       │           │   │   │   ├── BankServiceImpl.java
+│   │       │           │   │   │   ├── CashBookService.java
+│   │       │           │   │   │   ├── CashBookServiceImpl.java
+│   │       │           │   │   │   ├── CashRegisterService.java
+│   │       │           │   │   │   ├── CashRegisterServiceImpl.java
+│   │       │           │   │   │   ├── ChequeService.java
+│   │       │           │   │   │   ├── ChequeServiceImpl.java
+│   │       │           │   │   │   ├── TransactionTypeService.java
+│   │       │           │   │   │   └── TransactionTypeServiceImpl.java
+│   │       │           │   │   ├── inventory
+│   │       │           │   │   │   ├── ExpiryManagementService.java
+│   │       │           │   │   │   ├── ExpiryManagementServiceImpl.java
+│   │       │           │   │   │   ├── GRNService.java
+│   │       │           │   │   │   ├── GRNServiceImpl.java
+│   │       │           │   │   │   ├── InventoryBatchService.java
+│   │       │           │   │   │   ├── InventoryBatchServiceImpl.java
+│   │       │           │   │   │   ├── InventoryScanService.java
+│   │       │           │   │   │   ├── InventoryScanServiceImpl.java
+│   │       │           │   │   │   ├── InventoryService.java
+│   │       │           │   │   │   ├── InventoryServiceImpl.java
+│   │       │           │   │   │   ├── InventoryTransactionService.java
+│   │       │           │   │   │   ├── InventoryTransactionServiceImpl.java
+│   │       │           │   │   │   ├── ProductBinCardService.java
+│   │       │           │   │   │   ├── ProductBinCardServiceImpl.java
+│   │       │           │   │   │   ├── RGRNService.java
+│   │       │           │   │   │   ├── RGRNServiceImpl.java
+│   │       │           │   │   │   ├── StockTransferService.java
+│   │       │           │   │   │   └── StockTransferServiceImpl.java
+│   │       │           │   │   ├── migration
+│   │       │           │   │   │   ├── LegacyDataMigrationService.java
+│   │       │           │   │   │   └── LegacyDataMigrationServiceImpl.java
+│   │       │           │   │   ├── notification
+│   │       │           │   │   │   ├── NotificationService.java
+│   │       │           │   │   │   └── NotificationServiceImpl.java
+│   │       │           │   │   ├── payroll
+│   │       │           │   │   │   ├── PayrollService.java
+│   │       │           │   │   │   └── PayrollServiceImpl.java
+│   │       │           │   │   ├── pos
+│   │       │           │   │   │   ├── CustomerPrescriptionService.java
+│   │       │           │   │   │   ├── CustomerPrescriptionServiceImpl.java
+│   │       │           │   │   │   ├── CustomerService.java
+│   │       │           │   │   │   ├── CustomerServiceImpl.java
+│   │       │           │   │   │   ├── InvoiceService.java
+│   │       │           │   │   │   ├── InvoiceServiceImpl.java
+│   │       │           │   │   │   ├── PatientNumberService.java
+│   │       │           │   │   │   ├── PrescriptionService.java
+│   │       │           │   │   │   ├── PrescriptionServiceImpl.java
+│   │       │           │   │   │   ├── SaleReturnService.java
+│   │       │           │   │   │   ├── SaleReturnServiceImpl.java
+│   │       │           │   │   │   ├── SaleService.java
+│   │       │           │   │   │   └── SaleServiceImpl.java
+│   │       │           │   │   ├── product
+│   │       │           │   │   │   ├── CategoryService.java
+│   │       │           │   │   │   ├── CategoryServiceImpl.java
+│   │       │           │   │   │   ├── ProducPricingService.java
+│   │       │           │   │   │   ├── ProductPricingServiceImpl.java
+│   │       │           │   │   │   ├── ProductService.java
+│   │       │           │   │   │   ├── ProductServiceImpl.java
+│   │       │           │   │   │   ├── SubCategoryService.java
+│   │       │           │   │   │   ├── SubCategoryServiceImpl.java
+│   │       │           │   │   │   ├── UnitService.java
+│   │       │           │   │   │   └── UnitServiceImpl.java
+│   │       │           │   │   ├── report
+│   │       │           │   │   │   ├── AlertService.java
+│   │       │           │   │   │   ├── AlertServiceImpl.java
+│   │       │           │   │   │   ├── FinancialReportService.java
+│   │       │           │   │   │   ├── FinancialReportServiceImpl.java
+│   │       │           │   │   │   ├── InventoryReportService.java
+│   │       │           │   │   │   ├── InventoryReportServiceImpl.java
+│   │       │           │   │   │   ├── PdfGenerationService.java
+│   │       │           │   │   │   ├── SalesReportService.java
+│   │       │           │   │   │   └── SalesReportServiceImpl.java
+│   │       │           │   │   ├── supplier
+│   │       │           │   │   │   ├── GoodsReceiptService.java
+│   │       │           │   │   │   ├── GoodsReceiptServiceImpl.java
+│   │       │           │   │   │   ├── PurchaseOrderService.java
+│   │       │           │   │   │   ├── PurchaseOrderServiceImpl.java
+│   │       │           │   │   │   ├── SupplierPaymentService.java
+│   │       │           │   │   │   ├── SupplierPaymentServiceImpl.java
+│   │       │           │   │   │   ├── SupplierService.java
+│   │       │           │   │   │   └── SupplierServiceImpl.java
+│   │       │           │   │   ├── sync
+│   │       │           │   │   │   ├── SyncService.java
+│   │       │           │   │   │   └── SyncServiceImpl.java
+│   │       │           │   │   └── user
+│   │       │           │   │       ├── AuthService.java
+│   │       │           │   │       ├── AuthServiceImpl.java
+│   │       │           │   │       ├── EmployeeAuthorizationService.java
+│   │       │           │   │       ├── EmployeeAuthorizationServiceImpl.java
+│   │       │           │   │       ├── UserService.java
+│   │       │           │   │       ├── UserServiceImpl.java
+│   │       │           │   │       ├── UserSessionService.java
+│   │       │           │   │       └── UserSessionServiceImpl.java
+│   │       │           │   ├── util
+│   │       │           │   │   ├── BarcodeGenerator.java
+│   │       │           │   │   ├── DatabaseMigrationRunner.java
+│   │       │           │   │   ├── DateUtil.java
+│   │       │           │   │   ├── EncryptionUtil.java
+│   │       │           │   │   ├── ExcelExportUtil.java
+│   │       │           │   │   ├── FileUploadUtil.java
+│   │       │           │   │   ├── InvoiceNumberGenerator.java
+│   │       │           │   │   ├── NumberUtil.java
+│   │       │           │   │   ├── ResponseUtil.java
+│   │       │           │   │   └── StringUtil.java
+│   │       │           │   ├── validation
+│   │       │           │   │   ├── annotation
+│   │       │           │   │   │   ├── FutureDate.java
+│   │       │           │   │   │   ├── RateLimit.java
+│   │       │           │   │   │   ├── ValidDrugLicense.java
+│   │       │           │   │   │   ├── ValidEmail.java
+│   │       │           │   │   │   ├── ValidGSTIN.java
+│   │       │           │   │   │   ├── ValidPhone.java
+│   │       │           │   │   │   └── ValidPincode.java
+│   │       │           │   │   └── validator
+│   │       │           │   │       ├── DrugLicenseValidator.java
+│   │       │           │   │       ├── EmailValidator.java
+│   │       │           │   │       ├── FutureDateValidator.java
+│   │       │           │   │       ├── GSTINValidator.java
+│   │       │           │   │       ├── PhoneValidator.java
+│   │       │           │   │       └── PincodeValidator.java
+│   │       │           │   └── websocket
+│   │       │           │       ├── NotificationWebSocketHandler.java
+│   │       │           │       ├── SyncWebSocketHandler.java
+│   │       │           │       └── WebSocketHandler.java
+│   │       │           └── split_file.py
+│   │       ├── resources
+│   │       │   └── application.properties
+│   │       └── str.txt
+│   ├── untitled
+│   │   └── src
+│   │       └── Main.java
+│   └── update_versions.sql
+├── frontend
+│   ├── KEYBOARD_NAVIGATION_GUIDE.md
+│   ├── README.md
+│   ├── components.json
+│   ├── eslint.config.js
+│   ├── index.html
+│   ├── jsconfig.app.json
+│   ├── jsconfig.json
+│   ├── netlify.toml
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── public
+│   │   └── vite.svg
+│   ├── src
+│   │   ├── API_TESTING_GUIDE.md
+│   │   ├── App.css
+│   │   ├── App.jsx
+│   │   ├── all.txt
+│   │   ├── all_js.txt
+│   │   ├── assets
+│   │   │   └── react.svg
+│   │   ├── components
+│   │   │   ├── common
+│   │   │   │   ├── AccessibilityWidget.jsx
+│   │   │   │   ├── ConfirmDialog.jsx
+│   │   │   │   ├── DataTable.jsx
+│   │   │   │   ├── EmptyState.jsx
+│   │   │   │   ├── ErrorBoundary.jsx
+│   │   │   │   ├── LoadingSpinner.jsx
+│   │   │   │   ├── PageHeader.jsx
+│   │   │   │   ├── SearchInput.jsx
+│   │   │   │   ├── SmartScanner.jsx
+│   │   │   │   ├── StatCard.jsx
+│   │   │   │   ├── StatusBadge.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── index.js
+│   │   │   ├── layout
+│   │   │   │   ├── AppSidebar.jsx
+│   │   │   │   ├── AuthLayout.jsx
+│   │   │   │   ├── BranchSelector.jsx
+│   │   │   │   ├── Header.jsx
+│   │   │   │   ├── MainLayout.jsx
+│   │   │   │   ├── MobileNav.jsx
+│   │   │   │   ├── NotificationDropdown.jsx
+│   │   │   │   ├── Sidebar.jsx
+│   │   │   │   ├── UserMenu.jsx
+│   │   │   │   ├── index.js
+│   │   │   │   └── navigation.config.js
+│   │   │   └── ui
+│   │   │       ├── accordion.jsx
+│   │   │       ├── alert-dialog.jsx
+│   │   │       ├── alert.jsx
+│   │   │       ├── avatar.jsx
+│   │   │       ├── badge.jsx
+│   │   │       ├── breadcrumb.jsx
+│   │   │       ├── button.jsx
+│   │   │       ├── calendar.jsx
+│   │   │       ├── card.jsx
+│   │   │       ├── checkbox.jsx
+│   │   │       ├── collapsible.jsx
+│   │   │       ├── command.jsx
+│   │   │       ├── dialog.jsx
+│   │   │       ├── dropdown-menu.jsx
+│   │   │       ├── form.jsx
+│   │   │       ├── input.jsx
+│   │   │       ├── label.jsx
+│   │   │       ├── pagination.jsx
+│   │   │       ├── popover.jsx
+│   │   │       ├── progress.jsx
+│   │   │       ├── scroll-area.jsx
+│   │   │       ├── select.jsx
+│   │   │       ├── separator.jsx
+│   │   │       ├── sheet.jsx
+│   │   │       ├── sidebar.jsx
+│   │   │       ├── skeleton.jsx
+│   │   │       ├── slider.jsx
+│   │   │       ├── sonner.jsx
+│   │   │       ├── switch.jsx
+│   │   │       ├── table.jsx
+│   │   │       ├── tabs.jsx
+│   │   │       ├── textarea.jsx
+│   │   │       └── tooltip.jsx
+│   │   ├── config
+│   │   │   ├── api.config.js
+│   │   │   ├── app.config.js
+│   │   │   ├── index.js
+│   │   │   └── routes.config.js
+│   │   ├── constants
+│   │   │   ├── alertLevel.js
+│   │   │   ├── authorizationStatus.js
+│   │   │   ├── chequeStatus.js
+│   │   │   ├── customerStatus.js
+│   │   │   ├── dosageForm.js
+│   │   │   ├── drugSchedule.js
+│   │   │   ├── employmentType.js
+│   │   │   ├── gender.js
+│   │   │   ├── grnStatus.js
+│   │   │   ├── index.js
+│   │   │   ├── invoiceStatus.js
+│   │   │   ├── notificationType.js
+│   │   │   ├── paymentMethods.js
+│   │   │   ├── paymentStatus.js
+│   │   │   ├── permissions.js
+│   │   │   ├── poStatus.js
+│   │   │   ├── returnReason.js
+│   │   │   ├── roles.js
+│   │   │   ├── saleStatus.js
+│   │   │   ├── stockMovementType.js
+│   │   │   ├── syncStatus.js
+│   │   │   ├── transactionType.js
+│   │   │   ├── transferStatus.js
+│   │   │   └── unitOfMeasure.js
+│   │   ├── features
+│   │   │   ├── auth
+│   │   │   │   ├── components
+│   │   │   │   │   └── LoginForm.jsx
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── useLogin.js
+│   │   │   │   └── index.js
+│   │   │   ├── branches
+│   │   │   │   ├── components
+│   │   │   │   │   ├── BranchColumns.jsx
+│   │   │   │   │   ├── BranchForm.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useBranches.js
+│   │   │   │   └── index.js
+│   │   │   ├── categories
+│   │   │   │   ├── components
+│   │   │   │   │   ├── CategoryColumns.jsx
+│   │   │   │   │   ├── CategoryFormDialog.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   └── index.js
+│   │   │   ├── customers
+│   │   │   │   ├── components
+│   │   │   │   │   ├── CreditAccountColumns.jsx
+│   │   │   │   │   ├── CustomerColumns.jsx
+│   │   │   │   │   ├── CustomerForm.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useCustomers.js
+│   │   │   │   └── index.js
+│   │   │   ├── dashboard
+│   │   │   │   ├── components
+│   │   │   │   │   ├── DashboardRouter.jsx
+│   │   │   │   │   ├── InventoryAlertsWidget.jsx
+│   │   │   │   │   ├── QuickActionsWidget.jsx
+│   │   │   │   │   ├── RecentSalesWidget.jsx
+│   │   │   │   │   ├── SalesOverviewWidget.jsx
+│   │   │   │   │   └── dashboards
+│   │   │   │   │       ├── AccountantDashboard.jsx
+│   │   │   │   │       ├── AdminDashboard.jsx
+│   │   │   │   │       ├── CashierDashboard.jsx
+│   │   │   │   │       ├── InventoryManagerDashboard.jsx
+│   │   │   │   │       ├── PharmacistDashboard.jsx
+│   │   │   │   │       ├── SuperAdminDashboard.jsx
+│   │   │   │   │       ├── SuperAdminDashboard.jsx.backup
+│   │   │   │   │       ├── SuperAdminDashboardNew.jsx
+│   │   │   │   │       └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   └── useDashboard.js
+│   │   │   │   └── index.js
+│   │   │   ├── grn
+│   │   │   │   ├── components
+│   │   │   │   │   ├── GRNColumns.jsx
+│   │   │   │   │   ├── GRNForm.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useGRN.js
+│   │   │   │   └── index.js
+│   │   │   ├── index.js
+│   │   │   ├── inventory
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ExpiringColumns.jsx
+│   │   │   │   │   ├── LowStockColumns.jsx
+│   │   │   │   │   ├── StockTransferColumns.jsx
+│   │   │   │   │   ├── StockTransferForm.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useInventory.js
+│   │   │   │   └── index.js
+│   │   │   ├── products
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ProductColumns.jsx
+│   │   │   │   │   ├── ProductFilters.jsx
+│   │   │   │   │   ├── ProductForm.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   ├── useCategories.js
+│   │   │   │   │   └── useProducts.js
+│   │   │   │   └── index.js
+│   │   │   ├── purchase-orders
+│   │   │   │   ├── components
+│   │   │   │   │   ├── PurchaseOrderColumns.jsx
+│   │   │   │   │   ├── PurchaseOrderForm.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── usePurchaseOrders.js
+│   │   │   │   └── index.js
+│   │   │   ├── reports
+│   │   │   │   ├── components
+│   │   │   │   │   ├── ReportFilters.jsx
+│   │   │   │   │   ├── ReportSummaryCard.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useReports.js
+│   │   │   │   └── index.js
+│   │   │   ├── sales
+│   │   │   │   ├── components
+│   │   │   │   │   ├── POSCart.jsx
+│   │   │   │   │   ├── POSProductSearch.jsx
+│   │   │   │   │   ├── POSTotals.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useSales.js
+│   │   │   │   ├── index.js
+│   │   │   │   └── store
+│   │   │   │       ├── index.js
+│   │   │   │       └── usePOSStore.js
+│   │   │   ├── suppliers
+│   │   │   │   ├── components
+│   │   │   │   │   ├── SupplierColumns.jsx
+│   │   │   │   │   ├── SupplierForm.jsx
+│   │   │   │   │   └── index.js
+│   │   │   │   ├── hooks
+│   │   │   │   │   ├── index.js
+│   │   │   │   │   └── useSuppliers.js
+│   │   │   │   └── index.js
+│   │   │   └── users
+│   │   │       ├── components
+│   │   │       │   ├── UserColumns.jsx
+│   │   │       │   ├── UserForm.jsx
+│   │   │       │   └── index.js
+│   │   │       ├── hooks
+│   │   │       │   ├── index.js
+│   │   │       │   └── useUsers.js
+│   │   │       └── index.js
+│   │   ├── hooks
+│   │   │   ├── index.js
+│   │   │   ├── use-mobile.js
+│   │   │   ├── useApi.js
+│   │   │   ├── useAttendance.js
+│   │   │   ├── useAuth.js
+│   │   │   ├── useBranch.js
+│   │   │   ├── useDebounce.js
+│   │   │   ├── useKeyboardShortcuts.js
+│   │   │   ├── usePagination.js
+│   │   │   ├── usePermissions.js
+│   │   │   ├── useScan.js
+│   │   │   ├── useSuperAdminDashboard.js
+│   │   │   └── useWebSocket.js
+│   │   ├── index.css
+│   │   ├── lib
+│   │   │   └── utils.js
+│   │   ├── main.jsx
+│   │   ├── pages
+│   │   │   ├── auth
+│   │   │   │   └── LoginPage.jsx
+│   │   │   ├── branches
+│   │   │   │   ├── BranchFormPage.jsx
+│   │   │   │   ├── BranchesPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── categories
+│   │   │   │   ├── CategoriesPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── customers
+│   │   │   │   ├── CreditAccountsPage.jsx
+│   │   │   │   ├── CustomerFormPage.jsx
+│   │   │   │   ├── CustomersPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── dashboard
+│   │   │   │   └── DashboardPage.jsx
+│   │   │   ├── employees
+│   │   │   │   ├── EmployeeAttendancePage.jsx
+│   │   │   │   ├── EmployeeFormPage.jsx
+│   │   │   │   ├── EmployeeViewPage.jsx
+│   │   │   │   ├── EmployeesPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── finance
+│   │   │   │   ├── BankFormDialog.jsx
+│   │   │   │   ├── BanksPage.jsx
+│   │   │   │   ├── CashBookPage.jsx
+│   │   │   │   ├── CashRegisterFormDialog.jsx
+│   │   │   │   ├── CashRegisterPage.jsx
+│   │   │   │   ├── ChequeFormDialog.jsx
+│   │   │   │   ├── ChequesPage.jsx
+│   │   │   │   ├── FinancePage.jsx
+│   │   │   │   ├── FinancialSummaryPage.jsx
+│   │   │   │   ├── InvoiceFormDialog.jsx
+│   │   │   │   ├── InvoicesPage.jsx
+│   │   │   │   ├── TransactionFormDialog.jsx
+│   │   │   │   ├── TransactionsPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── grn
+│   │   │   │   ├── DirectGRNFormPage.jsx
+│   │   │   │   ├── GRNEditPage.jsx
+│   │   │   │   ├── GRNFormPage.jsx
+│   │   │   │   ├── GRNListPage.jsx
+│   │   │   │   ├── GRNViewPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── inventory
+│   │   │   │   ├── AvailableStockPage.jsx
+│   │   │   │   ├── BatchTrackingPage.jsx
+│   │   │   │   ├── ExpiringPage.jsx
+│   │   │   │   ├── InventoryPage.jsx
+│   │   │   │   ├── LowStockPage.jsx
+│   │   │   │   ├── StockAdjustmentFormPage.jsx
+│   │   │   │   ├── StockAdjustmentsPage.jsx
+│   │   │   │   ├── StockMovementsPage.jsx
+│   │   │   │   ├── StockTransferFormPage.jsx
+│   │   │   │   ├── StockTransfersPage.jsx
+│   │   │   │   ├── components
+│   │   │   │   │   └── DirectStockForm.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── payroll
+│   │   │   │   ├── AdvanceFormDialog.jsx
+│   │   │   │   ├── AdvancesPage.jsx
+│   │   │   │   ├── AttendanceFormDialog.jsx
+│   │   │   │   ├── AttendancePage.jsx
+│   │   │   │   ├── PayrollPage.jsx
+│   │   │   │   ├── SalariesPage.jsx
+│   │   │   │   ├── SalaryPaymentDialog.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── pos
+│   │   │   │   ├── POSPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── products
+│   │   │   │   ├── ProductFormPage.jsx
+│   │   │   │   ├── ProductViewPage.jsx
+│   │   │   │   ├── ProductsPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── purchase-orders
+│   │   │   │   ├── PurchaseOrderFormPage.jsx
+│   │   │   │   ├── PurchaseOrderViewPage.jsx
+│   │   │   │   ├── PurchaseOrdersPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── reports
+│   │   │   │   ├── AuditPage.jsx
+│   │   │   │   ├── EmployeeReportPage.jsx
+│   │   │   │   ├── FinancialReportPage.jsx
+│   │   │   │   ├── InventoryReportPage.jsx
+│   │   │   │   ├── ReportsPage.jsx
+│   │   │   │   ├── SalesReportPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── sales
+│   │   │   │   ├── SaleReturnFormPage.jsx
+│   │   │   │   ├── SaleReturnsPage.jsx
+│   │   │   │   ├── SaleViewPage.jsx
+│   │   │   │   ├── SalesHistoryPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── settings
+│   │   │   │   ├── SettingsPage.jsx
+│   │   │   │   └── index.js
+│   │   │   ├── suppliers
+│   │   │   │   ├── SupplierFormPage.jsx
+│   │   │   │   ├── SuppliersPage.jsx
+│   │   │   │   └── index.js
+│   │   │   └── users
+│   │   │       ├── UserFormPage.jsx
+│   │   │       ├── UserViewPage.jsx
+│   │   │       ├── UsersPage.jsx
+│   │   │       └── index.js
+│   │   ├── routes
+│   │   │   ├── guards
+│   │   │   │   ├── AuthGuard.jsx
+│   │   │   │   ├── RoleGuard.jsx
+│   │   │   │   └── index.js
+│   │   │   └── index.jsx
+│   │   ├── services
+│   │   │   ├── attendanceService.js
+│   │   │   ├── authService.js
+│   │   │   ├── bankService.js
+│   │   │   ├── barcodeService.js
+│   │   │   ├── branchService.js
+│   │   │   ├── cashBookService.js
+│   │   │   ├── cashRegisterService.js
+│   │   │   ├── categoryService.js
+│   │   │   ├── chequeService.js
+│   │   │   ├── customerService.js
+│   │   │   ├── dashboardService.js
+│   │   │   ├── grnService.js
+│   │   │   ├── index.js
+│   │   │   ├── inventoryService.js
+│   │   │   ├── inventoryTransactionService.js
+│   │   │   ├── payrollService.js
+│   │   │   ├── productService.js
+│   │   │   ├── purchaseOrderService.js
+│   │   │   ├── reportService.js
+│   │   │   ├── saleService.js
+│   │   │   ├── superAdminDashboardService.js
+│   │   │   ├── supplierService.js
+│   │   │   ├── systemConfigService.js
+│   │   │   └── userService.js
+│   │   ├── split_file.py
+│   │   ├── store
+│   │   │   ├── authStore.js
+│   │   │   ├── branchStore.js
+│   │   │   ├── cartStore.js
+│   │   │   ├── index.js
+│   │   │   ├── notificationStore.js
+│   │   │   └── uiStore.js
+│   │   ├── str.txt
+│   │   └── utils
+│   │       ├── api.js
+│   │       ├── auth.js
+│   │       ├── exportImport.js
+│   │       ├── formatters.js
+│   │       ├── index.js
+│   │       ├── permissions.js
+│   │       ├── reportExport.js
+│   │       ├── storage.js
+│   │       ├── validationHelpers.js
+│   │       └── validators.js
+│   ├── vercel.json
+│   └── vite.config.js
+├── new_implementation
+│   ├── FoodProduct.java
+│   ├── MedicalProduct.java
+│   ├── Product.java
+│   ├── ProductRepositories.java
+│   ├── ProductService.java
+│   ├── ProductTypes.java
+│   ├── Product_Refactoring_Guide.md
+│   └── product_refactoring_migration.sql
+├── project_structure.txt
+├── readme
+│   ├── BACKEND_COMPILATION_FIX.md
+│   ├── BRANCH_ISOLATION_COMPLETE.md
+│   ├── CASH_REGISTER_IMPLEMENTATION_COMPLETE.md
+│   ├── CHEQUE_FINANCIAL_INTEGRATION.md
+│   ├── CHEQUE_INTEGRATION_TEST_PLAN.md
+│   ├── CHEQUE_QUICK_START_GUIDE.md
+│   ├── CHEQUE_SYSTEM_ARCHITECTURE.md
+│   ├── COMPLETE_IMPLEMENTATION_SUMMARY.md
+│   ├── COMPLETE_SYSTEM_DOCUMENTATION.txt
+│   ├── DEBUG_BRANCH_INVENTORY.sql
+│   ├── DEVELOPMENT_SUMMARY.md
+│   ├── EXPORT_IMPORT_IMPLEMENTATION.md
+│   ├── FIXES_APPLIED.md
+│   ├── FIX_BRANCH_INVENTORY_NOW.sql
+│   ├── FRONTEND_BACKEND_INTEGRATION_STATUS.md
+│   ├── GRN_AUTO_INVENTORY_REFRESH.md
+│   ├── GRN_AUTO_REFRESH_SUMMARY.md
+│   ├── GRN_FIX_SUMMARY.md
+│   ├── GRN_INVENTORY_FIX_COMPLETE.md
+│   ├── GRN_INVENTORY_UPDATE_FIX.md
+│   ├── GRN_WORKFLOW_VISUAL_GUIDE.md
+│   ├── IMPLEMENTATION_STATUS.md
+│   ├── INTEGRATION_COMPLETE_SUMMARY.md
+│   ├── POPULATE_BRANCH_INVENTORY.sql
+│   ├── POS_ENHANCEMENT_SUMMARY.md
+│   ├── PO_APPROVAL_IMPLEMENTATION_SUMMARY.md
+│   ├── PO_ROLE_BASED_APPROVAL.md
+│   ├── PRODUCTION_READINESS_REPORT.md
+│   ├── PROJECT_COMPLETION_SUMMARY.md
+│   ├── SUPER_ADMIN_API_COMPLETION_SUMMARY.md
+│   ├── SUPER_ADMIN_DASHBOARD_QUICK_START.md
+│   ├── SUPER_ADMIN_IMPLEMENTATION_SUMMARY.md
+│   ├── SUPER_ADMIN_QUICK_START.md
+│   ├── SUPER_ADMIN_REALTIME_API_IMPLEMENTATION.md
+│   ├── SUPER_ADMIN_WORKFLOW.md
+│   ├── SUPPLIER_SECTION_TEST_REPORT.md
+│   ├── SYSTEM_STATUS_REPORT.md
+│   └── TESTING_GUIDE.md
+└── str.txt
+
+185 directories, 919 files

@@ -59,7 +59,6 @@ public class PayrollServiceImpl implements PayrollService {
         EmployeePayment payment = EmployeePayment.builder()
                 .employee(user)
                 .branch(branch)
-                .branchId(branch.getId())
                 .workerName(request.getWorkerName())
                 .paymentDate(request.getPaymentDate())
                 .amount(request.getAmount())
@@ -90,7 +89,6 @@ public class PayrollServiceImpl implements PayrollService {
 
         payment.setEmployee(user);
         payment.setBranch(branch);
-        payment.setBranchId(branch.getId());
         payment.setWorkerName(request.getWorkerName());
         payment.setPaymentDate(request.getPaymentDate());
         payment.setAmount(request.getAmount());

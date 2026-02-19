@@ -18,14 +18,14 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class SalesAnalyticsResponse {
-    
+
     /**
      * Date range
      */
     private LocalDate startDate;
     private LocalDate endDate;
     private Long branchId;
-    
+
     /**
      * Summary metrics
      */
@@ -34,44 +34,44 @@ public class SalesAnalyticsResponse {
     private int totalTransactions;
     private BigDecimal averageOrderValue;
     private BigDecimal averageProfitMargin;
-    
+
     /**
      * Comparison with previous period
      */
     private BigDecimal salesGrowth;
     private BigDecimal profitGrowth;
     private Double transactionGrowth;
-    
+
     /**
      * Sales by day
      */
     private List<DailySales> dailySales;
-    
+
     /**
      * Sales by category
      */
     private List<CategorySales> categorySales;
-    
+
     /**
      * Sales by payment method
      */
     private Map<String, BigDecimal> paymentMethodSales;
-    
+
     /**
      * Peak hours analysis
      */
     private List<HourlySales> hourlySalesPattern;
-    
+
     /**
      * Top performing products
      */
     private List<ProductPerformance> topProducts;
-    
+
     /**
      * Sales by staff
      */
     private List<StaffPerformance> staffPerformance;
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -82,7 +82,7 @@ public class SalesAnalyticsResponse {
         private BigDecimal profit;
         private int transactions;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -94,7 +94,7 @@ public class SalesAnalyticsResponse {
         private int itemsSold;
         private Double percentageOfTotal;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -105,7 +105,7 @@ public class SalesAnalyticsResponse {
         private int transactions;
         private BigDecimal averageOrderValue;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -119,7 +119,7 @@ public class SalesAnalyticsResponse {
         private BigDecimal profit;
         private Double profitMargin;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor

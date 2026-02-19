@@ -3,11 +3,10 @@ package com.pharmacy.medlan.model.pos;
 import com.pharmacy.medlan.enums.CustomerStatus;
 import com.pharmacy.medlan.model.base.AuditableEntity;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
 
 @Entity
 @Table(name = "customers", indexes = {
@@ -19,22 +18,29 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
+@ToString(exclude = {"prescriptions", "sales"})
+@EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public class Customer extends AuditableEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(name = "customer_code", nullable = false, unique = true, length = 50)
-    private String customerCode; // CUST-00001
+    @NotBlank(message = "Customer code is required")
+    @EqualsAndHashCode.Include
+    private String customerCode;
 
     @Column(name = "customer_name", nullable = false, length = 200)
+    @NotBlank(message = "Customer name is required")
     private String customerName;
 
     @Column(name = "phone_number", length = 50)
     private String phoneNumber;
 
     @Column(name = "email", length = 100)
+    @Email(message = "Invalid email format")
     private String email;
 
     @Column(name = "gender", length = 20)
@@ -59,13 +65,16 @@ public class Customer extends AuditableEntity {
     private String fax;
 
     @Column(name = "credit_limit", precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal creditLimit = BigDecimal.ZERO;
 
     @Column(name = "current_balance", precision = 12, scale = 2)
+    @Builder.Default
     private BigDecimal currentBalance = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 50)
+    @Builder.Default
     private CustomerStatus status = CustomerStatus.ACTIVE;
 
     @Column(name = "description", length = 500)
@@ -82,12 +91,4 @@ public class Customer extends AuditableEntity {
 
     @Column(name = "insurance_policy_number", length = 100)
     private String insurancePolicyNumber;
-
-    @OneToMany(mappedBy = "customer", cascade = CascadeType.ALL)
-    @Builder.Default
-    private List<CustomerPrescription> prescriptions = new ArrayList<>();
-
-    @OneToMany(mappedBy = "customer")
-    @Builder.Default
-    private List<Sale> sales = new ArrayList<>();
 }

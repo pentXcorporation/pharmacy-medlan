@@ -5,6 +5,7 @@ import com.pharmacy.medlan.model.supplier.PurchaseOrder;
 import com.pharmacy.medlan.model.supplier.PurchaseOrderItem;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -19,10 +20,10 @@ public class PurchaseOrderMapper {
         return PurchaseOrderResponse.builder()
                 .id(po.getId())
                 .poNumber(po.getPoNumber())
-                .supplierId(po.getSupplier().getId())
-                .supplierName(po.getSupplier().getSupplierName())
-                .branchId(po.getBranch().getId())
-                .branchName(po.getBranch().getBranchName())
+                .supplierId(po.getSupplier() != null ? po.getSupplier().getId() : null)
+                .supplierName(po.getSupplier() != null ? po.getSupplier().getSupplierName() : null)
+                .branchId(po.getBranch() != null ? po.getBranch().getId() : null)
+                .branchName(po.getBranch() != null ? po.getBranch().getBranchName() : null)
                 .orderDate(po.getOrderDate())
                 .expectedDeliveryDate(po.getExpectedDeliveryDate())
                 .actualDeliveryDate(po.getActualDeliveryDate())
@@ -36,10 +37,9 @@ public class PurchaseOrderMapper {
                 .approvedAt(po.getApprovedAt())
                 .remarks(po.getRemarks())
                 .supplierReference(po.getSupplierReference())
-                .items(po.getItems() != null ? 
-                        po.getItems().stream()
-                                .map(this::toItemResponse)
-                                .collect(Collectors.toList()) : null)
+                .items(po.getItems() != null
+                        ? po.getItems().stream().map(this::toItemResponse).collect(Collectors.toList())
+                        : Collections.emptyList())
                 .createdAt(po.getCreatedAt())
                 .updatedAt(po.getUpdatedAt())
                 .build();
@@ -52,9 +52,9 @@ public class PurchaseOrderMapper {
 
         return PurchaseOrderResponse.PurchaseOrderItemResponse.builder()
                 .id(item.getId())
-                .productId(item.getProduct().getId())
-                .productName(item.getProduct().getProductName())
-                .productSku(item.getProduct().getProductCode())
+                .productId(item.getProduct() != null ? item.getProduct().getId() : null)
+                .productName(item.getProduct() != null ? item.getProduct().getProductName() : null)
+                .productSku(item.getProduct() != null ? item.getProduct().getProductCode() : null)
                 .quantityOrdered(item.getQuantityOrdered())
                 .quantityReceived(item.getQuantityReceived())
                 .unitPrice(item.getUnitPrice())
@@ -69,7 +69,7 @@ public class PurchaseOrderMapper {
 
     public List<PurchaseOrderResponse> toResponseList(List<PurchaseOrder> purchaseOrders) {
         if (purchaseOrders == null) {
-            return null;
+            return Collections.emptyList();
         }
         return purchaseOrders.stream()
                 .map(this::toResponse)

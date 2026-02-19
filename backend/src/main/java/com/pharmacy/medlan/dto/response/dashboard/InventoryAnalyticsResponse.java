@@ -18,13 +18,13 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryAnalyticsResponse {
-    
+
     /**
      * Branch information
      */
     private Long branchId;
     private String branchName;
-    
+
     /**
      * Overall inventory metrics
      */
@@ -33,7 +33,7 @@ public class InventoryAnalyticsResponse {
     private BigDecimal totalStockValue;
     private BigDecimal totalCostValue;
     private BigDecimal potentialProfit;
-    
+
     /**
      * Stock status breakdown
      */
@@ -41,7 +41,7 @@ public class InventoryAnalyticsResponse {
     private int lowStockCount;
     private int outOfStockCount;
     private int overstockCount;
-    
+
     /**
      * Expiry analysis
      */
@@ -51,40 +51,40 @@ public class InventoryAnalyticsResponse {
     private int expiringIn90Days;
     private BigDecimal expiredValue;
     private BigDecimal expiringValue;
-    
+
     /**
      * Category-wise stock
      */
     private List<CategoryStock> categoryStockBreakdown;
-    
+
     /**
      * Stock movement analysis
      */
     private List<StockMovement> recentStockMovements;
-    
+
     /**
      * ABC analysis
      */
     private AbcAnalysis abcAnalysis;
-    
+
     /**
      * Inventory turnover metrics
      */
     private BigDecimal inventoryTurnoverRatio;
     private int averageDaysToSell;
     private BigDecimal stockoutRate;
-    
+
     /**
      * Dead stock analysis
      */
     private int deadStockCount;
     private BigDecimal deadStockValue;
-    
+
     /**
      * Value distribution
      */
     private Map<String, BigDecimal> stockValueBySchedule;
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -99,7 +99,7 @@ public class InventoryAnalyticsResponse {
         private int expiringCount;
         private Double percentageOfTotal;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -112,7 +112,7 @@ public class InventoryAnalyticsResponse {
         private BigDecimal value;
         private String productName;
     }
-    
+
     @Data
     @Builder
     @NoArgsConstructor
@@ -123,13 +123,13 @@ public class InventoryAnalyticsResponse {
          */
         private int aItemsCount;
         private BigDecimal aItemsValue;
-        
+
         /**
          * B Items: Next 30% products contributing 15% revenue
          */
         private int bItemsCount;
         private BigDecimal bItemsValue;
-        
+
         /**
          * C Items: Bottom 50% products contributing 5% revenue
          */

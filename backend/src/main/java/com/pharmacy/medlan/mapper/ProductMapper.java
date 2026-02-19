@@ -8,21 +8,22 @@ import com.pharmacy.medlan.dto.response.product.SubCategoryResponse;
 import com.pharmacy.medlan.model.product.*;
 import org.springframework.stereotype.Component;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
 @Component
 public class ProductMapper {
 
     // ==================== Product Mappings ====================
 
     /**
-     * Map CreateProductRequest to Product entity
-     * Note: Product instance must be created first using factory pattern in service
+     * Populate a Product entity from a CreateProductRequest.
+     * The concrete Product subtype must be instantiated by the service before calling this.
      */
     public void toEntity(CreateProductRequest request, Product product) {
-        if (request == null || product == null) {
-            return;
-        }
+        if (request == null || product == null) return;
 
-        // Map common fields
         product.setProductName(request.getProductName());
         product.setGenericName(request.getGenericName());
         product.setManufacturer(request.getManufacturer());
@@ -44,106 +45,107 @@ public class ProductMapper {
         product.setWeightGrams(request.getWeightGrams());
         product.setAdditionalAttributes(request.getAdditionalAttributes());
 
-        // Map type-specific fields using instanceof
-        if (product instanceof MedicalProduct medical) {
-            medical.setDosageForm(request.getDosageForm());
-            medical.setStrength(request.getStrength());
-            medical.setDrugSchedule(request.getDrugSchedule());
-            medical.setIsPrescriptionRequired(request.getIsPrescriptionRequired());
-            medical.setIsNarcotic(request.getIsNarcotic());
-            medical.setIsRefrigerated(request.getIsRefrigerated());
-        } else if (product instanceof SupplementProduct supplement) {
-            supplement.setSupplementType(request.getSupplementType());
-            supplement.setActiveIngredients(request.getActiveIngredients());
-            supplement.setDosageInstructions(request.getDosageInstructions());
-            supplement.setServingSize(request.getServingSize());
-            supplement.setServingsPerContainer(request.getServingsPerContainer());
-            supplement.setAgeGroup(request.getAgeGroup());
-            supplement.setWarnings(request.getWarnings());
-            supplement.setIsFdaApproved(request.getIsFdaApproved());
-            supplement.setIsCertifiedOrganic(request.getIsCertifiedOrganic());
-        } else if (product instanceof FoodProduct food) {
-            food.setIngredients(request.getIngredients());
-            food.setNutritionalInfo(request.getNutritionalInfo());
-            food.setAllergenInfo(request.getAllergenInfo());
-            food.setShelfLifeDays(request.getShelfLifeDays());
-            food.setIsOrganic(request.getIsOrganic());
-            food.setIsVegan(request.getIsVegan());
-            food.setIsVegetarian(request.getIsVegetarian());
-            food.setIsGlutenFree(request.getIsGlutenFree());
-            food.setFssaiLicense(request.getFssaiLicense());
-            food.setFoodCategory(request.getFoodCategory());
-        } else if (product instanceof BabyCareProduct babyCare) {
-            babyCare.setAgeRange(request.getAgeRange());
-            babyCare.setProductSubType(request.getProductSubType());
-            babyCare.setSize(request.getSize());
-            babyCare.setIsHypoallergenic(request.getIsHypoallergenic());
-            babyCare.setIsDermatologicallyTested(request.getIsDermatologicallyTested());
-            babyCare.setIsFragranceFree(request.getIsFragranceFree());
-            babyCare.setPackQuantity(request.getPackQuantity());
-            babyCare.setUsageInstructions(request.getUsageInstructions());
-        } else if (product instanceof CosmeticProduct cosmetic) {
-            cosmetic.setSkinType(request.getSkinType());
-            cosmetic.setUsageInstructions(request.getUsageInstructions());
-            cosmetic.setIngredients(request.getIngredients());
-            cosmetic.setDermatologicallyTested(request.getDermatologicallyTested());
-            cosmetic.setIsParabenFree(request.getIsParabenFree());
-            cosmetic.setIsCrueltyFree(request.getIsCrueltyFree());
-            cosmetic.setSpfRating(request.getSpfRating());
-            cosmetic.setFragranceType(request.getFragranceType());
-            cosmetic.setExpiryMonthsAfterOpening(request.getExpiryMonthsAfterOpening());
-            cosmetic.setCosmeticCategory(request.getCosmeticCategory());
-        } else if (product instanceof MedicalEquipmentProduct equipment) {
-            equipment.setEquipmentType(request.getEquipmentType());
-            equipment.setWarrantyMonths(request.getWarrantyMonths());
-            equipment.setRequiresCalibration(request.getRequiresCalibration());
-            equipment.setCalibrationFrequencyDays(request.getCalibrationFrequencyDays());
-            equipment.setPowerSource(request.getPowerSource());
-            equipment.setSpecifications(request.getSpecifications());
-            equipment.setBrandModel(request.getBrandModel());
-            equipment.setUsageInstructions(request.getUsageInstructions());
-            equipment.setIsCertified(request.getIsCertified());
-            equipment.setCertificationNumber(request.getCertificationNumber());
-        } else if (product instanceof SurgicalProduct surgical) {
-            surgical.setSterilized(request.getSterilized());
-            surgical.setSingleUse(request.getSingleUse());
-            surgical.setMaterial(request.getMaterial());
-            surgical.setSize(request.getSize());
-            surgical.setPackSize(request.getPackQuantity());
-            surgical.setSurgicalCategory(request.getSurgicalCategory());
-            surgical.setUsageInstructions(request.getUsageInstructions());
-            surgical.setIsLatexFree(request.getIsLatexFree());
-            surgical.setSterilizationMethod(request.getSterilizationMethod());
-        } else if (product instanceof AyurvedicProduct ayurvedic) {
-            ayurvedic.setAyurvedicType(request.getAyurvedicType());
-            ayurvedic.setIngredients(request.getIngredients());
-            ayurvedic.setDosageInstructions(request.getDosageInstructions());
-            ayurvedic.setAyushLicense(request.getAyushLicense());
-            ayurvedic.setContraindications(request.getContraindications());
-            ayurvedic.setTherapeuticUses(request.getTherapeuticUses());
-            ayurvedic.setPreparationMethod(request.getPreparationMethod());
-            ayurvedic.setIsClassicalFormulation(request.getIsClassicalFormulation());
-        } else if (product instanceof HomeopathicProduct homeopathic) {
-            homeopathic.setPotency(request.getPotency());
-            homeopathic.setMotherTincture(request.getMotherTincture());
-            homeopathic.setIndications(request.getIndications());
-            homeopathic.setDosageInstructions(request.getDosageInstructions());
-            homeopathic.setForm(request.getForm());
-            homeopathic.setHomeopathicPharmacopoeia(request.getHomeopathicPharmacopoeia());
-            homeopathic.setIsCombinationRemedy(request.getIsCombinationRemedy());
-        } else if (product instanceof GeneralProduct general) {
-            general.setProductCategory(request.getProductCategory());
-            general.setUsageInstructions(request.getUsageInstructions());
-            general.setMaterial(request.getMaterial());
-            general.setSize(request.getSize());
-            general.setPackQuantity(request.getPackQuantity());
+        applyTypeSpecificCreate(request, product);
+    }
+
+    private void applyTypeSpecificCreate(CreateProductRequest r, Product product) {
+        if (product instanceof MedicalProduct p) {
+            p.setDosageForm(r.getDosageForm());
+            p.setStrength(r.getStrength());
+            p.setDrugSchedule(r.getDrugSchedule());
+            p.setIsPrescriptionRequired(r.getIsPrescriptionRequired());
+            p.setIsNarcotic(r.getIsNarcotic());
+            p.setIsRefrigerated(r.getIsRefrigerated());
+        } else if (product instanceof SupplementProduct p) {
+            p.setSupplementType(r.getSupplementType());
+            p.setActiveIngredients(r.getActiveIngredients());
+            p.setDosageInstructions(r.getDosageInstructions());
+            p.setServingSize(r.getServingSize());
+            p.setServingsPerContainer(r.getServingsPerContainer());
+            p.setAgeGroup(r.getAgeGroup());
+            p.setWarnings(r.getWarnings());
+            p.setIsFdaApproved(r.getIsFdaApproved());
+            p.setIsCertifiedOrganic(r.getIsCertifiedOrganic());
+        } else if (product instanceof FoodProduct p) {
+            p.setIngredients(r.getIngredients());
+            p.setNutritionalInfo(r.getNutritionalInfo());
+            p.setAllergenInfo(r.getAllergenInfo());
+            p.setShelfLifeDays(r.getShelfLifeDays());
+            p.setIsOrganic(r.getIsOrganic());
+            p.setIsVegan(r.getIsVegan());
+            p.setIsVegetarian(r.getIsVegetarian());
+            p.setIsGlutenFree(r.getIsGlutenFree());
+            p.setFssaiLicense(r.getFssaiLicense());
+            p.setFoodCategory(r.getFoodCategory());
+        } else if (product instanceof BabyCareProduct p) {
+            p.setAgeRange(r.getAgeRange());
+            p.setProductSubType(r.getProductSubType());
+            p.setSize(r.getSize());
+            p.setIsHypoallergenic(r.getIsHypoallergenic());
+            p.setIsDermatologicallyTested(r.getIsDermatologicallyTested());
+            p.setIsFragranceFree(r.getIsFragranceFree());
+            p.setPackQuantity(r.getPackQuantity());
+            p.setUsageInstructions(r.getUsageInstructions());
+        } else if (product instanceof CosmeticProduct p) {
+            p.setSkinType(r.getSkinType());
+            p.setUsageInstructions(r.getUsageInstructions());
+            p.setIngredients(r.getIngredients());
+            p.setDermatologicallyTested(r.getDermatologicallyTested());
+            p.setIsParabenFree(r.getIsParabenFree());
+            p.setIsCrueltyFree(r.getIsCrueltyFree());
+            p.setSpfRating(r.getSpfRating());
+            p.setFragranceType(r.getFragranceType());
+            p.setExpiryMonthsAfterOpening(r.getExpiryMonthsAfterOpening());
+            p.setCosmeticCategory(r.getCosmeticCategory());
+        } else if (product instanceof MedicalEquipmentProduct p) {
+            p.setEquipmentType(r.getEquipmentType());
+            p.setWarrantyMonths(r.getWarrantyMonths());
+            p.setRequiresCalibration(r.getRequiresCalibration());
+            p.setCalibrationFrequencyDays(r.getCalibrationFrequencyDays());
+            p.setPowerSource(r.getPowerSource());
+            p.setSpecifications(r.getSpecifications());
+            p.setBrandModel(r.getBrandModel());
+            p.setUsageInstructions(r.getUsageInstructions());
+            p.setIsCertified(r.getIsCertified());
+            p.setCertificationNumber(r.getCertificationNumber());
+        } else if (product instanceof SurgicalProduct p) {
+            p.setSterilized(r.getSterilized());
+            p.setSingleUse(r.getSingleUse());
+            p.setMaterial(r.getMaterial());
+            p.setSize(r.getSize());
+            p.setPackSize(r.getPackQuantity());
+            p.setIsLatexFree(r.getIsLatexFree());
+            p.setSterilizationMethod(r.getSterilizationMethod());
+            p.setSurgicalCategory(r.getSurgicalCategory());
+            p.setUsageInstructions(r.getUsageInstructions());
+        } else if (product instanceof AyurvedicProduct p) {
+            p.setAyurvedicType(r.getAyurvedicType());
+            p.setIngredients(r.getIngredients());
+            p.setDosageInstructions(r.getDosageInstructions());
+            p.setAyushLicense(r.getAyushLicense());
+            p.setContraindications(r.getContraindications());
+            p.setTherapeuticUses(r.getTherapeuticUses());
+            p.setPreparationMethod(r.getPreparationMethod());
+            p.setIsClassicalFormulation(r.getIsClassicalFormulation());
+        } else if (product instanceof HomeopathicProduct p) {
+            p.setPotency(r.getPotency());
+            p.setMotherTincture(r.getMotherTincture());
+            p.setIndications(r.getIndications());
+            p.setDosageInstructions(r.getDosageInstructions());
+            p.setForm(r.getForm());
+            p.setHomeopathicPharmacopoeia(r.getHomeopathicPharmacopoeia());
+            p.setIsCombinationRemedy(r.getIsCombinationRemedy());
+        } else if (product instanceof GeneralProduct p) {
+            p.setProductCategory(r.getProductCategory());
+            p.setUsageInstructions(r.getUsageInstructions());
+            p.setMaterial(r.getMaterial());
+            p.setSize(r.getSize());
+            p.setPackQuantity(r.getPackQuantity());
         }
     }
 
     public ProductResponse toResponse(Product product) {
-        if (product == null) {
-            return null;
-        }
+        if (product == null) return null;
 
         ProductResponse.ProductResponseBuilder builder = ProductResponse.builder()
                 .id(product.getId())
@@ -180,111 +182,265 @@ public class ProductMapper {
                 .createdAt(product.getCreatedAt())
                 .updatedAt(product.getUpdatedAt());
 
-        // Add type-specific fields
-        if (product instanceof MedicalProduct medical) {
-            builder.dosageForm(medical.getDosageForm())
-                   .strength(medical.getStrength())
-                   .drugSchedule(medical.getDrugSchedule())
-                   .isPrescriptionRequired(medical.getIsPrescriptionRequired())
-                   .isNarcotic(medical.getIsNarcotic())
-                   .isRefrigerated(medical.getIsRefrigerated());
-        } else if (product instanceof SupplementProduct supplement) {
-            builder.supplementType(supplement.getSupplementType())
-                   .activeIngredients(supplement.getActiveIngredients())
-                   .dosageInstructions(supplement.getDosageInstructions())
-                   .servingSize(supplement.getServingSize())
-                   .servingsPerContainer(supplement.getServingsPerContainer())
-                   .ageGroup(supplement.getAgeGroup())
-                   .warnings(supplement.getWarnings())
-                   .isFdaApproved(supplement.getIsFdaApproved())
-                   .isCertifiedOrganic(supplement.getIsCertifiedOrganic());
-        } else if (product instanceof FoodProduct food) {
-            builder.ingredients(food.getIngredients())
-                   .nutritionalInfo(food.getNutritionalInfo())
-                   .allergenInfo(food.getAllergenInfo())
-                   .shelfLifeDays(food.getShelfLifeDays())
-                   .isOrganic(food.getIsOrganic())
-                   .isVegan(food.getIsVegan())
-                   .isVegetarian(food.getIsVegetarian())
-                   .isGlutenFree(food.getIsGlutenFree())
-                   .fssaiLicense(food.getFssaiLicense())
-                   .foodCategory(food.getFoodCategory());
-        } else if (product instanceof BabyCareProduct babyCare) {
-            builder.ageRange(babyCare.getAgeRange())
-                   .productSubType(babyCare.getProductSubType())
-                   .size(babyCare.getSize())
-                   .isHypoallergenic(babyCare.getIsHypoallergenic())
-                   .isDermatologicallyTested(babyCare.getIsDermatologicallyTested())
-                   .isFragranceFree(babyCare.getIsFragranceFree())
-                   .packQuantity(babyCare.getPackQuantity())
-                   .usageInstructions(babyCare.getUsageInstructions());
-        } else if (product instanceof CosmeticProduct cosmetic) {
-            builder.skinType(cosmetic.getSkinType())
-                   .usageInstructions(cosmetic.getUsageInstructions())
-                   .ingredients(cosmetic.getIngredients())
-                   .dermatologicallyTested(cosmetic.getDermatologicallyTested())
-                   .isParabenFree(cosmetic.getIsParabenFree())
-                   .isCrueltyFree(cosmetic.getIsCrueltyFree())
-                   .spfRating(cosmetic.getSpfRating())
-                   .fragranceType(cosmetic.getFragranceType())
-                   .expiryMonthsAfterOpening(cosmetic.getExpiryMonthsAfterOpening())
-                   .cosmeticCategory(cosmetic.getCosmeticCategory());
-        } else if (product instanceof MedicalEquipmentProduct equipment) {
-            builder.equipmentType(equipment.getEquipmentType())
-                   .warrantyMonths(equipment.getWarrantyMonths())
-                   .requiresCalibration(equipment.getRequiresCalibration())
-                   .calibrationFrequencyDays(equipment.getCalibrationFrequencyDays())
-                   .powerSource(equipment.getPowerSource())
-                   .specifications(equipment.getSpecifications())
-                   .brandModel(equipment.getBrandModel())
-                   .usageInstructions(equipment.getUsageInstructions())
-                   .isCertified(equipment.getIsCertified())
-                   .certificationNumber(equipment.getCertificationNumber());
-        } else if (product instanceof SurgicalProduct surgical) {
-            builder.sterilized(surgical.getSterilized())
-                   .singleUse(surgical.getSingleUse())
-                   .material(surgical.getMaterial())
-                   .size(surgical.getSize())
-                   .packQuantity(surgical.getPackSize())
-                   .isLatexFree(surgical.getIsLatexFree())
-                   .sterilizationMethod(surgical.getSterilizationMethod())
-                   .surgicalCategory(surgical.getSurgicalCategory())
-                   .usageInstructions(surgical.getUsageInstructions());
-        } else if (product instanceof AyurvedicProduct ayurvedic) {
-            builder.ayurvedicType(ayurvedic.getAyurvedicType())
-                   .ingredients(ayurvedic.getIngredients())
-                   .dosageInstructions(ayurvedic.getDosageInstructions())
-                   .ayushLicense(ayurvedic.getAyushLicense())
-                   .contraindications(ayurvedic.getContraindications())
-                   .therapeuticUses(ayurvedic.getTherapeuticUses())
-                   .preparationMethod(ayurvedic.getPreparationMethod())
-                   .isClassicalFormulation(ayurvedic.getIsClassicalFormulation());
-        } else if (product instanceof HomeopathicProduct homeopathic) {
-            builder.potency(homeopathic.getPotency())
-                   .motherTincture(homeopathic.getMotherTincture())
-                   .indications(homeopathic.getIndications())
-                   .dosageInstructions(homeopathic.getDosageInstructions())
-                   .form(homeopathic.getForm())
-                   .homeopathicPharmacopoeia(homeopathic.getHomeopathicPharmacopoeia())
-
-                   .isCombinationRemedy(homeopathic.getIsCombinationRemedy());
-        } else if (product instanceof GeneralProduct general) {
-            builder.productCategory(general.getProductCategory())
-                   .usageInstructions(general.getUsageInstructions())
-                   .material(general.getMaterial())
-                   .size(general.getSize())
-                   .packQuantity(general.getPackQuantity());
-        }
-
+        applyTypeSpecificResponse(product, builder);
         return builder.build();
     }
 
-    public void updateEntityFromRequest(UpdateProductRequest request, Product product) {
-        if (request == null || product == null) {
-            return;
+    private void applyTypeSpecificResponse(Product product, ProductResponse.ProductResponseBuilder builder) {
+        if (product instanceof MedicalProduct p) {
+            builder.dosageForm(p.getDosageForm())
+                    .strength(p.getStrength())
+                    .drugSchedule(p.getDrugSchedule())
+                    .isPrescriptionRequired(p.getIsPrescriptionRequired())
+                    .isNarcotic(p.getIsNarcotic())
+                    .isRefrigerated(p.getIsRefrigerated());
+        } else if (product instanceof SupplementProduct p) {
+            builder.supplementType(p.getSupplementType())
+                    .activeIngredients(p.getActiveIngredients())
+                    .dosageInstructions(p.getDosageInstructions())
+                    .servingSize(p.getServingSize())
+                    .servingsPerContainer(p.getServingsPerContainer())
+                    .ageGroup(p.getAgeGroup())
+                    .warnings(p.getWarnings())
+                    .isFdaApproved(p.getIsFdaApproved())
+                    .isCertifiedOrganic(p.getIsCertifiedOrganic());
+        } else if (product instanceof FoodProduct p) {
+            builder.ingredients(p.getIngredients())
+                    .nutritionalInfo(p.getNutritionalInfo())
+                    .allergenInfo(p.getAllergenInfo())
+                    .shelfLifeDays(p.getShelfLifeDays())
+                    .isOrganic(p.getIsOrganic())
+                    .isVegan(p.getIsVegan())
+                    .isVegetarian(p.getIsVegetarian())
+                    .isGlutenFree(p.getIsGlutenFree())
+                    .fssaiLicense(p.getFssaiLicense())
+                    .foodCategory(p.getFoodCategory());
+        } else if (product instanceof BabyCareProduct p) {
+            builder.ageRange(p.getAgeRange())
+                    .productSubType(p.getProductSubType())
+                    .size(p.getSize())
+                    .isHypoallergenic(p.getIsHypoallergenic())
+                    .isDermatologicallyTested(p.getIsDermatologicallyTested())
+                    .isFragranceFree(p.getIsFragranceFree())
+                    .packQuantity(p.getPackQuantity())
+                    .usageInstructions(p.getUsageInstructions());
+        } else if (product instanceof CosmeticProduct p) {
+            builder.skinType(p.getSkinType())
+                    .usageInstructions(p.getUsageInstructions())
+                    .ingredients(p.getIngredients())
+                    .dermatologicallyTested(p.getDermatologicallyTested())
+                    .isParabenFree(p.getIsParabenFree())
+                    .isCrueltyFree(p.getIsCrueltyFree())
+                    .spfRating(p.getSpfRating())
+                    .fragranceType(p.getFragranceType())
+                    .expiryMonthsAfterOpening(p.getExpiryMonthsAfterOpening())
+                    .cosmeticCategory(p.getCosmeticCategory());
+        } else if (product instanceof MedicalEquipmentProduct p) {
+            builder.equipmentType(p.getEquipmentType())
+                    .warrantyMonths(p.getWarrantyMonths())
+                    .requiresCalibration(p.getRequiresCalibration())
+                    .calibrationFrequencyDays(p.getCalibrationFrequencyDays())
+                    .powerSource(p.getPowerSource())
+                    .specifications(p.getSpecifications())
+                    .brandModel(p.getBrandModel())
+                    .usageInstructions(p.getUsageInstructions())
+                    .isCertified(p.getIsCertified())
+                    .certificationNumber(p.getCertificationNumber());
+        } else if (product instanceof SurgicalProduct p) {
+            builder.sterilized(p.getSterilized())
+                    .singleUse(p.getSingleUse())
+                    .material(p.getMaterial())
+                    .size(p.getSize())
+                    .packQuantity(p.getPackSize())
+                    .isLatexFree(p.getIsLatexFree())
+                    .sterilizationMethod(p.getSterilizationMethod())
+                    .surgicalCategory(p.getSurgicalCategory())
+                    .usageInstructions(p.getUsageInstructions());
+        } else if (product instanceof AyurvedicProduct p) {
+            builder.ayurvedicType(p.getAyurvedicType())
+                    .ingredients(p.getIngredients())
+                    .dosageInstructions(p.getDosageInstructions())
+                    .ayushLicense(p.getAyushLicense())
+                    .contraindications(p.getContraindications())
+                    .therapeuticUses(p.getTherapeuticUses())
+                    .preparationMethod(p.getPreparationMethod())
+                    .isClassicalFormulation(p.getIsClassicalFormulation());
+        } else if (product instanceof HomeopathicProduct p) {
+            builder.potency(p.getPotency())
+                    .motherTincture(p.getMotherTincture())
+                    .indications(p.getIndications())
+                    .dosageInstructions(p.getDosageInstructions())
+                    .form(p.getForm())
+                    .homeopathicPharmacopoeia(p.getHomeopathicPharmacopoeia())
+                    .isCombinationRemedy(p.getIsCombinationRemedy());
+        } else if (product instanceof GeneralProduct p) {
+            builder.productCategory(p.getProductCategory())
+                    .usageInstructions(p.getUsageInstructions())
+                    .material(p.getMaterial())
+                    .size(p.getSize())
+                    .packQuantity(p.getPackQuantity());
         }
+    }
 
-        // Update common fields
+    /** Applies only non-null fields from UpdateProductRequest (partial update semantics). */
+    public void updateEntity(UpdateProductRequest request, Product product) {
+        if (request == null || product == null) return;
+
+        if (request.getProductName() != null)       product.setProductName(request.getProductName());
+        if (request.getGenericName() != null)       product.setGenericName(request.getGenericName());
+        if (request.getManufacturer() != null)      product.setManufacturer(request.getManufacturer());
+        if (request.getSupplier() != null)          product.setSupplier(request.getSupplier());
+        if (request.getBarcode() != null)           product.setBarcode(request.getBarcode());
+        if (request.getDescription() != null)       product.setDescription(request.getDescription());
+        if (request.getCostPrice() != null)         product.setCostPrice(request.getCostPrice());
+        if (request.getSellingPrice() != null)      product.setSellingPrice(request.getSellingPrice());
+        if (request.getMrp() != null)               product.setMrp(request.getMrp());
+        if (request.getProfitMargin() != null)      product.setProfitMargin(request.getProfitMargin());
+        if (request.getGstRate() != null)           product.setGstRate(request.getGstRate());
+        if (request.getReorderLevel() != null)      product.setReorderLevel(request.getReorderLevel());
+        if (request.getMinimumStock() != null)      product.setMinimumStock(request.getMinimumStock());
+        if (request.getMaximumStock() != null)      product.setMaximumStock(request.getMaximumStock());
+        if (request.getIsActive() != null)          product.setIsActive(request.getIsActive());
+        if (request.getIsDiscontinued() != null)    product.setIsDiscontinued(request.getIsDiscontinued());
+        if (request.getCountryOfOrigin() != null)   product.setCountryOfOrigin(request.getCountryOfOrigin());
+        if (request.getPackageDimensions() != null) product.setPackageDimensions(request.getPackageDimensions());
+        if (request.getWeightGrams() != null)       product.setWeightGrams(request.getWeightGrams());
+        if (request.getAdditionalAttributes() != null) product.setAdditionalAttributes(request.getAdditionalAttributes());
+
+        applyTypeSpecificUpdate(request, product);
+    }
+
+    private void applyTypeSpecificUpdate(UpdateProductRequest r, Product product) {
+        if (product instanceof MedicalProduct p) {
+            if (r.getDosageForm() != null)             p.setDosageForm(r.getDosageForm());
+            if (r.getStrength() != null)               p.setStrength(r.getStrength());
+            if (r.getDrugSchedule() != null)           p.setDrugSchedule(r.getDrugSchedule());
+            if (r.getIsPrescriptionRequired() != null) p.setIsPrescriptionRequired(r.getIsPrescriptionRequired());
+            if (r.getIsNarcotic() != null)             p.setIsNarcotic(r.getIsNarcotic());
+            if (r.getIsRefrigerated() != null)         p.setIsRefrigerated(r.getIsRefrigerated());
+        } else if (product instanceof SupplementProduct p) {
+            if (r.getSupplementType() != null)       p.setSupplementType(r.getSupplementType());
+            if (r.getActiveIngredients() != null)    p.setActiveIngredients(r.getActiveIngredients());
+            if (r.getDosageInstructions() != null)   p.setDosageInstructions(r.getDosageInstructions());
+            if (r.getServingSize() != null)          p.setServingSize(r.getServingSize());
+            if (r.getServingsPerContainer() != null) p.setServingsPerContainer(r.getServingsPerContainer());
+            if (r.getAgeGroup() != null)             p.setAgeGroup(r.getAgeGroup());
+            if (r.getWarnings() != null)             p.setWarnings(r.getWarnings());
+            if (r.getIsFdaApproved() != null)        p.setIsFdaApproved(r.getIsFdaApproved());
+            if (r.getIsCertifiedOrganic() != null)   p.setIsCertifiedOrganic(r.getIsCertifiedOrganic());
+        } else if (product instanceof FoodProduct p) {
+            if (r.getIngredients() != null)      p.setIngredients(r.getIngredients());
+            if (r.getNutritionalInfo() != null)  p.setNutritionalInfo(r.getNutritionalInfo());
+            if (r.getAllergenInfo() != null)      p.setAllergenInfo(r.getAllergenInfo());
+            if (r.getShelfLifeDays() != null)    p.setShelfLifeDays(r.getShelfLifeDays());
+            if (r.getIsOrganic() != null)        p.setIsOrganic(r.getIsOrganic());
+            if (r.getIsVegan() != null)          p.setIsVegan(r.getIsVegan());
+            if (r.getIsVegetarian() != null)     p.setIsVegetarian(r.getIsVegetarian());
+            if (r.getIsGlutenFree() != null)     p.setIsGlutenFree(r.getIsGlutenFree());
+            if (r.getFssaiLicense() != null)     p.setFssaiLicense(r.getFssaiLicense());
+            if (r.getFoodCategory() != null)     p.setFoodCategory(r.getFoodCategory());
+        } else if (product instanceof BabyCareProduct p) {
+            if (r.getAgeRange() != null)                  p.setAgeRange(r.getAgeRange());
+            if (r.getProductSubType() != null)            p.setProductSubType(r.getProductSubType());
+            if (r.getSize() != null)                      p.setSize(r.getSize());
+            if (r.getIsHypoallergenic() != null)          p.setIsHypoallergenic(r.getIsHypoallergenic());
+            if (r.getIsDermatologicallyTested() != null)  p.setIsDermatologicallyTested(r.getIsDermatologicallyTested());
+            if (r.getIsFragranceFree() != null)           p.setIsFragranceFree(r.getIsFragranceFree());
+            if (r.getPackQuantity() != null)              p.setPackQuantity(r.getPackQuantity());
+            if (r.getUsageInstructions() != null)         p.setUsageInstructions(r.getUsageInstructions());
+        } else if (product instanceof CosmeticProduct p) {
+            if (r.getSkinType() != null)                  p.setSkinType(r.getSkinType());
+            if (r.getUsageInstructions() != null)         p.setUsageInstructions(r.getUsageInstructions());
+            if (r.getIngredients() != null)               p.setIngredients(r.getIngredients());
+            if (r.getDermatologicallyTested() != null)    p.setDermatologicallyTested(r.getDermatologicallyTested());
+            if (r.getIsParabenFree() != null)             p.setIsParabenFree(r.getIsParabenFree());
+            if (r.getIsCrueltyFree() != null)             p.setIsCrueltyFree(r.getIsCrueltyFree());
+            if (r.getSpfRating() != null)                 p.setSpfRating(r.getSpfRating());
+            if (r.getFragranceType() != null)             p.setFragranceType(r.getFragranceType());
+            if (r.getExpiryMonthsAfterOpening() != null)  p.setExpiryMonthsAfterOpening(r.getExpiryMonthsAfterOpening());
+            if (r.getCosmeticCategory() != null)          p.setCosmeticCategory(r.getCosmeticCategory());
+        } else if (product instanceof MedicalEquipmentProduct p) {
+            if (r.getEquipmentType() != null)           p.setEquipmentType(r.getEquipmentType());
+            if (r.getWarrantyMonths() != null)          p.setWarrantyMonths(r.getWarrantyMonths());
+            if (r.getRequiresCalibration() != null)     p.setRequiresCalibration(r.getRequiresCalibration());
+            if (r.getCalibrationFrequencyDays() != null) p.setCalibrationFrequencyDays(r.getCalibrationFrequencyDays());
+            if (r.getPowerSource() != null)             p.setPowerSource(r.getPowerSource());
+            if (r.getSpecifications() != null)          p.setSpecifications(r.getSpecifications());
+            if (r.getBrandModel() != null)              p.setBrandModel(r.getBrandModel());
+            if (r.getUsageInstructions() != null)       p.setUsageInstructions(r.getUsageInstructions());
+            if (r.getIsCertified() != null)             p.setIsCertified(r.getIsCertified());
+            if (r.getCertificationNumber() != null)     p.setCertificationNumber(r.getCertificationNumber());
+        } else if (product instanceof SurgicalProduct p) {
+            if (r.getSterilized() != null)          p.setSterilized(r.getSterilized());
+            if (r.getSingleUse() != null)           p.setSingleUse(r.getSingleUse());
+            if (r.getMaterial() != null)            p.setMaterial(r.getMaterial());
+            if (r.getSize() != null)                p.setSize(r.getSize());
+            if (r.getPackQuantity() != null)        p.setPackSize(r.getPackQuantity());
+            if (r.getIsLatexFree() != null)         p.setIsLatexFree(r.getIsLatexFree());
+            if (r.getSterilizationMethod() != null) p.setSterilizationMethod(r.getSterilizationMethod());
+            if (r.getSurgicalCategory() != null)    p.setSurgicalCategory(r.getSurgicalCategory());
+            if (r.getUsageInstructions() != null)   p.setUsageInstructions(r.getUsageInstructions());
+        } else if (product instanceof AyurvedicProduct p) {
+            if (r.getAyurvedicType() != null)          p.setAyurvedicType(r.getAyurvedicType());
+            if (r.getIngredients() != null)            p.setIngredients(r.getIngredients());
+            if (r.getDosageInstructions() != null)     p.setDosageInstructions(r.getDosageInstructions());
+            if (r.getAyushLicense() != null)           p.setAyushLicense(r.getAyushLicense());
+            if (r.getContraindications() != null)      p.setContraindications(r.getContraindications());
+            if (r.getTherapeuticUses() != null)        p.setTherapeuticUses(r.getTherapeuticUses());
+            if (r.getPreparationMethod() != null)      p.setPreparationMethod(r.getPreparationMethod());
+            if (r.getIsClassicalFormulation() != null) p.setIsClassicalFormulation(r.getIsClassicalFormulation());
+        } else if (product instanceof HomeopathicProduct p) {
+            if (r.getPotency() != null)                    p.setPotency(r.getPotency());
+            if (r.getMotherTincture() != null)             p.setMotherTincture(r.getMotherTincture());
+            if (r.getIndications() != null)                p.setIndications(r.getIndications());
+            if (r.getDosageInstructions() != null)         p.setDosageInstructions(r.getDosageInstructions());
+            if (r.getForm() != null)                       p.setForm(r.getForm());
+            if (r.getHomeopathicPharmacopoeia() != null)   p.setHomeopathicPharmacopoeia(r.getHomeopathicPharmacopoeia());
+            if (r.getIsCombinationRemedy() != null)        p.setIsCombinationRemedy(r.getIsCombinationRemedy());
+        } else if (product instanceof GeneralProduct p) {
+            if (r.getProductCategory() != null)    p.setProductCategory(r.getProductCategory());
+            if (r.getUsageInstructions() != null)  p.setUsageInstructions(r.getUsageInstructions());
+            if (r.getMaterial() != null)           p.setMaterial(r.getMaterial());
+            if (r.getSize() != null)               p.setSize(r.getSize());
+            if (r.getPackQuantity() != null)       p.setPackQuantity(r.getPackQuantity());
+        }
+    }
+
+    public List<ProductResponse> toResponseList(List<Product> products) {
+        if (products == null) return Collections.emptyList();
+        return products.stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    // ==================== Category Mappings ====================
+
+    public CategoryResponse toCategoryResponse(Category category) {
+        if (category == null) return null;
+
+        return CategoryResponse.builder()
+                .id(category.getId())
+                .categoryName(category.getCategoryName())
+                .categoryCode(category.getCategoryCode())
+                .description(category.getDescription())
+                .minCode(category.getMinCode())
+                .maxCode(category.getMaxCode())
+                .isActive(category.getIsActive())
+                .subCategoryCount(0)   // avoid LazyInitializationException; populate in service if needed
+                .productCount(0)
+                .subCategories(null)
+                .createdAt(category.getCreatedAt())
+                .updatedAt(category.getUpdatedAt())
+                .build();
+    }
+
+    // ==================== Update Entity From Request ====================
+
+    /**
+     * Update an existing Product entity from an UpdateProductRequest.
+     * Only non-null fields are updated.
+     */
+    public void updateEntityFromRequest(UpdateProductRequest request, Product product) {
+        if (request == null || product == null) return;
+
         if (request.getProductName() != null) product.setProductName(request.getProductName());
         if (request.getGenericName() != null) product.setGenericName(request.getGenericName());
         if (request.getManufacturer() != null) product.setManufacturer(request.getManufacturer());
@@ -306,131 +462,21 @@ public class ProductMapper {
         if (request.getWeightGrams() != null) product.setWeightGrams(request.getWeightGrams());
         if (request.getAdditionalAttributes() != null) product.setAdditionalAttributes(request.getAdditionalAttributes());
 
-        // Update type-specific fields
-        if (product instanceof MedicalProduct medical) {
-            if (request.getDosageForm() != null) medical.setDosageForm(request.getDosageForm());
-            if (request.getStrength() != null) medical.setStrength(request.getStrength());
-            if (request.getDrugSchedule() != null) medical.setDrugSchedule(request.getDrugSchedule());
-            if (request.getIsPrescriptionRequired() != null) medical.setIsPrescriptionRequired(request.getIsPrescriptionRequired());
-            if (request.getIsNarcotic() != null) medical.setIsNarcotic(request.getIsNarcotic());
-            if (request.getIsRefrigerated() != null) medical.setIsRefrigerated(request.getIsRefrigerated());
-        } else if (product instanceof SupplementProduct supplement) {
-            if (request.getSupplementType() != null) supplement.setSupplementType(request.getSupplementType());
-            if (request.getActiveIngredients() != null) supplement.setActiveIngredients(request.getActiveIngredients());
-            if (request.getDosageInstructions() != null) supplement.setDosageInstructions(request.getDosageInstructions());
-            if (request.getServingSize() != null) supplement.setServingSize(request.getServingSize());
-            if (request.getServingsPerContainer() != null) supplement.setServingsPerContainer(request.getServingsPerContainer());
-            if (request.getAgeGroup() != null) supplement.setAgeGroup(request.getAgeGroup());
-            if (request.getWarnings() != null) supplement.setWarnings(request.getWarnings());
-            if (request.getIsFdaApproved() != null) supplement.setIsFdaApproved(request.getIsFdaApproved());
-            if (request.getIsCertifiedOrganic() != null) supplement.setIsCertifiedOrganic(request.getIsCertifiedOrganic());
-        } else if (product instanceof FoodProduct food) {
-            if (request.getIngredients() != null) food.setIngredients(request.getIngredients());
-            if (request.getNutritionalInfo() != null) food.setNutritionalInfo(request.getNutritionalInfo());
-            if (request.getAllergenInfo() != null) food.setAllergenInfo(request.getAllergenInfo());
-            if (request.getShelfLifeDays() != null) food.setShelfLifeDays(request.getShelfLifeDays());
-            if (request.getIsOrganic() != null) food.setIsOrganic(request.getIsOrganic());
-            if (request.getIsVegan() != null) food.setIsVegan(request.getIsVegan());
-            if (request.getIsVegetarian() != null) food.setIsVegetarian(request.getIsVegetarian());
-            if (request.getIsGlutenFree() != null) food.setIsGlutenFree(request.getIsGlutenFree());
-            if (request.getFssaiLicense() != null) food.setFssaiLicense(request.getFssaiLicense());
-            if (request.getFoodCategory() != null) food.setFoodCategory(request.getFoodCategory());
-        } else if (product instanceof BabyCareProduct babyCare) {
-            if (request.getAgeRange() != null) babyCare.setAgeRange(request.getAgeRange());
-            if (request.getProductSubType() != null) babyCare.setProductSubType(request.getProductSubType());
-            if (request.getSize() != null) babyCare.setSize(request.getSize());
-            if (request.getIsHypoallergenic() != null) babyCare.setIsHypoallergenic(request.getIsHypoallergenic());
-            if (request.getIsDermatologicallyTested() != null) babyCare.setIsDermatologicallyTested(request.getIsDermatologicallyTested());
-            if (request.getIsFragranceFree() != null) babyCare.setIsFragranceFree(request.getIsFragranceFree());
-            if (request.getPackQuantity() != null) babyCare.setPackQuantity(request.getPackQuantity());
-            if (request.getUsageInstructions() != null) babyCare.setUsageInstructions(request.getUsageInstructions());
-        } else if (product instanceof CosmeticProduct cosmetic) {
-            if (request.getSkinType() != null) cosmetic.setSkinType(request.getSkinType());
-            if (request.getUsageInstructions() != null) cosmetic.setUsageInstructions(request.getUsageInstructions());
-            if (request.getIngredients() != null) cosmetic.setIngredients(request.getIngredients());
-            if (request.getDermatologicallyTested() != null) cosmetic.setDermatologicallyTested(request.getDermatologicallyTested());
-            if (request.getIsParabenFree() != null) cosmetic.setIsParabenFree(request.getIsParabenFree());
-            if (request.getIsCrueltyFree() != null) cosmetic.setIsCrueltyFree(request.getIsCrueltyFree());
-            if (request.getSpfRating() != null) cosmetic.setSpfRating(request.getSpfRating());
-            if (request.getFragranceType() != null) cosmetic.setFragranceType(request.getFragranceType());
-            if (request.getExpiryMonthsAfterOpening() != null) cosmetic.setExpiryMonthsAfterOpening(request.getExpiryMonthsAfterOpening());
-            if (request.getCosmeticCategory() != null) cosmetic.setCosmeticCategory(request.getCosmeticCategory());
-        } else if (product instanceof MedicalEquipmentProduct equipment) {
-            if (request.getEquipmentType() != null) equipment.setEquipmentType(request.getEquipmentType());
-            if (request.getWarrantyMonths() != null) equipment.setWarrantyMonths(request.getWarrantyMonths());
-            if (request.getRequiresCalibration() != null) equipment.setRequiresCalibration(request.getRequiresCalibration());
-            if (request.getCalibrationFrequencyDays() != null) equipment.setCalibrationFrequencyDays(request.getCalibrationFrequencyDays());
-            if (request.getPowerSource() != null) equipment.setPowerSource(request.getPowerSource());
-            if (request.getSpecifications() != null) equipment.setSpecifications(request.getSpecifications());
-            if (request.getBrandModel() != null) equipment.setBrandModel(request.getBrandModel());
-            if (request.getUsageInstructions() != null) equipment.setUsageInstructions(request.getUsageInstructions());
-            if (request.getIsCertified() != null) equipment.setIsCertified(request.getIsCertified());
-            if (request.getCertificationNumber() != null) equipment.setCertificationNumber(request.getCertificationNumber());
-        } else if (product instanceof SurgicalProduct surgical) {
-            if (request.getSterilized() != null) surgical.setSterilized(request.getSterilized());
-            if (request.getSingleUse() != null) surgical.setSingleUse(request.getSingleUse());
-            if (request.getMaterial() != null) surgical.setMaterial(request.getMaterial());
-            if (request.getSize() != null) surgical.setSize(request.getSize());
-            if (request.getPackQuantity() != null) surgical.setPackSize(request.getPackQuantity());
-            if (request.getIsLatexFree() != null) surgical.setIsLatexFree(request.getIsLatexFree());
-            if (request.getSterilizationMethod() != null) surgical.setSterilizationMethod(request.getSterilizationMethod());
-            if (request.getSurgicalCategory() != null) surgical.setSurgicalCategory(request.getSurgicalCategory());
-            if (request.getUsageInstructions() != null) surgical.setUsageInstructions(request.getUsageInstructions());
-        } else if (product instanceof AyurvedicProduct ayurvedic) {
-            if (request.getAyurvedicType() != null) ayurvedic.setAyurvedicType(request.getAyurvedicType());
-            if (request.getIngredients() != null) ayurvedic.setIngredients(request.getIngredients());
-            if (request.getDosageInstructions() != null) ayurvedic.setDosageInstructions(request.getDosageInstructions());
-            if (request.getAyushLicense() != null) ayurvedic.setAyushLicense(request.getAyushLicense());
-            if (request.getContraindications() != null) ayurvedic.setContraindications(request.getContraindications());
-            if (request.getTherapeuticUses() != null) ayurvedic.setTherapeuticUses(request.getTherapeuticUses());
-            if (request.getPreparationMethod() != null) ayurvedic.setPreparationMethod(request.getPreparationMethod());
-            if (request.getIsClassicalFormulation() != null) ayurvedic.setIsClassicalFormulation(request.getIsClassicalFormulation());
-        } else if (product instanceof HomeopathicProduct homeopathic) {
-            if (request.getPotency() != null) homeopathic.setPotency(request.getPotency());
-            if (request.getMotherTincture() != null) homeopathic.setMotherTincture(request.getMotherTincture());
-            if (request.getIndications() != null) homeopathic.setIndications(request.getIndications());
-            if (request.getDosageInstructions() != null) homeopathic.setDosageInstructions(request.getDosageInstructions());
-            if (request.getForm() != null) homeopathic.setForm(request.getForm());
-            if (request.getHomeopathicPharmacopoeia() != null) homeopathic.setHomeopathicPharmacopoeia(request.getHomeopathicPharmacopoeia());
-            if (request.getIsCombinationRemedy() != null) homeopathic.setIsCombinationRemedy(request.getIsCombinationRemedy());
-        } else if (product instanceof GeneralProduct general) {
-            if (request.getProductCategory() != null) general.setProductCategory(request.getProductCategory());
-            if (request.getUsageInstructions() != null) general.setUsageInstructions(request.getUsageInstructions());
-            if (request.getMaterial() != null) general.setMaterial(request.getMaterial());
-            if (request.getSize() != null) general.setSize(request.getSize());
-            if (request.getPackQuantity() != null) general.setPackQuantity(request.getPackQuantity());
+        // Type-specific fields
+        if (product instanceof MedicalProduct p) {
+            if (request.getDosageForm() != null) p.setDosageForm(request.getDosageForm());
+            if (request.getStrength() != null) p.setStrength(request.getStrength());
+            if (request.getDrugSchedule() != null) p.setDrugSchedule(request.getDrugSchedule());
+            if (request.getIsPrescriptionRequired() != null) p.setIsPrescriptionRequired(request.getIsPrescriptionRequired());
+            if (request.getIsNarcotic() != null) p.setIsNarcotic(request.getIsNarcotic());
+            if (request.getIsRefrigerated() != null) p.setIsRefrigerated(request.getIsRefrigerated());
         }
-    }
-
-    // ==================== Category Mappings ====================
-
-    public CategoryResponse toCategoryResponse(Category category) {
-        if (category == null) {
-            return null;
-        }
-
-        return CategoryResponse.builder()
-                .id(category.getId())
-                .categoryName(category.getCategoryName())
-                .categoryCode(category.getCategoryCode())
-                .description(category.getDescription())
-                .minCode(category.getMinCode())
-                .maxCode(category.getMaxCode())
-                .isActive(category.getIsActive())
-                .subCategoryCount(0) // Set to 0 to avoid LazyInitializationException
-                .productCount(0) // Set to 0 to avoid LazyInitializationException
-                .subCategories(null) // Set to null to avoid LazyInitializationException
-                .createdAt(category.getCreatedAt())
-                .updatedAt(category.getUpdatedAt())
-                .build();
     }
 
     // ==================== SubCategory Mappings ====================
 
     public SubCategoryResponse toSubCategoryResponse(SubCategory subCategory) {
-        if (subCategory == null) {
-            return null;
-        }
+        if (subCategory == null) return null;
 
         return SubCategoryResponse.builder()
                 .id(subCategory.getId())

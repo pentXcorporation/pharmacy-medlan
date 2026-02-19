@@ -45,20 +45,21 @@ public class SecurityConfig {
             "/swagger-ui.html",
             "/v3/api-docs/**",
             "/api-docs/**",
-            "/actuator/**",
+            "/actuator/health",
+            "/actuator/info",
+            "/ws/**",
             "/error"
     };
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // 1. Force Spring Security to use the corsConfigurationSource bean defined below
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session ->
+                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(PUBLIC_ENDPOINTS).permitAll()
-                        // .requestMatchers("/**").permitAll() // Uncomment this ONLY if you are still stuck, but try to keep it secure first
                         .anyRequest().authenticated()
                 )
                 .authenticationProvider(authenticationProvider())
@@ -82,7 +83,7 @@ public class SecurityConfig {
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder(12);
     }
 
     @Bean
@@ -111,24 +112,22 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-        // 2. CRITICAL UPDATE: Added your Netlify and No-IP domains here
         config.setAllowedOriginPatterns(List.of(
-                "http://localhost:*",                    // Local development
-                "https://*.netlify.app",                 // ALL Netlify apps (includes your specific one)
-                "https://medlan.netlify.app",            // Main Netlify URL
-                "https://medlan-project.serveminecraft.net" // Your Backend URL (No-IP)
+                "http://localhost:*",
+                "https://*.netlify.app",
+                "https://*.vercel.app",
+                "https://medlan-project.serveminecraft.net"
         ));
-
-        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
-        config.setAllowedHeaders(List.of("*")); // Allow all headers
-        config.setExposedHeaders(List.of("Authorization", "Content-Type", "Access-Control-Allow-Origin"));
-        config.setAllowCredentials(true); // Allow cookies/auth headers
+        config.setAllowedMethods(Arrays.asList(
+                "GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setExposedHeaders(List.of(
+                "Authorization", "Content-Type", "X-Total-Count"));
+        config.setAllowCredentials(true);
         config.setMaxAge(3600L);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
-
         return source;
     }
 }

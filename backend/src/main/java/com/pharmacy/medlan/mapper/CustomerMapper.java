@@ -65,49 +65,28 @@ public class CustomerMapper {
                 .build();
     }
 
+    /**
+     * Applies non-null fields from the request onto an existing customer entity.
+     * The {@code fax} field was previously missing from partial updates — now included.
+     */
     public void updateEntityFromRequest(CreateCustomerRequest request, Customer customer) {
         if (request == null || customer == null) {
             return;
         }
 
-        if (request.getCustomerName() != null) {
-            customer.setCustomerName(request.getCustomerName());
-        }
-        if (request.getPhoneNumber() != null) {
-            customer.setPhoneNumber(request.getPhoneNumber());
-        }
-        if (request.getEmail() != null) {
-            customer.setEmail(request.getEmail());
-        }
-        if (request.getGender() != null) {
-            customer.setGender(request.getGender());
-        }
-        if (request.getDateOfBirth() != null) {
-            customer.setDateOfBirth(request.getDateOfBirth());
-        }
-        if (request.getAddress() != null) {
-            customer.setAddress(request.getAddress());
-        }
-        if (request.getCity() != null) {
-            customer.setCity(request.getCity());
-        }
-        if (request.getState() != null) {
-            customer.setState(request.getState());
-        }
-        if (request.getPincode() != null) {
-            customer.setPincode(request.getPincode());
-        }
-        if (request.getCreditLimit() != null) {
-            customer.setCreditLimit(request.getCreditLimit());
-        }
-        if (request.getDescription() != null) {
-            customer.setDescription(request.getDescription());
-        }
-        if (request.getMedicalHistory() != null) {
-            customer.setMedicalHistory(request.getMedicalHistory());
-        }
-        if (request.getAllergies() != null) {
-            customer.setAllergies(request.getAllergies());
-        }
+        if (request.getCustomerName() != null) customer.setCustomerName(request.getCustomerName());
+        if (request.getPhoneNumber() != null)  customer.setPhoneNumber(request.getPhoneNumber());
+        if (request.getEmail() != null)         customer.setEmail(request.getEmail());
+        if (request.getGender() != null)        customer.setGender(request.getGender());
+        if (request.getDateOfBirth() != null)   customer.setDateOfBirth(request.getDateOfBirth());
+        if (request.getAddress() != null)       customer.setAddress(request.getAddress());
+        if (request.getCity() != null)          customer.setCity(request.getCity());
+        if (request.getState() != null)         customer.setState(request.getState());
+        if (request.getPincode() != null)       customer.setPincode(request.getPincode());
+        if (request.getFax() != null)           customer.setFax(request.getFax());          // was missing
+        if (request.getCreditLimit() != null)   customer.setCreditLimit(request.getCreditLimit());
+        if (request.getDescription() != null)   customer.setDescription(request.getDescription());
+        if (request.getMedicalHistory() != null) customer.setMedicalHistory(request.getMedicalHistory());
+        if (request.getAllergies() != null)     customer.setAllergies(request.getAllergies());
     }
 }
