@@ -15,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { useActiveCategories } from "../hooks";
+import { PRODUCT_TYPE_LABELS, ALL_PRODUCT_TYPES } from "@/constants";
 
 /**
  * ProductFilters component
@@ -40,10 +41,18 @@ const ProductFilters = ({ filters, onFilterChange, onClearFilters }) => {
     });
   };
 
+  const handleProductTypeChange = (value) => {
+    onFilterChange({
+      ...filters,
+      productType: value === "all" ? undefined : value,
+    });
+  };
+
   const activeFiltersCount = [
     filters.search,
     filters.categoryId,
     filters.status,
+    filters.productType,
   ].filter(Boolean).length;
 
   return (
@@ -73,6 +82,24 @@ const ProductFilters = ({ filters, onFilterChange, onClearFilters }) => {
             {categories.map((category) => (
               <SelectItem key={category.id} value={category.id.toString()}>
                 {category.categoryName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+
+        {/* Product Type Filter */}
+        <Select
+          value={filters.productType || "all"}
+          onValueChange={handleProductTypeChange}
+        >
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Product Type" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Types</SelectItem>
+            {ALL_PRODUCT_TYPES.map((type) => (
+              <SelectItem key={type} value={type}>
+                {PRODUCT_TYPE_LABELS[type]}
               </SelectItem>
             ))}
           </SelectContent>

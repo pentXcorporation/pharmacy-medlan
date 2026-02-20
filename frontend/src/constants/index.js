@@ -15,6 +15,7 @@ export * from "./employmentType";
 export * from "./dosageForm";
 export * from "./drugSchedule";
 export * from "./unitOfMeasure";
+export * from "./productTypes";
 
 // Inventory related
 export * from "./stockMovementType";
