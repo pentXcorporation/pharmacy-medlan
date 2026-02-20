@@ -62,10 +62,10 @@ export const PRODUCT_TYPE_DESCRIPTIONS = {
   FOOD: "Beverages, snacks, health foods, dairy products",
   BABY_CARE: "Diapers, wipes, lotions, baby foods",
   COSMETIC: "Skincare, haircare, makeup, fragrances",
-  MEDICAL_EQUIPMENT: "Diagnostic devices, mobility aids — coming soon",
-  SURGICAL: "Gloves, dressings, instruments — coming soon",
-  AYURVEDIC: "Ayurvedic medicines, herbal formulations — coming soon",
-  HOMEOPATHIC: "Homeopathic remedies and preparations — coming soon",
+  MEDICAL_EQUIPMENT: "Diagnostic devices, BP monitors, mobility aids",
+  SURGICAL: "Gloves, dressings, syringes, surgical instruments",
+  AYURVEDIC: "Ayurvedic medicines, herbal formulations, churnas",
+  HOMEOPATHIC: "Homeopathic remedies, mother tinctures, dilutions",
   GENERAL: "Miscellaneous items, household goods",
 };
 
@@ -97,28 +97,24 @@ export const PRODUCT_TYPE_BADGE_CLASS = {
   GENERAL: "bg-gray-100 text-gray-800 border-gray-200",
 };
 
-/** Types with full frontend support in the current phase */
+/** All fully supported product types */
 export const ACTIVE_PRODUCT_TYPES = [
   "MEDICAL",
   "SUPPLEMENT",
   "FOOD",
   "BABY_CARE",
   "COSMETIC",
-  "GENERAL",
-];
-
-/** Types that are recognised by the backend but not yet fully supported in the UI */
-export const COMING_SOON_PRODUCT_TYPES = [
   "MEDICAL_EQUIPMENT",
   "SURGICAL",
   "AYURVEDIC",
   "HOMEOPATHIC",
+  "GENERAL",
 ];
 
-export const ALL_PRODUCT_TYPES = [
-  ...ACTIVE_PRODUCT_TYPES,
-  ...COMING_SOON_PRODUCT_TYPES,
-];
+/** @deprecated All types are now active — kept for backward compatibility */
+export const COMING_SOON_PRODUCT_TYPES = [];
+
+export const ALL_PRODUCT_TYPES = [...ACTIVE_PRODUCT_TYPES];
 
 // ── Supplement sub-type options ──────────────────────────────────────────────
 export const SUPPLEMENT_TYPE_OPTIONS = [
@@ -174,4 +170,69 @@ export const SKIN_TYPE_OPTIONS = [
   { value: "SENSITIVE", label: "Sensitive" },
   { value: "NORMAL", label: "Normal" },
   { value: "ALL_TYPES", label: "All Skin Types" },
+];
+
+// ── Medical Equipment type options ───────────────────────────────────────────
+export const EQUIPMENT_TYPE_OPTIONS = [
+  { value: "DIAGNOSTIC", label: "Diagnostic Device" },
+  { value: "MONITORING", label: "Monitoring Device (BP, Glucose, etc.)" },
+  { value: "MOBILITY", label: "Mobility Aid" },
+  { value: "THERAPEUTIC", label: "Therapeutic Device" },
+  { value: "LABORATORY", label: "Laboratory Equipment" },
+  { value: "IMAGING", label: "Imaging Equipment" },
+  { value: "OTHER", label: "Other" },
+];
+
+// ── Power source options (Medical Equipment) ─────────────────────────────────
+export const POWER_SOURCE_OPTIONS = [
+  { value: "BATTERY", label: "Battery" },
+  { value: "AC_POWER", label: "AC Power" },
+  { value: "RECHARGEABLE", label: "Rechargeable" },
+  { value: "MANUAL", label: "Manual / No Power" },
+  { value: "SOLAR", label: "Solar" },
+];
+
+// ── Surgical category options ─────────────────────────────────────────────────
+export const SURGICAL_CATEGORY_OPTIONS = [
+  { value: "GLOVES", label: "Gloves & Protective Wear" },
+  { value: "DRESSINGS", label: "Dressings & Bandages" },
+  { value: "SYRINGES", label: "Syringes & Needles" },
+  { value: "INSTRUMENTS", label: "Surgical Instruments" },
+  { value: "SUTURES", label: "Sutures & Staples" },
+  { value: "CATHETERS", label: "Catheters & Tubes" },
+  { value: "FIRST_AID", label: "First Aid Supplies" },
+  { value: "OTHER", label: "Other" },
+];
+
+// ── Sterilization method options ─────────────────────────────────────────────
+export const STERILIZATION_METHOD_OPTIONS = [
+  { value: "ETO", label: "Ethylene Oxide (ETO)" },
+  { value: "GAMMA", label: "Gamma Radiation" },
+  { value: "STEAM", label: "Steam / Autoclave" },
+  { value: "DRY_HEAT", label: "Dry Heat" },
+  { value: "CHEMICAL", label: "Chemical" },
+  { value: "NOT_STERILIZED", label: "Not Sterilized" },
+];
+
+// ── Ayurvedic type options ────────────────────────────────────────────────────
+export const AYURVEDIC_TYPE_OPTIONS = [
+  { value: "CHURNA", label: "Churna (Powder)" },
+  { value: "VATI", label: "Vati / Tablet" },
+  { value: "KWATH", label: "Kwath / Decoction" },
+  { value: "ASAVA_ARISHTA", label: "Asava / Arishta" },
+  { value: "GHRITA", label: "Ghrita (Medicated Ghee)" },
+  { value: "TAIL", label: "Tail (Medicated Oil)" },
+  { value: "LEHA", label: "Leha / Avaleha (Linctus)" },
+  { value: "BHASMA", label: "Bhasma (Calx)" },
+  { value: "OTHER", label: "Other" },
+];
+
+// ── Homeopathic form options ──────────────────────────────────────────────────
+export const HOMEOPATHIC_FORM_OPTIONS = [
+  { value: "PILLS", label: "Pills / Globules" },
+  { value: "LIQUID", label: "Liquid Dilution" },
+  { value: "TINCTURE", label: "Mother Tincture" },
+  { value: "TRITURATION", label: "Trituration (Powder)" },
+  { value: "CREAM", label: "Cream / Ointment" },
+  { value: "DROPS", label: "Drops" },
 ];

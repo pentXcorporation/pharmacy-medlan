@@ -576,6 +576,233 @@ const ProductViewPage = () => {
         </Card>
       )}
 
+      {/* Medical Equipment Details */}
+      {product.productType === PRODUCT_TYPE.MEDICAL_EQUIPMENT && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Medical Equipment Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Equipment Type", product.equipmentType],
+              ["Brand & Model", product.brandModel],
+              ["Power Source", product.powerSource],
+              [
+                "Warranty",
+                product.warrantyMonths
+                  ? `${product.warrantyMonths} months`
+                  : null,
+              ],
+              ["Certification No.", product.certificationNumber],
+              [
+                "Calibration Frequency",
+                product.calibrationFrequencyDays
+                  ? `Every ${product.calibrationFrequencyDays} days`
+                  : null,
+              ],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.specifications && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Technical Specifications
+                </p>
+                <p className="text-sm">{product.specifications}</p>
+              </div>
+            )}
+            {product.usageInstructions && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Usage Instructions
+                </p>
+                <p className="text-sm">{product.usageInstructions}</p>
+              </div>
+            )}
+            <div className="sm:col-span-2 flex flex-wrap gap-2">
+              {product.requiresCalibration && (
+                <Badge variant="secondary">Requires Calibration</Badge>
+              )}
+              {product.isCertified && (
+                <Badge variant="secondary">Certified</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Surgical Details */}
+      {product.productType === PRODUCT_TYPE.SURGICAL && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Surgical &amp; First Aid Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Surgical Category", product.surgicalCategory],
+              ["Material", product.material],
+              ["Size", product.size],
+              [
+                "Pack Size",
+                product.packSize ? `${product.packSize} units` : null,
+              ],
+              ["Sterilization Method", product.sterilizationMethod],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.usageInstructions && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Usage Instructions
+                </p>
+                <p className="text-sm">{product.usageInstructions}</p>
+              </div>
+            )}
+            <div className="sm:col-span-2 flex flex-wrap gap-2">
+              {product.sterilized && (
+                <Badge variant="secondary">Pre-Sterilized</Badge>
+              )}
+              {product.singleUse && (
+                <Badge variant="secondary">Single Use Only</Badge>
+              )}
+              {product.isLatexFree && (
+                <Badge variant="secondary">Latex Free</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Ayurvedic Details */}
+      {product.productType === PRODUCT_TYPE.AYURVEDIC && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Ayurvedic &amp; Herbal Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Ayurvedic Type", product.ayurvedicType],
+              ["AYUSH License", product.ayushLicense],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.ingredients && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Ingredients / Composition
+                </p>
+                <p className="text-sm">{product.ingredients}</p>
+              </div>
+            )}
+            {product.therapeuticUses && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Therapeutic Uses
+                </p>
+                <p className="text-sm">{product.therapeuticUses}</p>
+              </div>
+            )}
+            {product.dosageInstructions && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Dosage Instructions
+                </p>
+                <p className="text-sm">{product.dosageInstructions}</p>
+              </div>
+            )}
+            {product.contraindications && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Contraindications
+                </p>
+                <p className="text-sm text-amber-700">
+                  {product.contraindications}
+                </p>
+              </div>
+            )}
+            {product.preparationMethod && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Preparation Method
+                </p>
+                <p className="text-sm">{product.preparationMethod}</p>
+              </div>
+            )}
+            {product.isClassicalFormulation && (
+              <div className="sm:col-span-2">
+                <Badge variant="secondary">Classical Formulation</Badge>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Homeopathic Details */}
+      {product.productType === PRODUCT_TYPE.HOMEOPATHIC && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Homeopathic Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Preparation Form", product.homeopathicForm],
+              ["Potency", product.potency],
+              ["Mother Tincture", product.motherTincture],
+              ["Pharmacopoeia", product.homeopathicPharmacopoeia],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.indications && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">Indications</p>
+                <p className="text-sm">{product.indications}</p>
+              </div>
+            )}
+            {product.dosageInstructions && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Dosage Instructions
+                </p>
+                <p className="text-sm">{product.dosageInstructions}</p>
+              </div>
+            )}
+            {product.isCombinationRemedy && (
+              <div className="sm:col-span-2">
+                <Badge variant="secondary">Combination Remedy</Badge>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
       {/* Description */}
       {product.description && (
         <Card>

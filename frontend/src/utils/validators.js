@@ -183,6 +183,41 @@ export const productSchema = z
     // ── General fields ───────────────────────────────────────────────────────────
     productCategory: optionalString,
     material: optionalString,
+
+    // ── Medical Equipment fields ──────────────────────────────────────────────────
+    equipmentType: optionalString,
+    brandModel: optionalString,
+    specifications: optionalString,
+    warrantyMonths: z.string().optional().or(z.literal("")),
+    powerSource: optionalString,
+    requiresCalibration: z.boolean().default(false),
+    calibrationFrequencyDays: z.string().optional().or(z.literal("")),
+    isCertified: z.boolean().default(false),
+    certificationNumber: optionalString,
+
+    // ── Surgical fields ───────────────────────────────────────────────────────────
+    surgicalCategory: optionalString,
+    packSize: z.string().optional().or(z.literal("")),
+    sterilizationMethod: optionalString,
+    sterilized: z.boolean().default(false),
+    singleUse: z.boolean().default(false),
+    isLatexFree: z.boolean().default(false),
+
+    // ── Ayurvedic fields ──────────────────────────────────────────────────────────
+    ayurvedicType: optionalString,
+    ayushLicense: optionalString,
+    therapeuticUses: optionalString,
+    contraindications: optionalString,
+    preparationMethod: optionalString,
+    isClassicalFormulation: z.boolean().default(false),
+
+    // ── Homeopathic fields ────────────────────────────────────────────────────────
+    potency: optionalString,
+    motherTincture: optionalString,
+    indications: optionalString,
+    homeopathicForm: optionalString,
+    homeopathicPharmacopoeia: optionalString,
+    isCombinationRemedy: z.boolean().default(false),
   })
   .refine(
     (data) => {
