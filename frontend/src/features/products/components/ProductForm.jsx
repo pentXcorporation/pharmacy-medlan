@@ -58,6 +58,12 @@ import {
   BABY_CARE_SUBTYPE_OPTIONS,
   COSMETIC_CATEGORY_OPTIONS,
   SKIN_TYPE_OPTIONS,
+  EQUIPMENT_TYPE_OPTIONS,
+  POWER_SOURCE_OPTIONS,
+  SURGICAL_CATEGORY_OPTIONS,
+  STERILIZATION_METHOD_OPTIONS,
+  AYURVEDIC_TYPE_OPTIONS,
+  HOMEOPATHIC_FORM_OPTIONS,
 } from "@/constants";
 
 /**
@@ -138,6 +144,37 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
       // General
       productCategory: "",
       material: "",
+      // Medical Equipment
+      equipmentType: "",
+      brandModel: "",
+      specifications: "",
+      warrantyMonths: "",
+      powerSource: "",
+      requiresCalibration: false,
+      calibrationFrequencyDays: "",
+      isCertified: false,
+      certificationNumber: "",
+      // Surgical
+      surgicalCategory: "",
+      packSize: "",
+      sterilizationMethod: "",
+      sterilized: false,
+      singleUse: false,
+      isLatexFree: false,
+      // Ayurvedic
+      ayurvedicType: "",
+      ayushLicense: "",
+      therapeuticUses: "",
+      contraindications: "",
+      preparationMethod: "",
+      isClassicalFormulation: false,
+      // Homeopathic
+      potency: "",
+      motherTincture: "",
+      indications: "",
+      homeopathicForm: "",
+      homeopathicPharmacopoeia: "",
+      isCombinationRemedy: false,
     },
   });
 
@@ -265,6 +302,38 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
         // General
         productCategory: product.productCategory || "",
         material: product.material || "",
+        // Medical Equipment
+        equipmentType: product.equipmentType || "",
+        brandModel: product.brandModel || "",
+        specifications: product.specifications || "",
+        warrantyMonths: product.warrantyMonths?.toString() || "",
+        powerSource: product.powerSource || "",
+        requiresCalibration: product.requiresCalibration || false,
+        calibrationFrequencyDays:
+          product.calibrationFrequencyDays?.toString() || "",
+        isCertified: product.isCertified || false,
+        certificationNumber: product.certificationNumber || "",
+        // Surgical
+        surgicalCategory: product.surgicalCategory || "",
+        packSize: product.packSize?.toString() || "",
+        sterilizationMethod: product.sterilizationMethod || "",
+        sterilized: product.sterilized || false,
+        singleUse: product.singleUse || false,
+        isLatexFree: product.isLatexFree || false,
+        // Ayurvedic
+        ayurvedicType: product.ayurvedicType || "",
+        ayushLicense: product.ayushLicense || "",
+        therapeuticUses: product.therapeuticUses || "",
+        contraindications: product.contraindications || "",
+        preparationMethod: product.preparationMethod || "",
+        isClassicalFormulation: product.isClassicalFormulation || false,
+        // Homeopathic
+        potency: product.potency || "",
+        motherTincture: product.motherTincture || "",
+        indications: product.indications || "",
+        homeopathicForm: product.homeopathicForm || "",
+        homeopathicPharmacopoeia: product.homeopathicPharmacopoeia || "",
+        isCombinationRemedy: product.isCombinationRemedy || false,
       });
     }
   }, [product, form, isEditing]);
@@ -349,19 +418,6 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                           <div className="flex flex-col py-0.5">
                             <span className="font-medium">
                               {PRODUCT_TYPE_LABELS[type]}
-                            </span>
-                            <span className="text-xs text-muted-foreground">
-                              {PRODUCT_TYPE_DESCRIPTIONS[type]}
-                            </span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                      <Separator className="my-1" />
-                      {COMING_SOON_PRODUCT_TYPES.map((type) => (
-                        <SelectItem key={type} value={type} disabled>
-                          <div className="flex flex-col py-0.5">
-                            <span className="font-medium text-muted-foreground">
-                              {PRODUCT_TYPE_LABELS[type]} (Coming Soon)
                             </span>
                             <span className="text-xs text-muted-foreground">
                               {PRODUCT_TYPE_DESCRIPTIONS[type]}
@@ -1464,6 +1520,679 @@ const ProductForm = ({ product, onSubmit, isSubmitting = false, onCancel }) => {
                   </FormItem>
                 )}
               />
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Medical Equipment Details ────────────────────────────────────────── */}
+        {selectedType === PRODUCT_TYPE.MEDICAL_EQUIPMENT && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Medical Equipment Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="equipmentType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Equipment Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {EQUIPMENT_TYPE_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="brandModel"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Brand &amp; Model</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., Omron HEM-7120" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="powerSource"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Power Source</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select power source" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {POWER_SOURCE_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="warrantyMonths"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Warranty (months)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...inputRestrictions.positiveInteger}
+                          placeholder="e.g., 12"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="certificationNumber"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Certification Number</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., CE, BIS, FDA cert. no."
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="calibrationFrequencyDays"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Calibration Frequency (days)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...inputRestrictions.positiveInteger}
+                          placeholder="e.g., 365"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>
+                        Leave blank if calibration not required
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="specifications"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Technical Specifications</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Dimensions, measurement range, accuracy, etc."
+                          className="min-h-[80px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="usageInstructions"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Usage Instructions</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="How to operate this equipment..."
+                          className="min-h-[70px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-wrap gap-6">
+                {[
+                  {
+                    name: "requiresCalibration",
+                    label: "Requires Calibration",
+                  },
+                  { name: "isCertified", label: "Certified (CE / BIS / FDA)" },
+                ].map(({ name, label }) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={name}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>{label}</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Surgical Details ──────────────────────────────────────────────────────── */}
+        {selectedType === PRODUCT_TYPE.SURGICAL && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Surgical &amp; First Aid Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="surgicalCategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Surgical Category</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {SURGICAL_CATEGORY_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="sterilizationMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Sterilization Method</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select method" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {STERILIZATION_METHOD_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="material"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Material</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Latex, Nitrile, Stainless Steel"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="size"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Size</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Small, Medium, Large, 7.5"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="packSize"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pack Size (units)</FormLabel>
+                      <FormControl>
+                        <Input
+                          {...inputRestrictions.positiveInteger}
+                          placeholder="e.g., 100"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="usageInstructions"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Usage Instructions</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Instructions for use..."
+                          className="min-h-[70px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-wrap gap-6">
+                {[
+                  { name: "sterilized", label: "Pre-Sterilized" },
+                  { name: "singleUse", label: "Single Use Only" },
+                  { name: "isLatexFree", label: "Latex Free" },
+                ].map(({ name, label }) => (
+                  <FormField
+                    key={name}
+                    control={form.control}
+                    name={name}
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel>{label}</FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Ayurvedic Details ────────────────────────────────────────────────────── */}
+        {selectedType === PRODUCT_TYPE.AYURVEDIC && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">
+                Ayurvedic &amp; Herbal Details
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="ayurvedicType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Ayurvedic Form / Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select form" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {AYURVEDIC_TYPE_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="ayushLicense"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>AYUSH License No.</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="Enter AYUSH license number"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="ingredients"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Ingredients / Composition</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="List herbs and other ingredients..."
+                          className="min-h-[80px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="therapeuticUses"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Therapeutic Uses</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Conditions and uses this product addresses..."
+                          className="min-h-[70px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dosageInstructions"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Dosage Instructions</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Recommended dosage and administration..."
+                          className="min-h-[70px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="contraindications"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Contraindications</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="When not to use..."
+                          className="min-h-[60px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="preparationMethod"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preparation Method</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="How the product is prepared..."
+                          className="min-h-[60px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-wrap gap-6">
+                <FormField
+                  control={form.control}
+                  name="isClassicalFormulation"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Classical Formulation</FormLabel>
+                        <FormDescription>
+                          Based on classical Ayurvedic texts
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
+        {/* ── Homeopathic Details ───────────────────────────────────────────────────── */}
+        {selectedType === PRODUCT_TYPE.HOMEOPATHIC && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Homeopathic Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <FormField
+                  control={form.control}
+                  name="homeopathicForm"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Preparation Form</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        value={field.value}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select form" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {HOMEOPATHIC_FORM_OPTIONS.map((opt) => (
+                            <SelectItem key={opt.value} value={opt.value}>
+                              {opt.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="potency"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Potency</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., 6C, 30C, 200C, 1M"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="motherTincture"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Mother Tincture</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., Arnica Montana Q"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="homeopathicPharmacopoeia"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Pharmacopoeia</FormLabel>
+                      <FormControl>
+                        <Input
+                          placeholder="e.g., HPI, HPUS, BHom P"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="indications"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Indications</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Symptoms and conditions this remedy addresses..."
+                          className="min-h-[70px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="dosageInstructions"
+                  render={({ field }) => (
+                    <FormItem className="sm:col-span-2">
+                      <FormLabel>Dosage Instructions</FormLabel>
+                      <FormControl>
+                        <Textarea
+                          placeholder="Recommended dosage and frequency..."
+                          className="min-h-[60px]"
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <div className="flex flex-wrap gap-6">
+                <FormField
+                  control={form.control}
+                  name="isCombinationRemedy"
+                  render={({ field }) => (
+                    <FormItem className="flex flex-row items-start space-x-3 space-y-0">
+                      <FormControl>
+                        <Checkbox
+                          checked={field.value}
+                          onCheckedChange={field.onChange}
+                        />
+                      </FormControl>
+                      <div className="space-y-1 leading-none">
+                        <FormLabel>Combination Remedy</FormLabel>
+                        <FormDescription>
+                          Contains multiple homeopathic ingredients
+                        </FormDescription>
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
             </CardContent>
           </Card>
         )}
