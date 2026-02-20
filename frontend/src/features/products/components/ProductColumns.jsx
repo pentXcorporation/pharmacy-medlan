@@ -16,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { formatCurrency } from "@/utils/formatters";
-import { DOSAGE_FORM_LABELS, DRUG_SCHEDULE_LABELS } from "@/constants";
+import { PRODUCT_TYPE_LABELS, PRODUCT_TYPE_BADGE_CLASS } from "@/constants";
 
 /**
  * Get product table columns
@@ -89,47 +89,24 @@ export const getProductColumns = ({
     enableSorting: true,
   },
   {
-    accessorKey: "dosageForm",
-    header: "Form",
+    accessorKey: "productType",
+    header: "Type",
     meta: { className: "hidden lg:table-cell" },
-    cell: ({ row }) => (
-      <span className="text-sm">
-        {DOSAGE_FORM_LABELS[row.getValue("dosageForm")] ||
-          row.getValue("dosageForm") ||
-          "-"}
-      </span>
-    ),
-    size: 120,
-    enableSorting: true,
-  },
-  {
-    accessorKey: "strength",
-    header: "Strength",
-    meta: { className: "hidden xl:table-cell" },
-    cell: ({ row }) => row.getValue("strength") || "-",
-    size: 100,
-    enableSorting: true,
-  },
-  {
-    accessorKey: "drugSchedule",
-    header: "Schedule",
-    meta: { className: "hidden xl:table-cell" },
     cell: ({ row }) => {
-      const schedule = row.getValue("drugSchedule");
-      if (!schedule) return "-";
-      const variant =
-        schedule === "X"
-          ? "destructive"
-          : schedule === "H"
-          ? "warning"
-          : "secondary";
+      const type = row.getValue("productType");
+      if (!type)
+        return <span className="text-sm text-muted-foreground">-</span>;
       return (
-        <Badge variant={variant} className="text-xs">
-          {DRUG_SCHEDULE_LABELS[schedule] || schedule}
-        </Badge>
+        <span
+          className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+            PRODUCT_TYPE_BADGE_CLASS[type] || "bg-gray-100 text-gray-800"
+          }`}
+        >
+          {PRODUCT_TYPE_LABELS[type] || type}
+        </span>
       );
     },
-    size: 100,
+    size: 160,
     enableSorting: true,
   },
   {

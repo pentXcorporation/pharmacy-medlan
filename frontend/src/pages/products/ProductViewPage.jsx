@@ -24,7 +24,13 @@ import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { useConfirm } from "@/components/common/ConfirmDialog";
 import { formatCurrency, formatDate } from "@/utils/formatters";
-import { DOSAGE_FORM_LABELS, DRUG_SCHEDULE_LABELS } from "@/constants";
+import {
+  DOSAGE_FORM_LABELS,
+  DRUG_SCHEDULE_LABELS,
+  PRODUCT_TYPE_LABELS,
+  PRODUCT_TYPE_BADGE_CLASS,
+  PRODUCT_TYPE,
+} from "@/constants";
 
 /**
  * ProductViewPage component
@@ -133,40 +139,60 @@ const ProductViewPage = () => {
             </div>
             <Separator />
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Category</span>
-              <Badge variant="outline">
-                {product.category?.categoryName || "-"}
-              </Badge>
-            </div>
-            <Separator />
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Dosage Form</span>
-              <span>
-                {DOSAGE_FORM_LABELS[product.dosageForm] ||
-                  product.dosageForm ||
+              <span className="text-muted-foreground">Product Type</span>
+              <span
+                className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium border ${
+                  PRODUCT_TYPE_BADGE_CLASS[product.productType] ||
+                  "bg-gray-100 text-gray-800 border-gray-200"
+                }`}
+              >
+                {PRODUCT_TYPE_LABELS[product.productType] ||
+                  product.productType ||
                   "-"}
               </span>
             </div>
             <Separator />
             <div className="flex justify-between">
-              <span className="text-muted-foreground">Strength</span>
-              <span>{product.strength || "-"}</span>
+              <span className="text-muted-foreground">Category</span>
+              <Badge variant="outline">
+                {product.category?.categoryName || "-"}
+              </Badge>
             </div>
-            <Separator />
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Drug Schedule</span>
-              {product.drugSchedule ? (
-                <Badge
-                  variant={
-                    product.drugSchedule === "X" ? "destructive" : "secondary"
-                  }
-                >
-                  {DRUG_SCHEDULE_LABELS[product.drugSchedule]}
-                </Badge>
-              ) : (
-                <span>-</span>
-              )}
-            </div>
+            {product.productType === PRODUCT_TYPE.MEDICAL && (
+              <>
+                <Separator />
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Dosage Form</span>
+                  <span>
+                    {DOSAGE_FORM_LABELS[product.dosageForm] ||
+                      product.dosageForm ||
+                      "-"}
+                  </span>
+                </div>
+                <Separator />
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Strength</span>
+                  <span>{product.strength || "-"}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between">
+                  <span className="text-muted-foreground">Drug Schedule</span>
+                  {product.drugSchedule ? (
+                    <Badge
+                      variant={
+                        product.drugSchedule === "X"
+                          ? "destructive"
+                          : "secondary"
+                      }
+                    >
+                      {DRUG_SCHEDULE_LABELS[product.drugSchedule]}
+                    </Badge>
+                  ) : (
+                    <span>-</span>
+                  )}
+                </div>
+              </>
+            )}
             <Separator />
             <div className="flex justify-between">
               <span className="text-muted-foreground">Manufacturer</span>
@@ -185,8 +211,8 @@ const ProductViewPage = () => {
                   product.isDiscontinued
                     ? "discontinued"
                     : product.isActive
-                    ? "active"
-                    : "inactive"
+                      ? "active"
+                      : "inactive"
                 }
               />
             </div>
@@ -308,6 +334,247 @@ const ProductViewPage = () => {
           </CardContent>
         </Card>
       </div>
+
+      {/* Type-Specific Details */}
+      {product.productType === PRODUCT_TYPE.SUPPLEMENT && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Supplement Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Supplement Type", product.supplementType],
+              ["Age Group", product.ageGroup],
+              ["Serving Size", product.servingSize],
+              ["Servings per Container", product.servingsPerContainer],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.activeIngredients && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Active Ingredients
+                </p>
+                <p className="text-sm">{product.activeIngredients}</p>
+              </div>
+            )}
+            {product.dosageInstructions && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Dosage Instructions
+                </p>
+                <p className="text-sm">{product.dosageInstructions}</p>
+              </div>
+            )}
+            {product.warnings && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">Warnings</p>
+                <p className="text-sm text-amber-700">{product.warnings}</p>
+              </div>
+            )}
+            <div className="sm:col-span-2 flex gap-4">
+              {product.isFdaApproved && (
+                <Badge variant="secondary">FDA / FSSAI Approved</Badge>
+              )}
+              {product.isCertifiedOrganic && (
+                <Badge variant="secondary">Certified Organic</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {product.productType === PRODUCT_TYPE.FOOD && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Food &amp; Beverage Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Food Category", product.foodCategory],
+              ["Allergen Info", product.allergenInfo],
+              [
+                "Shelf Life",
+                product.shelfLifeDays ? `${product.shelfLifeDays} days` : null,
+              ],
+              ["FSSAI License", product.fssaiLicense],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.ingredients && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">Ingredients</p>
+                <p className="text-sm">{product.ingredients}</p>
+              </div>
+            )}
+            {product.nutritionalInfo && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Nutritional Information
+                </p>
+                <p className="text-sm">{product.nutritionalInfo}</p>
+              </div>
+            )}
+            <div className="sm:col-span-2 flex flex-wrap gap-2">
+              {product.isOrganic && <Badge variant="secondary">Organic</Badge>}
+              {product.isVegan && <Badge variant="secondary">Vegan</Badge>}
+              {product.isVegetarian && (
+                <Badge variant="secondary">Vegetarian</Badge>
+              )}
+              {product.isGlutenFree && (
+                <Badge variant="secondary">Gluten Free</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {product.productType === PRODUCT_TYPE.BABY_CARE && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Baby Care Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Sub-Type", product.productSubType],
+              ["Age Range", product.ageRange],
+              ["Size", product.size],
+              ["Pack Quantity", product.packQuantity],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.usageInstructions && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Usage Instructions
+                </p>
+                <p className="text-sm">{product.usageInstructions}</p>
+              </div>
+            )}
+            <div className="sm:col-span-2 flex flex-wrap gap-2">
+              {product.isHypoallergenic && (
+                <Badge variant="secondary">Hypoallergenic</Badge>
+              )}
+              {product.isDermatologicallyTested && (
+                <Badge variant="secondary">Derm. Tested</Badge>
+              )}
+              {product.isFragranceFree && (
+                <Badge variant="secondary">Fragrance Free</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {product.productType === PRODUCT_TYPE.COSMETIC && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Cosmetic Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Category", product.cosmeticCategory],
+              ["Skin Type", product.skinType],
+              ["SPF Rating", product.spfRating],
+              ["Fragrance Type", product.fragranceType],
+              [
+                "Expiry After Opening",
+                product.expiryMonthsAfterOpening
+                  ? `${product.expiryMonthsAfterOpening} months`
+                  : null,
+              ],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.ingredients && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">Ingredients</p>
+                <p className="text-sm">{product.ingredients}</p>
+              </div>
+            )}
+            {product.usageInstructions && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Usage Instructions
+                </p>
+                <p className="text-sm">{product.usageInstructions}</p>
+              </div>
+            )}
+            <div className="sm:col-span-2 flex flex-wrap gap-2">
+              {product.isParabenFree && (
+                <Badge variant="secondary">Paraben Free</Badge>
+              )}
+              {product.isCrueltyFree && (
+                <Badge variant="secondary">Cruelty Free</Badge>
+              )}
+              {product.dermatologicallyTested && (
+                <Badge variant="secondary">Derm. Tested</Badge>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {product.productType === PRODUCT_TYPE.GENERAL && (
+        <Card>
+          <CardHeader>
+            <CardTitle>General Product Details</CardTitle>
+          </CardHeader>
+          <CardContent className="grid gap-y-4 gap-x-8 sm:grid-cols-2">
+            {[
+              ["Product Category", product.productCategory],
+              ["Material", product.material],
+              ["Size", product.size],
+              ["Pack Quantity", product.packQuantity],
+            ].map(
+              ([label, val]) =>
+                val != null &&
+                val !== "" && (
+                  <div key={label} className="flex justify-between">
+                    <span className="text-muted-foreground">{label}</span>
+                    <span>{val}</span>
+                  </div>
+                ),
+            )}
+            {product.usageInstructions && (
+              <div className="sm:col-span-2 space-y-1">
+                <p className="text-muted-foreground text-sm">
+                  Usage Instructions
+                </p>
+                <p className="text-sm">{product.usageInstructions}</p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Description */}
       {product.description && (

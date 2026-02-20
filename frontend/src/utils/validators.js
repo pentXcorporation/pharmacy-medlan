@@ -71,7 +71,7 @@ export const forgotPasswordSchema = z.object({
 export const userSchema = z.object({
   username: requiredString("Username").min(
     3,
-    "Username must be at least 3 characters"
+    "Username must be at least 3 characters",
   ),
   email: emailSchema,
   firstName: requiredString("First name"),
@@ -94,7 +94,7 @@ export const branchSchema = z.object({
   name: requiredString("Branch name"),
   code: requiredString("Branch code").max(
     10,
-    "Code must be 10 characters or less"
+    "Code must be 10 characters or less",
   ),
   address: optionalString,
   city: optionalString,
@@ -107,76 +107,131 @@ export const branchSchema = z.object({
 // PRODUCT SCHEMAS
 // ============================================
 
-export const productSchema = z.object({
-  productName: requiredString("Product name"),
-  genericName: optionalString,
-  categoryId: requiredString("Category"),
-  subCategoryId: optionalString,
-  dosageForm: optionalString,
-  strength: optionalString,
-  drugSchedule: optionalString,
-  manufacturer: optionalString,
-  barcode: optionalString,
-  description: optionalString,
-  costPrice: z.string().optional().or(z.literal("")),
-  sellingPrice: z.string().optional().or(z.literal("")),
-  mrp: z.string().optional().or(z.literal("")),
-  gstRate: z.string().optional().or(z.literal("")),
-  reorderLevel: z.string().optional().or(z.literal("")),
-  minimumStock: z.string().optional().or(z.literal("")),
-  maximumStock: z.string().optional().or(z.literal("")),
-  isPrescriptionRequired: z.boolean().default(false),
-  isNarcotic: z.boolean().default(false),
-  isRefrigerated: z.boolean().default(false),
-})
-.refine(
-  (data) => {
-    if (!data.sellingPrice || !data.costPrice) return true;
-    const selling = parseFloat(data.sellingPrice);
-    const cost = parseFloat(data.costPrice);
-    return isNaN(selling) || isNaN(cost) || selling >= cost;
-  },
-  {
-    message: "Selling price should be greater than or equal to cost price",
-    path: ["sellingPrice"],
-  }
-)
-.refine(
-  (data) => {
-    if (!data.mrp || !data.sellingPrice) return true;
-    const mrp = parseFloat(data.mrp);
-    const selling = parseFloat(data.sellingPrice);
-    return isNaN(mrp) || isNaN(selling) || mrp >= selling;
-  },
-  {
-    message: "MRP should be greater than or equal to selling price",
-    path: ["mrp"],
-  }
-)
-.refine(
-  (data) => {
-    if (!data.minimumStock || !data.reorderLevel) return true;
-    const min = parseInt(data.minimumStock);
-    const reorder = parseInt(data.reorderLevel);
-    return isNaN(min) || isNaN(reorder) || reorder >= min;
-  },
-  {
-    message: "Reorder level should be greater than or equal to minimum stock",
-    path: ["reorderLevel"],
-  }
-)
-.refine(
-  (data) => {
-    if (!data.maximumStock || !data.reorderLevel) return true;
-    const max = parseInt(data.maximumStock);
-    const reorder = parseInt(data.reorderLevel);
-    return isNaN(max) || isNaN(reorder) || max > reorder;
-  },
-  {
-    message: "Maximum stock should be greater than reorder level",
-    path: ["maximumStock"],
-  }
-);
+export const productSchema = z
+  .object({
+    // ── Common fields ───────────────────────────────────────────────────────────
+    productType: z
+      .string()
+      .min(1, "Product type is required")
+      .default("MEDICAL"),
+    productName: requiredString("Product name"),
+    genericName: optionalString,
+    categoryId: requiredString("Category"),
+    subCategoryId: optionalString,
+    manufacturer: optionalString,
+    barcode: optionalString,
+    description: optionalString,
+    costPrice: z.string().optional().or(z.literal("")),
+    sellingPrice: z.string().optional().or(z.literal("")),
+    mrp: z.string().optional().or(z.literal("")),
+    gstRate: z.string().optional().or(z.literal("")),
+    reorderLevel: z.string().optional().or(z.literal("")),
+    minimumStock: z.string().optional().or(z.literal("")),
+    maximumStock: z.string().optional().or(z.literal("")),
+
+    // ── Medical fields ──────────────────────────────────────────────────────────
+    dosageForm: optionalString,
+    strength: optionalString,
+    drugSchedule: optionalString,
+    isPrescriptionRequired: z.boolean().default(false),
+    isNarcotic: z.boolean().default(false),
+    isRefrigerated: z.boolean().default(false),
+
+    // ── Supplement fields ────────────────────────────────────────────────────────
+    supplementType: optionalString,
+    activeIngredients: optionalString,
+    dosageInstructions: optionalString,
+    servingSize: optionalString,
+    servingsPerContainer: z.string().optional().or(z.literal("")),
+    ageGroup: optionalString,
+    warnings: optionalString,
+    isFdaApproved: z.boolean().default(false),
+    isCertifiedOrganic: z.boolean().default(false),
+
+    // ── Food fields ─────────────────────────────────────────────────────────────
+    foodCategory: optionalString,
+    ingredients: optionalString,
+    nutritionalInfo: optionalString,
+    allergenInfo: optionalString,
+    shelfLifeDays: z.string().optional().or(z.literal("")),
+    fssaiLicense: optionalString,
+    isOrganic: z.boolean().default(false),
+    isVegan: z.boolean().default(false),
+    isVegetarian: z.boolean().default(false),
+    isGlutenFree: z.boolean().default(false),
+
+    // ── Baby Care fields ─────────────────────────────────────────────────────────
+    ageRange: optionalString,
+    productSubType: optionalString,
+    size: optionalString,
+    packQuantity: z.string().optional().or(z.literal("")),
+    usageInstructions: optionalString,
+    isHypoallergenic: z.boolean().default(false),
+    isDermatologicallyTested: z.boolean().default(false),
+    isFragranceFree: z.boolean().default(false),
+
+    // ── Cosmetic fields ──────────────────────────────────────────────────────────
+    cosmeticCategory: optionalString,
+    skinType: optionalString,
+    spfRating: z.string().optional().or(z.literal("")),
+    fragranceType: optionalString,
+    expiryMonthsAfterOpening: z.string().optional().or(z.literal("")),
+    isParabenFree: z.boolean().default(false),
+    isCrueltyFree: z.boolean().default(false),
+    dermatologicallyTested: z.boolean().default(false),
+
+    // ── General fields ───────────────────────────────────────────────────────────
+    productCategory: optionalString,
+    material: optionalString,
+  })
+  .refine(
+    (data) => {
+      if (!data.sellingPrice || !data.costPrice) return true;
+      const selling = parseFloat(data.sellingPrice);
+      const cost = parseFloat(data.costPrice);
+      return isNaN(selling) || isNaN(cost) || selling >= cost;
+    },
+    {
+      message: "Selling price should be greater than or equal to cost price",
+      path: ["sellingPrice"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (!data.mrp || !data.sellingPrice) return true;
+      const mrp = parseFloat(data.mrp);
+      const selling = parseFloat(data.sellingPrice);
+      return isNaN(mrp) || isNaN(selling) || mrp >= selling;
+    },
+    {
+      message: "MRP should be greater than or equal to selling price",
+      path: ["mrp"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (!data.minimumStock || !data.reorderLevel) return true;
+      const min = parseInt(data.minimumStock);
+      const reorder = parseInt(data.reorderLevel);
+      return isNaN(min) || isNaN(reorder) || reorder >= min;
+    },
+    {
+      message: "Reorder level should be greater than or equal to minimum stock",
+      path: ["reorderLevel"],
+    },
+  )
+  .refine(
+    (data) => {
+      if (!data.maximumStock || !data.reorderLevel) return true;
+      const max = parseInt(data.maximumStock);
+      const reorder = parseInt(data.reorderLevel);
+      return isNaN(max) || isNaN(reorder) || max > reorder;
+    },
+    {
+      message: "Maximum stock should be greater than reorder level",
+      path: ["maximumStock"],
+    },
+  );
 
 // ============================================
 // CATEGORY SCHEMAS
@@ -186,7 +241,7 @@ export const categorySchema = z.object({
   name: requiredString("Category name"),
   code: requiredString("Category code").max(
     10,
-    "Code must be 10 characters or less"
+    "Code must be 10 characters or less",
   ),
   description: optionalString,
   isActive: z.boolean().default(true),
@@ -196,7 +251,7 @@ export const subCategorySchema = z.object({
   name: requiredString("Sub-category name"),
   code: requiredString("Sub-category code").max(
     10,
-    "Code must be 10 characters or less"
+    "Code must be 10 characters or less",
   ),
   categoryId: z.number({ required_error: "Parent category is required" }),
   description: optionalString,
