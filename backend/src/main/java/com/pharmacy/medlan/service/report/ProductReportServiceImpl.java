@@ -357,15 +357,16 @@ public class ProductReportServiceImpl implements ProductReportService {
         Map<Long, Map<String, Object>> salesMap = buildProductSalesMap(fetchCompletedSales(branchId, startDate, endDate));
 
         // Aggregate returns
-        List<SaleReturn> returns = saleReturnRepository.findByBranchAndDateRange(
-                branchId, startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
+        List<SaleReturn> returns = saleReturnRepository.findByBranchId(branchId).stream()
+                .filter(r -> r.getReturnDate() != null && !r.getReturnDate().isBefore(startDate) && !r.getReturnDate().isAfter(endDate))
+                .collect(Collectors.toList());
 
         Map<Long, Integer> returnQtyMap = new HashMap<>();
         for (SaleReturn sr : returns) {
             if (sr.getReturnItems() == null) continue;
             for (SaleReturnItem ri : sr.getReturnItems()) {
                 if (ri.getProduct() != null) {
-                    returnQtyMap.merge(ri.getProduct().getId(), ri.getQuantity(), Integer::sum);
+                    returnQtyMap.merge(ri.getProduct().getId(), ri.getQuantityReturned(), Integer::sum);
                 }
             }
         }
@@ -458,7 +459,7 @@ public class ProductReportServiceImpl implements ProductReportService {
                     row.put("quantitySold", b.getQuantityReceived() - b.getQuantityAvailable());
                     row.put("purchasePrice", b.getPurchasePrice());
                     row.put("sellingPrice", b.getSellingPrice());
-                    row.put("manufactureDate", b.getManufactureDate());
+                    row.put("manufactureDate", b.getManufacturingDate());
                     row.put("expiryDate", b.getExpiryDate());
                     long daysToExpiry = b.getExpiryDate() != null
                             ? ChronoUnit.DAYS.between(today, b.getExpiryDate()) : Long.MAX_VALUE;

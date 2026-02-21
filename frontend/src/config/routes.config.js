@@ -150,6 +150,8 @@ export const ROUTES = {
     PURCHASE: "/reports/purchase",
     EXPIRY: "/reports/expiry",
     PROFIT_LOSS: "/reports/profit-loss",
+    PRODUCTS: "/reports/products",
+    SUPPLIERS: "/reports/suppliers",
   },
 
   // Employees

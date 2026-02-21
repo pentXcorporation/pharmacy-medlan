@@ -18,7 +18,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
@@ -40,7 +39,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
     @Override
     public List<Map<String, Object>> getAttendanceSummaryReport(Long branchId, LocalDate startDate, LocalDate endDate) {
         log.info("Generating attendance summary report for branch {} from {} to {}", branchId, startDate, endDate);
-        List<Employee> employees = employeeRepository.findByBranchId(branchId);
+        List<Employee> employees = employeeRepository.findByIsActiveTrue();
         long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
 
         return employees.stream().map(emp -> {
@@ -64,9 +63,8 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
 
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("employeeId", emp.getId());
-            row.put("employeeName", emp.getFirstName() + " " + emp.getLastName());
+            row.put("employeeName", emp.getFullName());
             row.put("employeeCode", emp.getEmployeeCode());
-            row.put("role", emp.getRole() != null ? emp.getRole().name() : "N/A");
             row.put("designation", emp.getDesignation());
             row.put("totalWorkingDays", totalDays);
             row.put("presentDays", present);
@@ -97,7 +95,6 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
                 .filter(a -> a.getWorkHours() != null)
                 .mapToDouble(Attendance::getWorkHours).sum();
 
-        // Daily breakdown
         List<Map<String, Object>> daily = records.stream().map(a -> {
             Map<String, Object> d = new LinkedHashMap<>();
             d.put("date", a.getDate());
@@ -112,7 +109,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
 
         Map<String, Object> result = new LinkedHashMap<>();
         result.put("employeeId", emp.getId());
-        result.put("employeeName", emp.getFirstName() + " " + emp.getLastName());
+        result.put("employeeName", emp.getFullName());
         result.put("employeeCode", emp.getEmployeeCode());
         result.put("designation", emp.getDesignation());
         result.put("startDate", startDate);
@@ -147,7 +144,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
     @Override
     public List<Map<String, Object>> getLateArrivalsReport(Long branchId, LocalDate startDate, LocalDate endDate) {
         log.info("Generating late arrivals report for branch {}", branchId);
-        List<Employee> employees = employeeRepository.findByBranchId(branchId);
+        List<Employee> employees = employeeRepository.findByIsActiveTrue();
 
         return employees.stream().map(emp -> {
                     List<Attendance> lateRecords = attendanceRepository
@@ -166,7 +163,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
 
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("employeeId", emp.getId());
-                    row.put("employeeName", emp.getFirstName() + " " + emp.getLastName());
+                    row.put("employeeName", emp.getFullName());
                     row.put("employeeCode", emp.getEmployeeCode());
                     row.put("lateCount", lateRecords.size());
                     row.put("lateDates", lateDates);
@@ -197,7 +194,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
     public List<Map<String, Object>> getOvertimeReport(Long branchId, LocalDate startDate, LocalDate endDate) {
         log.info("Generating overtime report for branch {}", branchId);
         double standardDailyHours = 8.0;
-        List<Employee> employees = employeeRepository.findByBranchId(branchId);
+        List<Employee> employees = employeeRepository.findByIsActiveTrue();
 
         return employees.stream().map(emp -> {
                     List<Attendance> records = attendanceRepository.findByEmployeeAndDateRange(emp.getId(), startDate, endDate);
@@ -208,7 +205,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
 
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("employeeId", emp.getId());
-                    row.put("employeeName", emp.getFirstName() + " " + emp.getLastName());
+                    row.put("employeeName", emp.getFullName());
                     row.put("employeeCode", emp.getEmployeeCode());
                     row.put("overtimeHours", Math.round(overtimeHours * 100.0) / 100.0);
                     return row;
@@ -224,22 +221,18 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
     public Map<String, Object> getPayrollSummaryReport(Long branchId, LocalDate startDate, LocalDate endDate) {
         log.info("Generating payroll summary for branch {}", branchId);
         List<EmployeePayment> payments = employeePaymentRepository
-                .findByBranchIdAndDateRange(branchId, startDate, endDate);
+                .findByBranchIdAndPaymentDateBetween(branchId, startDate, endDate);
 
-        BigDecimal totalGross    = payments.stream().map(p -> p.getBasicSalary() != null ? p.getBasicSalary() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalAllowances = payments.stream().map(p -> p.getAllowances() != null ? p.getAllowances() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalDeductions = payments.stream().map(p -> p.getDeductions() != null ? p.getDeductions() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
-        BigDecimal totalNet      = payments.stream().map(p -> p.getNetSalary() != null ? p.getNetSalary() : BigDecimal.ZERO).reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalAmount = payments.stream()
+                .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("branchId", branchId);
         summary.put("startDate", startDate);
         summary.put("endDate", endDate);
-        summary.put("totalEmployeesPaid", payments.size());
-        summary.put("totalGrossSalary", totalGross);
-        summary.put("totalAllowances", totalAllowances);
-        summary.put("totalDeductions", totalDeductions);
-        summary.put("totalNetSalary", totalNet);
+        summary.put("totalPayments", payments.size());
+        summary.put("totalAmount", totalAmount);
         return summary;
     }
 
@@ -247,24 +240,18 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
     public List<Map<String, Object>> getEmployeePayrollBreakdown(Long branchId, LocalDate startDate, LocalDate endDate) {
         log.info("Generating payroll breakdown for branch {}", branchId);
         List<EmployeePayment> payments = employeePaymentRepository
-                .findByBranchIdAndDateRange(branchId, startDate, endDate);
+                .findByBranchIdAndPaymentDateBetween(branchId, startDate, endDate);
 
         return payments.stream().map(p -> {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("employeeId", p.getEmployee() != null ? p.getEmployee().getId() : null);
-            row.put("employeeName", p.getEmployee() != null
-                    ? p.getEmployee().getFirstName() + " " + p.getEmployee().getLastName() : "N/A");
-            row.put("employeeCode", p.getEmployee() != null ? p.getEmployee().getEmployeeCode() : "N/A");
-            row.put("designation", p.getEmployee() != null ? p.getEmployee().getDesignation() : "N/A");
+            row.put("employeeName", p.getWorkerName() != null ? p.getWorkerName()
+                    : (p.getEmployee() != null ? p.getEmployee().getUsername() : "N/A"));
             row.put("paymentDate", p.getPaymentDate());
-            row.put("payPeriodStart", p.getPayPeriodStart());
-            row.put("payPeriodEnd", p.getPayPeriodEnd());
-            row.put("basicSalary", p.getBasicSalary());
-            row.put("allowances", p.getAllowances());
-            row.put("deductions", p.getDeductions());
-            row.put("netSalary", p.getNetSalary());
+            row.put("amount", p.getAmount());
+            row.put("reason", p.getReason());
             row.put("paymentMethod", p.getPaymentMethod() != null ? p.getPaymentMethod().name() : "N/A");
-            row.put("status", p.getStatus() != null ? p.getStatus() : "N/A");
+            row.put("remarks", p.getRemarks());
             return row;
         }).collect(Collectors.toList());
     }
@@ -281,9 +268,9 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
             String monthKey = monthStart.getYear() + "-" + String.format("%02d", monthStart.getMonthValue());
 
             List<EmployeePayment> payments = employeePaymentRepository
-                    .findByBranchIdAndDateRange(branchId, monthStart, monthEnd);
+                    .findByBranchIdAndPaymentDateBetween(branchId, monthStart, monthEnd);
             BigDecimal total = payments.stream()
-                    .map(p -> p.getNetSalary() != null ? p.getNetSalary() : BigDecimal.ZERO)
+                    .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
             trend.put(monthKey, total);
         }
@@ -292,17 +279,17 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
 
     @Override
     public Map<String, BigDecimal> getPayrollByEmploymentType(Long branchId, LocalDate startDate, LocalDate endDate) {
+        // EmployeePayment references User, not Employee directly, so we return total by branch
         List<EmployeePayment> payments = employeePaymentRepository
-                .findByBranchIdAndDateRange(branchId, startDate, endDate);
+                .findByBranchIdAndPaymentDateBetween(branchId, startDate, endDate);
 
-        return payments.stream()
-                .filter(p -> p.getEmployee() != null && p.getEmployee().getEmploymentType() != null)
-                .collect(Collectors.groupingBy(
-                        p -> p.getEmployee().getEmploymentType().name(),
-                        Collectors.reducing(BigDecimal.ZERO,
-                                p -> p.getNetSalary() != null ? p.getNetSalary() : BigDecimal.ZERO,
-                                BigDecimal::add)
-                ));
+        BigDecimal totalAmount = payments.stream()
+                .map(p -> p.getAmount() != null ? p.getAmount() : BigDecimal.ZERO)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        Map<String, BigDecimal> result = new LinkedHashMap<>();
+        result.put("ALL", totalAmount);
+        return result;
     }
 
     // ===================== PERFORMANCE & PRODUCTIVITY REPORTS =====================
@@ -317,15 +304,13 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
 
         for (Sale sale : sales) {
             if (sale.getStatus() != SaleStatus.COMPLETED) continue;
-            if (sale.getCashier() == null) continue;
+            if (sale.getSoldBy() == null) continue;
 
-            Long empId = sale.getCashier().getId();
-            performanceMap.computeIfAbsent(empId, id -> {
+            Long userId = sale.getSoldBy().getId();
+            performanceMap.computeIfAbsent(userId, id -> {
                 Map<String, Object> m = new LinkedHashMap<>();
                 m.put("employeeId", id);
-                m.put("employeeName", sale.getCashier().getFirstName() + " " + sale.getCashier().getLastName());
-                m.put("employeeCode", sale.getCashier().getEmployeeCode());
-                m.put("role", sale.getCashier().getRole() != null ? sale.getCashier().getRole().name() : "N/A");
+                m.put("employeeName", sale.getSoldBy().getUsername());
                 m.put("totalSales", BigDecimal.ZERO);
                 m.put("transactionCount", 0);
                 m.put("totalDiscount", BigDecimal.ZERO);
@@ -333,7 +318,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
                 return m;
             });
 
-            Map<String, Object> empData = performanceMap.get(empId);
+            Map<String, Object> empData = performanceMap.get(userId);
             BigDecimal currentTotal = (BigDecimal) empData.get("totalSales");
             empData.put("totalSales", currentTotal.add(sale.getTotalAmount()));
             empData.put("transactionCount", (int) empData.get("transactionCount") + 1);
@@ -341,7 +326,6 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
             empData.put("totalDiscount", ((BigDecimal) empData.get("totalDiscount")).add(disc));
         }
 
-        // Calculate averages
         performanceMap.values().forEach(m -> {
             int count = (int) m.get("transactionCount");
             BigDecimal total = (BigDecimal) m.get("totalSales");
@@ -362,7 +346,6 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("employeeId", m.get("employeeId"));
                     row.put("employeeName", m.get("employeeName"));
-                    row.put("employeeCode", m.get("employeeCode"));
                     row.put("transactionCount", m.get("transactionCount"));
                     row.put("totalSales", m.get("totalSales"));
                     return row;
@@ -384,47 +367,24 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
         Employee emp = employeeRepository.findById(employeeId)
                 .orElseThrow(() -> new RuntimeException("Employee not found: " + employeeId));
 
-        // Attendance score
         Map<String, Object> attendanceDetail = getEmployeeAttendanceDetail(employeeId, startDate, endDate);
         double attendanceRate = (double) attendanceDetail.get("attendanceRate");
 
-        // Sales performance
-        List<Sale> sales = saleRepository.findByBranchAndDateRange(
-                emp.getBranch() != null ? emp.getBranch().getId() : null,
-                startDate.atStartOfDay(), endDate.atTime(LocalTime.MAX));
-        BigDecimal empSales = sales.stream()
-                .filter(s -> s.getStatus() == SaleStatus.COMPLETED
-                        && s.getCashier() != null && s.getCashier().getId().equals(employeeId))
-                .map(Sale::getTotalAmount)
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        long empTxCount = sales.stream()
-                .filter(s -> s.getStatus() == SaleStatus.COMPLETED
-                        && s.getCashier() != null && s.getCashier().getId().equals(employeeId))
-                .count();
-
-        // Punctuality score (% of days on time = present / (present + late))
         long present = (long) attendanceDetail.get("presentDays");
         long late    = (long) attendanceDetail.get("lateDays");
         double punctualityRate = (present + late) > 0 ? (double) present / (present + late) * 100 : 100.0;
 
-        // Composite score (weighted): attendance 40%, punctuality 30%, transactions 30%
-        // Normalize transactions against a target of 10/day
         long totalDays = ChronoUnit.DAYS.between(startDate, endDate) + 1;
-        double txTarget = totalDays * 10;
-        double txScore = Math.min(100.0, (empTxCount / Math.max(txTarget, 1)) * 100);
-        double compositeScore = (attendanceRate * 0.4) + (punctualityRate * 0.3) + (txScore * 0.3);
+        double compositeScore = (attendanceRate * 0.5) + (punctualityRate * 0.5);
 
         Map<String, Object> scorecard = new LinkedHashMap<>();
         scorecard.put("employeeId", emp.getId());
-        scorecard.put("employeeName", emp.getFirstName() + " " + emp.getLastName());
+        scorecard.put("employeeName", emp.getFullName());
         scorecard.put("employeeCode", emp.getEmployeeCode());
         scorecard.put("designation", emp.getDesignation());
         scorecard.put("evaluationPeriod", Map.of("startDate", startDate, "endDate", endDate));
         scorecard.put("attendanceRate", Math.round(attendanceRate * 100.0) / 100.0);
         scorecard.put("punctualityRate", Math.round(punctualityRate * 100.0) / 100.0);
-        scorecard.put("totalSales", empSales);
-        scorecard.put("transactionCount", empTxCount);
         scorecard.put("compositeScore", Math.round(compositeScore * 100.0) / 100.0);
         scorecard.put("grade", compositeScore >= 90 ? "A" : compositeScore >= 75 ? "B" :
                 compositeScore >= 60 ? "C" : compositeScore >= 45 ? "D" : "F");
@@ -436,11 +396,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
     @Override
     public Map<String, Object> getHeadcountSummary(Long branchId) {
         log.info("Generating headcount summary for branch {}", branchId);
-        List<Employee> employees = employeeRepository.findByBranchId(branchId);
-
-        Map<String, Long> byRole = employees.stream()
-                .filter(e -> e.getRole() != null)
-                .collect(Collectors.groupingBy(e -> e.getRole().name(), Collectors.counting()));
+        List<Employee> employees = employeeRepository.findAll();
 
         Map<String, Long> byEmploymentType = employees.stream()
                 .filter(e -> e.getEmploymentType() != null)
@@ -453,7 +409,6 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
         summary.put("totalEmployees", employees.size());
         summary.put("activeEmployees", activeCount);
         summary.put("inactiveEmployees", inactiveCount);
-        summary.put("byRole", byRole);
         summary.put("byEmploymentType", byEmploymentType);
         return summary;
     }
@@ -461,7 +416,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
     @Override
     public List<Map<String, Object>> getEmployeeTenureReport(Long branchId) {
         log.info("Generating tenure report for branch {}", branchId);
-        List<Employee> employees = employeeRepository.findByBranchId(branchId);
+        List<Employee> employees = employeeRepository.findByIsActiveTrue();
         LocalDate today = LocalDate.now();
 
         return employees.stream()
@@ -477,7 +432,7 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
 
                     Map<String, Object> row = new LinkedHashMap<>();
                     row.put("employeeId", e.getId());
-                    row.put("employeeName", e.getFirstName() + " " + e.getLastName());
+                    row.put("employeeName", e.getFullName());
                     row.put("joiningDate", e.getJoiningDate());
                     row.put("tenureMonths", months);
                     row.put("tenureYears", Math.round(months / 12.0 * 10.0) / 10.0);
@@ -491,22 +446,22 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
     @Override
     public Map<String, Object> getSalaryDistributionReport(Long branchId) {
         log.info("Generating salary distribution report for branch {}", branchId);
-        List<Employee> employees = employeeRepository.findByBranchId(branchId);
+        List<Employee> employees = employeeRepository.findByIsActiveTrue();
 
-        Map<String, List<BigDecimal>> salariesByRole = new LinkedHashMap<>();
+        Map<String, List<BigDecimal>> salariesByDesignation = new LinkedHashMap<>();
         for (Employee e : employees) {
             if (e.getBasicSalary() == null) continue;
-            String role = e.getRole() != null ? e.getRole().name() : "UNASSIGNED";
-            salariesByRole.computeIfAbsent(role, r -> new ArrayList<>()).add(e.getBasicSalary());
+            String designation = e.getDesignation() != null ? e.getDesignation() : "UNASSIGNED";
+            salariesByDesignation.computeIfAbsent(designation, r -> new ArrayList<>()).add(e.getBasicSalary());
         }
 
         Map<String, Object> distribution = new LinkedHashMap<>();
-        salariesByRole.forEach((role, salaries) -> {
+        salariesByDesignation.forEach((designation, salaries) -> {
             BigDecimal avg = salaries.stream().reduce(BigDecimal.ZERO, BigDecimal::add)
                     .divide(BigDecimal.valueOf(salaries.size()), 2, RoundingMode.HALF_UP);
             BigDecimal min = salaries.stream().min(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
             BigDecimal max = salaries.stream().max(Comparator.naturalOrder()).orElse(BigDecimal.ZERO);
-            distribution.put(role, Map.of("count", salaries.size(), "min", min, "max", max, "average", avg));
+            distribution.put(designation, Map.of("count", salaries.size(), "min", min, "max", max, "average", avg));
         });
 
         BigDecimal totalPayroll = employees.stream()
@@ -518,14 +473,14 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
         result.put("totalMonthlyPayroll", totalPayroll);
         result.put("totalEmployeesWithSalary",
                 employees.stream().filter(e -> e.getBasicSalary() != null).count());
-        result.put("byRole", distribution);
+        result.put("byDesignation", distribution);
         return result;
     }
 
     @Override
     public List<Map<String, Object>> getEmployeeMasterReport(Long branchId) {
         log.info("Generating employee master report for branch {}", branchId);
-        List<Employee> employees = employeeRepository.findByBranchId(branchId);
+        List<Employee> employees = employeeRepository.findAll();
         LocalDate today = LocalDate.now();
 
         return employees.stream().map(e -> {
@@ -535,17 +490,13 @@ public class EmployeeReportServiceImpl implements EmployeeReportService {
             Map<String, Object> row = new LinkedHashMap<>();
             row.put("employeeId", e.getId());
             row.put("employeeCode", e.getEmployeeCode());
-            row.put("fullName", e.getFirstName() + " " + e.getLastName());
-            row.put("email", e.getEmail());
-            row.put("phone", e.getPhone());
+            row.put("fullName", e.getFullName());
             row.put("designation", e.getDesignation());
-            row.put("role", e.getRole() != null ? e.getRole().name() : "N/A");
             row.put("employmentType", e.getEmploymentType() != null ? e.getEmploymentType().name() : "N/A");
             row.put("joiningDate", e.getJoiningDate());
             row.put("tenureMonths", tenureMonths);
             row.put("basicSalary", e.getBasicSalary());
             row.put("isActive", e.getIsActive());
-            row.put("branch", e.getBranch() != null ? e.getBranch().getBranchName() : "N/A");
             return row;
         }).collect(Collectors.toList());
     }

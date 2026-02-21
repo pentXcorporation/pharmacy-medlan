@@ -29,16 +29,23 @@ import { useActiveBranches } from "@/features/branches";
 import { formatCurrency } from "@/utils/formatters";
 import { exportFinancialReportCSV, printReport } from "@/utils/reportExport";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store";
 
 const FinancialReportPage = () => {
+  const { user } = useAuthStore();
   const [filters, setFilters] = useState({
     startDate: format(subDays(new Date(), 30), "yyyy-MM-dd"),
     endDate: format(new Date(), "yyyy-MM-dd"),
-    branchId: null,
+    branchId: user?.branchId || null,
   });
 
   const { data: branches } = useActiveBranches();
-  const { data: report, isLoading, error } = useFinancialReport(filters);
+
+  // Derive effective branchId — auto-select first branch if user has none
+  const effectiveBranchId = filters.branchId || branches?.[0]?.id?.toString() || null;
+  const effectiveFilters = { ...filters, branchId: effectiveBranchId };
+
+  const { data: report, isLoading, error } = useFinancialReport(effectiveFilters);
 
   const handleDateChange = ({ startDate, endDate }) => {
     setFilters((prev) => ({ ...prev, startDate, endDate }));
@@ -58,7 +65,7 @@ const FinancialReportPage = () => {
         return;
       }
 
-      const branchName = branches?.find(b => b.id?.toString() === filters.branchId?.toString())?.branchName || "All Branches";
+      const branchName = branches?.find(b => b.id?.toString() === effectiveBranchId?.toString())?.branchName || "All Branches";
       const exportData = {
         summary: report.summary || {},
         revenue: report.paymentMethods || [],
@@ -85,7 +92,9 @@ const FinancialReportPage = () => {
 
   // Summary metrics with safe defaults
   const summary = report?.summary || {};
-  const transactions = report?.transactions || [];
+  const cashFlow = report?.cashFlow || {};
+  const revenueBreakdown = report?.revenue || {};
+  const expensesData = report?.expenses || {};
   const paymentMethods = report?.paymentMethods || [];
 
   // Log error for debugging
@@ -105,7 +114,7 @@ const FinancialReportPage = () => {
         startDate={filters.startDate}
         endDate={filters.endDate}
         onDateChange={handleDateChange}
-        branchId={filters.branchId}
+        branchId={effectiveBranchId}
         onBranchChange={handleBranchChange}
         branches={branches || []}
         onExport={handleExport}
@@ -197,55 +206,94 @@ const FinancialReportPage = () => {
             </CardContent>
           </Card>
 
-          {/* Recent Transactions */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Transactions</CardTitle>
-            </CardHeader>
-            <CardContent>
-              {transactions.length > 0 ? (
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Date</TableHead>
-                      <TableHead>Reference</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead className="text-right">Amount</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {transactions.slice(0, 20).map((tx, index) => (
-                      <TableRow key={tx.id || index}>
-                        <TableCell>
-                          {format(new Date(tx.date), "MMM dd, yyyy")}
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">
-                          {tx.reference}
-                        </TableCell>
-                        <TableCell>{tx.type}</TableCell>
-                        <TableCell>{tx.description}</TableCell>
-                        <TableCell
-                          className={`text-right font-medium ${
-                            tx.type === "EXPENSE"
-                              ? "text-red-600"
-                              : "text-green-600"
-                          }`}
-                        >
-                          {tx.type === "EXPENSE" ? "-" : "+"}
-                          {formatCurrency(tx.amount)}
-                        </TableCell>
-                      </TableRow>
+          {/* Revenue Breakdown & Cash Flow */}
+          <div className="grid gap-4 md:grid-cols-2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm flex items-center gap-2">
+                      <Banknote className="h-4 w-4 text-green-600" />
+                      Cash Sales
+                    </span>
+                    <span className="font-medium">{formatCurrency(revenueBreakdown.cashSales || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm flex items-center gap-2">
+                      <CreditCard className="h-4 w-4 text-blue-600" />
+                      Credit Sales
+                    </span>
+                    <span className="font-medium">{formatCurrency(revenueBreakdown.creditSales || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm flex items-center gap-2">
+                      <TrendingDown className="h-4 w-4 text-red-500" />
+                      Returns / Refunds
+                    </span>
+                    <span className="font-medium text-red-600">-{formatCurrency(revenueBreakdown.returnsRefunds || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 font-semibold">
+                    <span>Net Revenue</span>
+                    <span className="text-green-700">{formatCurrency(summary.totalRevenue || 0)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Cash Flow</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm">Opening Cash</span>
+                    <span className="font-medium">{formatCurrency(cashFlow.openingCash || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-green-700">Cash In</span>
+                    <span className="font-medium text-green-700">+{formatCurrency(cashFlow.cashIn || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 border-b">
+                    <span className="text-sm text-red-600">Cash Out</span>
+                    <span className="font-medium text-red-600">-{formatCurrency(cashFlow.cashOut || 0)}</span>
+                  </div>
+                  <div className="flex justify-between items-center py-2 font-semibold">
+                    <span>Closing Cash</span>
+                    <span className="text-blue-700">{formatCurrency(cashFlow.closingCash || 0)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Expense Breakdown */}
+          {Object.keys(expensesData).length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle>Expense Breakdown</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {Object.entries(expensesData)
+                    .filter(([key, val]) => key !== "totalExpenses" && val > 0)
+                    .map(([key, val]) => (
+                      <div key={key} className="flex justify-between items-center py-2 border-b">
+                        <span className="text-sm capitalize">{key.replace(/([A-Z])/g, " $1").trim()}</span>
+                        <span className="font-medium">{formatCurrency(val)}</span>
+                      </div>
                     ))}
-                  </TableBody>
-                </Table>
-              ) : (
-                <p className="text-center text-muted-foreground py-8">
-                  No transactions for the selected period
-                </p>
-              )}
-            </CardContent>
-          </Card>
+                  <div className="flex justify-between items-center py-2 font-semibold">
+                    <span>Total Expenses</span>
+                    <span className="text-red-700">{formatCurrency(expensesData.totalExpenses || summary.totalExpenses || 0)}</span>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
         </>
       )}
     </div>

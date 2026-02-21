@@ -4,6 +4,7 @@
  */
 
 import { useState } from "react";
+import { format } from "date-fns";
 import { Package, AlertTriangle, TrendingDown, DollarSign } from "lucide-react";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +24,7 @@ import { useActiveBranches } from "@/features/branches";
 import { formatCurrency } from "@/utils/formatters";
 import { exportInventoryReportCSV, printReport } from "@/utils/reportExport";
 import { toast } from "sonner";
+import { useAuthStore } from "@/store";
 import {
   Select,
   SelectContent,
@@ -41,10 +43,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const InventoryReportPage = () => {
-  const [branchId, setBranchId] = useState(null);
+  const { user } = useAuthStore();
+  const [branchId, setBranchId] = useState(user?.branchId || null);
 
   const { data: branches } = useActiveBranches();
-  const { data: report, isLoading, error } = useInventoryReport({ branchId });
+
+  // Derive effective branchId — auto-select first branch if user has none
+  const effectiveBranchId = branchId || branches?.[0]?.id?.toString() || null;
+
+  const { data: report, isLoading, error } = useInventoryReport({ branchId: effectiveBranchId });
 
   const handleExport = (format) => {
     try {
@@ -281,14 +288,14 @@ const InventoryReportPage = () => {
                         <TableCell className="text-right">
                           {item.quantity}
                         </TableCell>
-                        <TableCell>{item.expiryDate}</TableCell>
+                        <TableCell>{item.expiryDate ? (typeof item.expiryDate === "string" && item.expiryDate.includes("-") ? format(new Date(item.expiryDate + "T00:00:00"), "MMM dd, yyyy") : String(item.expiryDate)) : "N/A"}</TableCell>
                         <TableCell>
                           <Badge
                             variant={
-                              item.daysLeft <= 7 ? "destructive" : "warning"
+                              (item.daysLeft ?? item.daysToExpiry ?? 0) <= 7 ? "destructive" : "warning"
                             }
                           >
-                            {item.daysLeft} days
+                            {item.daysLeft ?? item.daysToExpiry ?? 0} days
                           </Badge>
                         </TableCell>
                       </TableRow>
@@ -306,7 +313,7 @@ const InventoryReportPage = () => {
           {/* Stock by Category */}
           <Card>
             <CardHeader>
-              <CardTitle>Stock by Category</CardTitle>
+              <CardTitle>Stock Value by Category</CardTitle>
             </CardHeader>
             <CardContent>
               {stockLevels.length > 0 ? (
@@ -314,24 +321,14 @@ const InventoryReportPage = () => {
                   <TableHeader>
                     <TableRow>
                       <TableHead>Category</TableHead>
-                      <TableHead className="text-right">Products</TableHead>
-                      <TableHead className="text-right">
-                        Total Quantity
-                      </TableHead>
                       <TableHead className="text-right">Stock Value</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {stockLevels.map((category, index) => (
-                      <TableRow key={category.categoryId || index}>
+                      <TableRow key={category.categoryName || index}>
                         <TableCell className="font-medium">
                           {category.categoryName}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {category.productCount}
-                        </TableCell>
-                        <TableCell className="text-right">
-                          {category.totalQuantity}
                         </TableCell>
                         <TableCell className="text-right">
                           {formatCurrency(category.stockValue)}

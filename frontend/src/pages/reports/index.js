@@ -6,3 +6,6 @@ export { default as ReportsPage } from "./ReportsPage";
 export { default as SalesReportPage } from "./SalesReportPage";
 export { default as InventoryReportPage } from "./InventoryReportPage";
 export { default as FinancialReportPage } from "./FinancialReportPage";
+export { default as EmployeeReportPage } from "./EmployeeReportPage";
+export { default as ProductReportPage } from "./ProductReportPage";
+export { default as SupplierReportPage } from "./SupplierReportPage";

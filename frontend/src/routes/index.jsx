@@ -105,6 +105,8 @@ const EmployeeReportPage = lazy(() =>
   import("@/pages/reports/EmployeeReportPage")
 );
 const AuditPage = lazy(() => import("@/pages/reports/AuditPage"));
+const ProductReportPage = lazy(() => import("@/pages/reports/ProductReportPage"));
+const SupplierReportPage = lazy(() => import("@/pages/reports/SupplierReportPage"));
 
 // Settings Pages
 const SettingsPage = lazy(() => import("@/pages/settings/SettingsPage"));
@@ -818,6 +820,26 @@ const router = createBrowserRouter([
           <RoleGuard allowedRoles={[ROLES.SUPER_ADMIN, ROLES.ADMIN, ROLES.OWNER]}>
             <SuspenseWrapper>
               <AuditPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.REPORTS.PRODUCTS,
+        element: (
+          <RoleGuard feature="reports" action="view">
+            <SuspenseWrapper>
+              <ProductReportPage />
+            </SuspenseWrapper>
+          </RoleGuard>
+        ),
+      },
+      {
+        path: ROUTES.REPORTS.SUPPLIERS,
+        element: (
+          <RoleGuard feature="reports" action="view">
+            <SuspenseWrapper>
+              <SupplierReportPage />
             </SuspenseWrapper>
           </RoleGuard>
         ),

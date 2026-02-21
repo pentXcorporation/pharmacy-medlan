@@ -111,4 +111,71 @@ public class SalesReportServiceImpl implements SalesReportService {
 
         return comparison;
     }
+
+    @Override
+    public Map<String, BigDecimal> getHourlySalesDistribution(Long branchId, LocalDate date) {
+        Map<String, BigDecimal> hourly = new LinkedHashMap<>();
+        for (int h = 0; h < 24; h++) {
+            hourly.put(String.format("%02d:00", h), BigDecimal.ZERO);
+        }
+        return hourly;
+    }
+
+    @Override
+    public Map<String, BigDecimal> getSalesByDayOfWeek(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, BigDecimal> getWeeklySalesSummary(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, BigDecimal> getMonthlySalesSummary(Long branchId, int months) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, Object> getSalesTrendAnalysis(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, Object> getFullSalesDashboard(Long branchId, LocalDate startDate, LocalDate endDate) {
+        Map<String, Object> dashboard = new LinkedHashMap<>();
+        dashboard.put("totalSales", getTotalSales(branchId, startDate, endDate));
+        dashboard.put("salesCount", getSalesCount(branchId, startDate, endDate));
+        return dashboard;
+    }
+
+    @Override
+    public List<Map<String, Object>> getTopCustomers(Long branchId, LocalDate startDate, LocalDate endDate, int limit) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public List<Map<String, Object>> getCustomerPurchaseFrequency(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return Collections.emptyList();
+    }
+
+    @Override
+    public Map<String, Object> getNewVsReturningCustomers(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, Object> getSalesReturnSummary(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, BigDecimal> getDailyReturnsTrend(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return Collections.emptyMap();
+    }
+
+    @Override
+    public Map<String, Object> getDiscountAnalysisSummary(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return Collections.emptyMap();
+    }
 }

@@ -9,8 +9,10 @@ import {
   Package,
   DollarSign,
   ShoppingCart,
-  AlertTriangle,
   TrendingUp,
+  Users,
+  Truck,
+  Shield,
 } from "lucide-react";
 
 import { ROUTES } from "@/config/routes.config";
@@ -26,14 +28,14 @@ import { PageHeader } from "@/components/common";
 const reportTypes = [
   {
     title: "Sales Report",
-    description: "View sales performance, trends, and top products",
+    description: "Sales performance, trends, customers, and returns analysis",
     icon: TrendingUp,
     route: ROUTES.REPORTS.SALES,
     color: "text-blue-600",
   },
   {
     title: "Inventory Report",
-    description: "Stock levels, movements, and valuation",
+    description: "Stock levels, movements, turnover, and valuation",
     icon: Package,
     route: ROUTES.REPORTS.INVENTORY,
     color: "text-green-600",
@@ -46,24 +48,31 @@ const reportTypes = [
     color: "text-purple-600",
   },
   {
-    title: "Purchase Report",
-    description: "Purchase orders, supplier analysis",
+    title: "Product Report",
+    description: "Product performance, margins, and category analysis",
     icon: ShoppingCart,
-    route: ROUTES.REPORTS.PURCHASE,
+    route: ROUTES.REPORTS.PRODUCTS,
     color: "text-orange-600",
   },
   {
-    title: "Expiry Report",
-    description: "Products nearing expiry or expired",
-    icon: AlertTriangle,
-    route: ROUTES.REPORTS.EXPIRY,
+    title: "Employee Report",
+    description: "Attendance, payroll, performance, and HR overview",
+    icon: Users,
+    route: ROUTES.REPORTS.EMPLOYEES,
+    color: "text-cyan-600",
+  },
+  {
+    title: "Supplier Report",
+    description: "Supplier purchases, payments, and delivery performance",
+    icon: Truck,
+    route: ROUTES.REPORTS.SUPPLIERS,
     color: "text-red-600",
   },
   {
-    title: "Profit & Loss",
-    description: "Comprehensive profit and loss statement",
-    icon: BarChart3,
-    route: ROUTES.REPORTS.PROFIT_LOSS,
+    title: "Audit Log",
+    description: "System activity and audit trail",
+    icon: Shield,
+    route: ROUTES.REPORTS.AUDIT,
     color: "text-teal-600",
   },
 ];
