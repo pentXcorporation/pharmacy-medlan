@@ -26,7 +26,7 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     public BigDecimal getTotalStockValue(Long branchId) {
         List<BranchInventory> inventories = branchInventoryRepository.findByBranchId(branchId);
         BigDecimal totalValue = BigDecimal.ZERO;
-        
+
         for (BranchInventory bi : inventories) {
             List<InventoryBatch> batches = inventoryBatchRepository.findByProductIdAndBranchId(
                     bi.getProduct().getId(), branchId);
@@ -44,18 +44,18 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     public Map<String, BigDecimal> getStockValueByCategory(Long branchId) {
         List<BranchInventory> inventories = branchInventoryRepository.findByBranchId(branchId);
         Map<String, BigDecimal> categoryValues = new HashMap<>();
-        
+
         for (BranchInventory bi : inventories) {
             String categoryName = bi.getProduct().getCategory() != null ?
                     bi.getProduct().getCategory().getCategoryName() : "Uncategorized";
-            
+
             List<InventoryBatch> batches = inventoryBatchRepository.findByProductIdAndBranchId(
                     bi.getProduct().getId(), branchId);
             BigDecimal itemValue = batches.stream()
                     .filter(b -> b.getQuantityAvailable() > 0)
                     .map(b -> b.getPurchasePrice().multiply(BigDecimal.valueOf(b.getQuantityAvailable())))
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
-            
+
             categoryValues.merge(categoryName, itemValue, BigDecimal::add);
         }
         return categoryValues;
@@ -65,6 +65,11 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     public List<Map<String, Object>> getStockMovementReport(Long branchId, LocalDate startDate, LocalDate endDate) {
         // Would need to query InventoryTransaction or bin card for movements
         // Placeholder implementation
+        return List.of();
+    }
+
+    @Override
+    public List<Map<String, Object>> getStockInVsOutReport(Long branchId, LocalDate startDate, LocalDate endDate) {
         return List.of();
     }
 
@@ -90,7 +95,7 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     public List<Map<String, Object>> getExpiringStockReport(Long branchId, int daysToExpiry) {
         LocalDate alertDate = LocalDate.now().plusDays(daysToExpiry);
         List<InventoryBatch> expiringBatches = inventoryBatchRepository.findExpiringBatchesForAlert(branchId, alertDate);
-        
+
         return expiringBatches.stream()
                 .map(batch -> {
                     Map<String, Object> item = new HashMap<>();
@@ -111,7 +116,7 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     @Override
     public List<Map<String, Object>> getExpiredStockReport(Long branchId) {
         List<InventoryBatch> expiredBatches = inventoryBatchRepository.findExpiredBatches(LocalDate.now());
-        
+
         return expiredBatches.stream()
                 .filter(batch -> branchId == null || batch.getBranch().getId().equals(branchId))
                 .map(batch -> {
@@ -138,6 +143,11 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     }
 
     @Override
+    public List<Map<String, Object>> getProductStockTurnoverRatios(Long branchId, LocalDate startDate, LocalDate endDate) {
+        return List.of();
+    }
+
+    @Override
     public List<Map<String, Object>> getDeadStockReport(Long branchId, int daysSinceLastSale) {
         // Would need to track last sale date - placeholder
         List<BranchInventory> inventories = branchInventoryRepository.findByBranchId(branchId);
@@ -156,30 +166,50 @@ public class InventoryReportServiceImpl implements InventoryReportService {
     }
 
     @Override
+    public List<Map<String, Object>> getInventoryValuationReport(Long branchId) {
+        return List.of();
+    }
+
+    @Override
+    public List<Map<String, Object>> getBatchAgingReport(Long branchId) {
+        return List.of();
+    }
+
+    @Override
+    public List<Map<String, Object>> getCrossBranchInventoryComparison() {
+        return List.of();
+    }
+
+    @Override
+    public Map<String, Object> getStockTransferSummary(LocalDate startDate, LocalDate endDate) {
+        return Map.of();
+    }
+
+    @Override
     public Map<String, Object> getInventorySummary(Long branchId) {
         List<BranchInventory> inventories = branchInventoryRepository.findByBranchId(branchId);
-        
+
         int totalProducts = inventories.size();
         int totalQuantity = inventories.stream()
                 .mapToInt(BranchInventory::getQuantityOnHand)
                 .sum();
-        
+
         int lowStockCount = (int) inventories.stream()
                 .filter(bi -> bi.getQuantityAvailable() < bi.getReorderLevel() && bi.getQuantityAvailable() > 0)
                 .count();
-        
+
         int outOfStockCount = (int) inventories.stream()
                 .filter(bi -> bi.getQuantityAvailable() <= 0)
                 .count();
-        
+
         LocalDate alertDate = LocalDate.now().plusDays(30);
         int expiringCount = inventoryBatchRepository.findExpiringBatchesForAlert(branchId, alertDate).size();
         int expiredCount = inventoryBatchRepository.findExpiredBatches(LocalDate.now()).stream()
                 .filter(b -> branchId == null || b.getBranch().getId().equals(branchId))
                 .toList().size();
-        
+
         BigDecimal totalValue = getTotalStockValue(branchId);
-        
+
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalProducts", totalProducts);
         summary.put("totalQuantity", totalQuantity);
@@ -188,7 +218,12 @@ public class InventoryReportServiceImpl implements InventoryReportService {
         summary.put("outOfStockCount", outOfStockCount);
         summary.put("expiringCount", expiringCount);
         summary.put("expiredCount", expiredCount);
-        
+
         return summary;
+    }
+
+    @Override
+    public Map<String, Object> getInventoryHealthDashboard(Long branchId) {
+        return Map.of();
     }
 }
