@@ -42,11 +42,11 @@ public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
     // Branch isolation methods
     List<Attendance> findByBranchId(Long branchId);
     
-    @Query("SELECT a FROM Attendance a WHERE a.branchId = :branchId AND a.date = :date AND a.deleted = false")
+    @Query("SELECT a FROM Attendance a WHERE a.branch.id = :branchId AND a.date = :date AND a.deleted = false")
     List<Attendance> findByBranchIdAndDate(@Param("branchId") Long branchId, @Param("date") LocalDate date);
     
     @Query("SELECT a FROM Attendance a WHERE " +
-           "a.branchId = :branchId AND " +
+           "a.branch.id = :branchId AND " +
            "(:search IS NULL OR LOWER(a.employee.fullName) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
            "LOWER(a.employee.employeeCode) LIKE LOWER(CONCAT('%', :search, '%'))) AND " +
            "(:date IS NULL OR a.date = :date) AND " +

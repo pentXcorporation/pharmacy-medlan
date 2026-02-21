@@ -4,6 +4,8 @@ import com.pharmacy.medlan.model.base.AuditableEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "categories")
@@ -41,4 +43,8 @@ public class Category extends AuditableEntity {
     @Column(name = "is_active", nullable = false)
     @Builder.Default
     private Boolean isActive = true;
+
+    @OneToMany(mappedBy = "category")
+    @Builder.Default
+    private List<SubCategory> subCategories = new ArrayList<>();
 }

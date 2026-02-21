@@ -11,6 +11,7 @@ import lombok.experimental.SuperBuilder;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import com.pharmacy.medlan.model.product.BranchInventory;
 
 @Entity
 @Table(name = "products", indexes = {
@@ -27,7 +28,7 @@ import java.util.List;
 @Setter
 @NoArgsConstructor
 @SuperBuilder
-@ToString(exclude = {"category", "subCategory", "unit", "taxCategory"})
+@ToString(exclude = {"category", "subCategory", "unit", "taxCategory", "inventoryBatches", "branchInventories"})
 @EqualsAndHashCode(onlyExplicitlyIncluded = true, callSuper = false)
 public abstract class Product extends AuditableEntity {
 
@@ -155,6 +156,10 @@ public abstract class Product extends AuditableEntity {
     @OneToMany(mappedBy = "product")
     @Builder.Default
     private List<InventoryBatch> inventoryBatches = new ArrayList<>();
+
+    @OneToMany(mappedBy = "product")
+    @Builder.Default
+    private List<BranchInventory> branchInventories = new ArrayList<>();
 
     public abstract boolean isValid();
     public abstract ProductType getProductType();

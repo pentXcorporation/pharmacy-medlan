@@ -61,12 +61,12 @@ public interface SupplierPaymentRepository extends JpaRepository<SupplierPayment
     // Branch isolation methods
     List<SupplierPayment> findByBranchId(Long branchId);
     
-    @Query("SELECT sp FROM SupplierPayment sp WHERE sp.branchId = :branchId AND sp.supplier.id = :supplierId " +
+    @Query("SELECT sp FROM SupplierPayment sp WHERE sp.branch.id = :branchId AND sp.supplier.id = :supplierId " +
             "ORDER BY sp.paymentDate DESC")
     List<SupplierPayment> findPaymentsByBranchAndSupplier(@Param("branchId") Long branchId, 
                                                           @Param("supplierId") Long supplierId);
     
-    @Query("SELECT SUM(sp.amount) FROM SupplierPayment sp WHERE sp.branchId = :branchId " +
+    @Query("SELECT SUM(sp.amount) FROM SupplierPayment sp WHERE sp.branch.id = :branchId " +
             "AND sp.paymentDate BETWEEN :startDate AND :endDate AND sp.status = 'PAID'")
     BigDecimal getTotalPaymentsByBranchAndDateRange(@Param("branchId") Long branchId,
                                                      @Param("startDate") LocalDate startDate,

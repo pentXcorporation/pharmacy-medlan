@@ -36,7 +36,7 @@ public interface BranchRepository extends JpaRepository<Branch, Long>, JpaSpecif
             "LOWER(b.city) LIKE LOWER(CONCAT('%', :search, '%')))")
     List<Branch> searchBranches(@Param("search") String search);
 
-    @Query("SELECT b FROM Branch b JOIN b.staff bs WHERE bs.user.id = :userId")
+    @Query("SELECT bs.branch FROM BranchStaff bs WHERE bs.user.id = :userId")
     List<Branch> findBranchesByStaffUser(@Param("userId") Long userId);
 
     @Query("SELECT COUNT(b) FROM Branch b WHERE b.isActive = true")

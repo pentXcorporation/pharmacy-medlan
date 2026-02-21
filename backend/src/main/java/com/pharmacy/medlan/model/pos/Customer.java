@@ -7,6 +7,8 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Table(name = "customers", indexes = {
@@ -91,4 +93,8 @@ public class Customer extends AuditableEntity {
 
     @Column(name = "insurance_policy_number", length = 100)
     private String insurancePolicyNumber;
+
+    @OneToMany(mappedBy = "customer")
+    @Builder.Default
+    private List<Sale> sales = new ArrayList<>();
 }
