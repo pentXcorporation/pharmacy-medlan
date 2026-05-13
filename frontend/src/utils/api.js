@@ -5,6 +5,7 @@
 import axios from "axios";
 import { API_CONFIG } from "@/config/api.config";
 import { useAuthStore } from "@/store";
+import { demoAdapter } from "@/utils/demoApi";
 
 // Create axios instance
 const apiClient = axios.create({
@@ -18,6 +19,10 @@ const apiClient = axios.create({
   },
 });
 
+if (API_CONFIG.DEMO_MODE) {
+  apiClient.defaults.adapter = demoAdapter;
+}
+
 // Create auth client for auth endpoints (different base URL)
 export const authClient = axios.create({
   baseURL: API_CONFIG.AUTH_URL,
@@ -29,6 +34,10 @@ export const authClient = axios.create({
     "ngrok-skip-browser-warning": "true",
   },
 });
+
+if (API_CONFIG.DEMO_MODE) {
+  authClient.defaults.adapter = demoAdapter;
+}
 
 // Token management
 const getAccessToken = () => localStorage.getItem(API_CONFIG.TOKEN.ACCESS_KEY);

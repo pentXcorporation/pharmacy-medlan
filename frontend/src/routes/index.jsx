@@ -1133,10 +1133,10 @@ const router = createBrowserRouter([
         ),
       },
 
-      // Catch-all redirect to dashboard
+      // Catch-all redirect to POS for demo/offline access
       {
         path: "*",
-        element: <Navigate to={ROUTES.DASHBOARD} replace />,
+        element: <Navigate to={ROUTES.POS.ROOT} replace />,
       },
     ],
   },
@@ -1144,7 +1144,7 @@ const router = createBrowserRouter([
   // Root redirect
   {
     path: "/",
-    element: <Navigate to={ROUTES.DASHBOARD} replace />,
+    element: <Navigate to={ROUTES.POS.ROOT} replace />,
   },
 ]);
 

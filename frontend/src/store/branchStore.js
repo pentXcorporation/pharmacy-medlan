@@ -4,8 +4,19 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 
+const DEMO_BRANCH = {
+  id: 1,
+  name: "Main Branch",
+  branchName: "Main Branch",
+  address: "Demo Address",
+  city: "Demo City",
+  state: "Demo State",
+  phone: "000-000-0000",
+  gstNumber: "DEMO-GST-0001",
+};
+
 const initialState = {
-  selectedBranch: null,
+  selectedBranch: DEMO_BRANCH,
   branches: [],
   isLoading: false,
   error: null,

@@ -7,6 +7,9 @@ export const API_CONFIG = {
   // Base URL for API calls
   BASE_URL: import.meta.env.VITE_API_BASE_URL,
 
+  // Demo mode keeps the frontend usable without a backend
+  DEMO_MODE: import.meta.env.VITE_DEMO_MODE !== "false",
+
   // Auth endpoints (no /api prefix as they're at root)
   AUTH_URL: import.meta.env.VITE_AUTH_URL,
 

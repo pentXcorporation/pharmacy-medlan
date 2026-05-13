@@ -1,6 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 import { API_CONFIG, API_ENDPOINTS } from "@/config";
+import { demoScanResult } from "@/utils/demoApi";
 
 export const useScan = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -11,6 +12,10 @@ export const useScan = () => {
     setError(null);
 
     try {
+      if (API_CONFIG.DEMO_MODE) {
+        return demoScanResult(scanData, context, branchId);
+      }
+
       // Assuming you have an axios instance set up, otherwise use fetch
       // Using standard fetch for portability in this example
       const token = localStorage.getItem(API_CONFIG.TOKEN.ACCESS_KEY);
