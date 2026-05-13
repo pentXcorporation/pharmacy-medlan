@@ -5,12 +5,24 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { API_CONFIG } from "@/config/api.config";
 
+// BYPASS: Default mock user for development/demo purposes
+const MOCK_USER = {
+  id: "bypass-demo-user",
+  email: "demo@pharmacy.local",
+  name: "Demo User",
+  role: "super_admin",
+  branchId: 1,
+  status: "active",
+};
+
+const MOCK_TOKEN = "bypass-demo-token-" + Math.random().toString(36).substr(2, 9);
+
 const initialState = {
-  user: null,
-  accessToken: null,
-  refreshToken: null,
-  isAuthenticated: false,
-  isLoading: true,
+  user: MOCK_USER,
+  accessToken: MOCK_TOKEN,
+  refreshToken: MOCK_TOKEN,
+  isAuthenticated: true,
+  isLoading: false,
   error: null,
 };
 
@@ -110,10 +122,24 @@ export const useAuthStore = create(
               isLoading: false,
             });
           } catch {
-            set({ ...initialState, isLoading: false });
+            // BYPASS: Use mock user on error instead of clearing auth
+            set({
+              user: MOCK_USER,
+              accessToken: MOCK_TOKEN,
+              refreshToken: MOCK_TOKEN,
+              isAuthenticated: true,
+              isLoading: false,
+            });
           }
         } else {
-          set({ ...initialState, isLoading: false });
+          // BYPASS: Initialize with mock user for demo access
+          set({
+            user: MOCK_USER,
+            accessToken: MOCK_TOKEN,
+            refreshToken: MOCK_TOKEN,
+            isAuthenticated: true,
+            isLoading: false,
+          });
         }
       },
     }),
@@ -131,9 +157,16 @@ export const useAuthStore = create(
           console.error("Failed to rehydrate auth store:", error);
         }
 
-        // Always set isLoading to false after hydration, whether state exists or not
+        // BYPASS: Always set isLoading to false after hydration
         if (state) {
           state.isLoading = false;
+          // BYPASS: Use mock user if no user data exists
+          if (!state.user) {
+            state.user = MOCK_USER;
+            state.accessToken = MOCK_TOKEN;
+            state.refreshToken = MOCK_TOKEN;
+            state.isAuthenticated = true;
+          }
           // Also sync tokens to localStorage for the API client
           if (state.accessToken) {
             localStorage.setItem(
@@ -152,6 +185,15 @@ export const useAuthStore = create(
               API_CONFIG.TOKEN.USER_KEY,
               JSON.stringify(state.user)
             );
+          }
+        } else {
+          // BYPASS: Initialize with mock user
+          if (state) {
+            state.user = MOCK_USER;
+            state.accessToken = MOCK_TOKEN;
+            state.refreshToken = MOCK_TOKEN;
+            state.isAuthenticated = true;
+            state.isLoading = false;
           }
         }
       },
