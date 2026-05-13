@@ -10,7 +10,7 @@ const MOCK_USER = {
   id: "bypass-demo-user",
   email: "demo@pharmacy.local",
   name: "Demo User",
-  role: "super_admin",
+  role: "SUPER_ADMIN",
   branchId: 1,
   status: "active",
 };
